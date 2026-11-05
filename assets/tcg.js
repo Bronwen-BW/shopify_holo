@@ -136,15 +136,8 @@
 
       segments.forEach(function (seg, i) {
         var active = i === current;
-        var fill = seg.querySelector('._segmentFill_n65qd_363');
-        seg.classList.toggle('_segmentActive_n65qd_356', active);
+        seg.classList.toggle('_dotActive_tcg1', active);
         seg.setAttribute('aria-selected', active ? 'true' : 'false');
-        // 重置并重新触发填充动画
-        fill.classList.remove('_segmentTimed_n65qd_382');
-        if (active) {
-          reflow(fill);
-          fill.classList.add('_segmentTimed_n65qd_382');
-        }
       });
     }
 

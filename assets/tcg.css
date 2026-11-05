@@ -40,3 +40,10 @@
 ._slideActive_n65qd_71 ._slideBg_tcg1 img{opacity:1;transform:scale(1)}
 ._slideBgOverlay_tcg1{position:absolute;inset:0;background:linear-gradient(90deg,rgba(24,24,24,.93) 0%,rgba(24,24,24,.78) 34%,rgba(24,24,24,.34) 68%,rgba(24,24,24,.18) 100%),linear-gradient(0deg,rgba(24,24,24,.55),transparent 45%)}
 @media (prefers-reduced-motion:reduce){._slideBg_tcg1 img{transform:scale(1);transition:none}}
+
+/* Hero 轮播圆点导航（点击切换） */
+._dots_tcg1{position:absolute;z-index:4;bottom:clamp(1.5rem,3vw,2.1rem);left:clamp(2rem,4.5vw,4.5rem);display:flex;align-items:center;gap:.55rem}
+._dot_tcg1{width:.7rem;height:.7rem;padding:0;border:0;border-radius:9999px;background:#f9fafb38;cursor:pointer;transition:background-color .22s cubic-bezier(.22,1,.36,1),transform .22s cubic-bezier(.22,1,.36,1),box-shadow .22s cubic-bezier(.22,1,.36,1)}
+._dot_tcg1:hover{background:#f9fafb73}
+._dot_tcg1:focus-visible{outline:2px solid #34d399;outline-offset:2px}
+._dotActive_tcg1{background:#34d399;box-shadow:0 0 10px #34d39980;transform:scale(1.2)}

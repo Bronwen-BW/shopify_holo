@@ -7,6 +7,8 @@
 {%- assign shelf_products = hero_collection.products | slice: 0, 5 -%}
 {%- comment %} 各轮播主题色（按页数取模循环使用） {% endcomment -%}
 {%- assign themes = '#72522b,#216b4d,#216b4d,#7a3828,#7a3828,#4c1d95,#155e75,#713f12,#3f6212,#831843' | split: ',' -%}
+{%- comment %} 背景图链接：英文逗号分隔，按顺序对应各页，未填的页回退用产品主图 {% endcomment -%}
+{%- assign bg_links = section.settings.background_images | default: '' | split: ',' -%}
 
 <section class="_showcase_n65qd_1">
   <div class="_grid_n65qd_6">
@@ -21,8 +23,8 @@
           {%- assign tag_down = tag | downcase -%}
           {%- if tag_down contains 'pre' -%}{%- assign is_preorder = true -%}{%- endif -%}
         {%- endfor -%}
-        {%- assign variant = product.selected_or_first_available_variant -%}
         {%- assign theme_index = forloop.index0 | modulo: themes.size -%}
+        {%- assign bg_link = bg_links[forloop.index0] | strip -%}
 
         <article
           class="_slide_n65qd_49 {% if forloop.first %}_slideActive_n65qd_71{% endif %}"
@@ -30,11 +32,11 @@
           {% if forloop.first == false %}inert aria-hidden="true"{% else %}aria-hidden="false"{% endif %}
           style="--theme: {{ themes[theme_index] }};"
         >
-          {%- comment %} 幻灯片底图：全幅铺满 + 渐变遮罩保证文字可读 {% endcomment -%}
-          {%- if product.featured_image -%}
+          {%- comment %} 幻灯片底图：优先使用设置的图片链接，否则用产品主图；全幅铺满 + 渐变遮罩保证文字可读 {% endcomment -%}
+          {%- if bg_link != blank or product.featured_image -%}
             <div class="_slideBg_tcg1" aria-hidden="true">
               <img
-                src="{{ product.featured_image | image_url: width: 1800 }}"
+                src="{% if bg_link != blank %}{{ bg_link }}{% else %}{{ product.featured_image | image_url: width: 1800 }}{% endif %}"
                 alt=""
                 draggable="false"
                 {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}
@@ -53,20 +55,6 @@
             </p>
             <h2 class="_title_n65qd_113">{{ product.title }}</h2>
             <p class="_blurb_n65qd_124">{{ product.description | strip_html | truncate: 320 }}</p>
-            <div class="_actions_n65qd_137">
-              <a href="{{ product.url }}" class="_primaryCta_n65qd_145">Shop now</a>
-              <button
-                type="button"
-                class="_addCta_n65qd_196"
-                data-add
-                data-variant="{{ variant.id }}"
-                {% unless variant.available %}disabled{% endunless %}
-                aria-label="Add {{ product.title | escape }} to cart, {{ product.price | money }}"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.4"></circle><circle cx="18" cy="20" r="1.4"></circle><path d="M2 3h2.2l2.3 11.4a2 2 0 0 0 2 1.6h8.4a2 2 0 0 0 2-1.6L21 7H6"></path></svg>
-                <span>{{ product.price | money }}</span>
-              </button>
-            </div>
           </div>
 
           {%- comment %} 仅当没有背景图时才显示悬浮产品占位图，避免与底图重复 {% endcomment -%}
@@ -79,19 +67,17 @@
         </article>
       {%- endfor -%}
 
-      {%- comment %} 分段进度条（点击可切换，6 秒自动推进） {% endcomment -%}
-      <div class="_progress_n65qd_321" role="tablist" aria-label="Featured products">
+      {%- comment %} 圆点导航（点击切换，6 秒自动推进） {% endcomment -%}
+      <div class="_dots_tcg1" role="tablist" aria-label="Featured products">
         {%- for product in hero_products -%}
           <button
             type="button"
             role="tab"
-            class="_segment_n65qd_331 {% if forloop.first %}_segmentActive_n65qd_356{% endif %}"
+            class="_dot_tcg1 {% if forloop.first %}_dotActive_tcg1{% endif %}"
             data-segment
             aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
             aria-label="Show {{ product.title | escape }}"
-          >
-            <span class="_segmentFill_n65qd_363 {% if forloop.first %}_segmentTimed_n65qd_382{% endif %}"></span>
-          </button>
+          ></button>
         {%- endfor -%}
       </div>
     </div>
@@ -149,11 +135,16 @@
     {
       "type": "range",
       "id": "slides_to_show",
-      "label": "轮播页数（最多 10 页，每页底图为对应产品图）",
+      "label": "轮播页数（最多 10 页）",
       "min": 1,
       "max": 10,
       "step": 1,
       "default": 5
+    },
+    {
+      "type": "textarea",
+      "id": "background_images",
+      "label": "背景图链接（英文逗号分隔，按顺序对应各页，最多 10 个；留空的页使用产品主图）"
     }
   ],
   "presets": [
