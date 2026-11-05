@@ -1,0 +1,76 @@
+{
+  "sections": {
+    "hero": {
+      "type": "tcg-hero",
+      "settings": {}
+    },
+    "games": {
+      "type": "tcg-games",
+      "blocks": {
+        "g1": { "type": "game", "settings": { "name": "Pokémon", "tagline": "Singles, sealed, and graded rares", "frame_color": "#2ed39a" } },
+        "g2": { "type": "game", "settings": { "name": "Yu-Gi-Oh!", "tagline": "Old favourites and the newest sets", "frame_color": "#a78bfa" } },
+        "g3": { "type": "game", "settings": { "name": "Magic: The Gathering", "tagline": "Commander, Standard, and more", "frame_color": "#f28753" } },
+        "g4": { "type": "game", "settings": { "name": "Disney Lorcana", "tagline": "Enchanted cards and new Disney sets", "frame_color": "#c084fc" } },
+        "g5": { "type": "game", "settings": { "name": "Riftbound", "tagline": "League of Legends comes to the tabletop", "frame_color": "#7dd3fc" } },
+        "g6": { "type": "game", "settings": { "name": "Digimon", "tagline": "Tamers, alternate arts, and sealed sets", "frame_color": "#60a5fa" } },
+        "g7": { "type": "game", "settings": { "name": "Cyberpunk", "tagline": "Cards and releases from Night City", "frame_color": "#facc15" } }
+      },
+      "block_order": ["g1", "g2", "g3", "g4", "g5", "g6", "g7"],
+      "settings": {}
+    },
+    "sets": {
+      "type": "tcg-sets",
+      "blocks": {
+        "s1": { "type": "set", "settings": { "game_label": "Pokémon", "frame_color": "#2ed39a" } },
+        "s2": { "type": "set", "settings": { "game_label": "Magic: The Gathering", "frame_color": "#f28753" } }
+      },
+      "block_order": ["s1", "s2"],
+      "settings": {}
+    },
+    "upcoming": {
+      "type": "tcg-product-grid",
+      "settings": {
+        "heading": "Upcoming releases",
+        "subheading": "Announced sets and products available to pre-order.",
+        "limit": 4
+      }
+    },
+    "new_arrivals": {
+      "type": "tcg-product-grid",
+      "settings": {
+        "heading": "New arrivals and best sellers",
+        "subheading": "Fresh stock and the products collectors keep coming back for.",
+        "limit": 8
+      }
+    },
+    "bento": {
+      "type": "tcg-catalog-bento",
+      "settings": {}
+    },
+    "budget": {
+      "type": "tcg-budget",
+      "settings": {
+        "band_0_title": "Under €25",
+        "band_0_desc": "Singles, packs and small gifts",
+        "band_1_title": "€25 to €100",
+        "band_1_desc": "Decks, bundles and chase cards",
+        "band_2_title": "€100 and up",
+        "band_2_desc": "Booster boxes and collector pieces"
+      }
+    },
+    "feature": {
+      "type": "tcg-feature",
+      "settings": {}
+    }
+  },
+  "order": [
+    "hero",
+    "games",
+    "sets",
+    "upcoming",
+    "new_arrivals",
+    "bento",
+    "budget",
+    "feature"
+  ]
+}

@@ -1,0 +1,88 @@
+{%- comment -%}
+  TCG 风格顶部导航（浮动胶囊）
+  结构与 class 完全对齐参考站，链接替换为 Shopify 路由
+{%- endcomment -%}
+<header class="_navbar_1hxzp_1" data-tcg-header>
+  <div class="_inner_1hxzp_10">
+
+    {%- comment %} 品牌 Logo {% endcomment -%}
+    <a href="{{ routes.root_url }}" class="_logo_1hxzp_32" aria-label="TCGHaven">
+      <span class="_logoMark_1hxzp_80">
+        <img src="{{ 'logo-mark.png' | asset_url }}" alt="" width="409" height="379">
+      </span>
+      <span class="_logoText_1hxzp_32">TCG<span class="_logoAccent_1hxzp_103">Haven</span></span>
+    </a>
+
+    {%- comment %} 桌面主导航 {% endcomment -%}
+    <nav class="_navWrap_1hxzp_109" aria-label="Main">
+      <ul class="_nav_1hxzp_1">
+        <li class="_indicator_1hxzp_122" aria-hidden="true"></li>
+        <li><a class="_navLink_1hxzp_145 {% if request.page_type == 'index' %}_navLinkActive_1hxzp_163{% endif %}" href="{{ routes.root_url }}">Home</a></li>
+        <li><a class="_navLink_1hxzp_145 {% if request.page_type == 'collection' %}_navLinkActive_1hxzp_163{% endif %}" href="{{ routes.all_products_collection_url }}">Shop</a></li>
+        <li><a class="_navLink_1hxzp_145" href="{{ routes.all_products_collection_url }}">Games</a></li>
+        <li><a class="_navLink_1hxzp_145" href="{{ routes.all_products_collection_url }}">Accessories</a></li>
+      </ul>
+    </nav>
+
+    {%- comment %} 右侧操作区 {% endcomment -%}
+    <div class="_actions_1hxzp_167">
+
+      {%- comment %} 可展开搜索框（提交到 Shopify 搜索页） {% endcomment -%}
+      <form class="_searchWrap_1hxzp_52" role="search" action="{{ routes.search_url }}" method="get">
+        <input
+          type="search"
+          name="q"
+          class="_searchInput_1hxzp_52"
+          placeholder="Search cards, sets, sealed…"
+          aria-label="Search the catalogue"
+          aria-autocomplete="list"
+        >
+        <button type="button" class="_iconBtn_1hxzp_244 _searchTrigger_1hxzp_58" aria-label="Open search" data-search-trigger>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.35-4.35"></path></svg>
+        </button>
+      </form>
+
+      {%- comment %} 拍照搜卡（保留 UI，触发隐藏文件选择） {% endcomment -%}
+      <button type="button" class="_trigger_laq6k_1" aria-label="Search by photo of a card" data-photo-trigger title="Search by photo of a card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"></path><rect x="8.5" y="7.5" width="7" height="9" rx="1"></rect></svg>
+      </button>
+      <input type="file" tabindex="-1" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" class="_file_laq6k_30" data-photo-file>
+
+      {%- comment %} 心愿单（指向账户页） {% endcomment -%}
+      <a aria-label="Wishlist" href="{{ routes.account_url }}" class="_iconBtn_1hxzp_244 _wishlistBtn_1hxzp_540">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7.5-4.6-10-9.3C.4 7.1 2 3.5 5.6 3a5 5 0 0 1 6.4 2.2A5 5 0 0 1 18.4 3c3.6.5 5.2 4.1 3.6 7.7C19.5 15.4 12 20 12 20Z"></path></svg>
+      </a>
+
+      {%- comment %} 账户 {% endcomment -%}
+      <a aria-label="Customer account" href="{{ routes.account_url }}" class="_iconBtn_1hxzp_244 _accountBtn_1hxzp_552">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M5 20a7 7 0 0 1 14 0"></path></svg>
+      </a>
+
+      {%- comment %} 购物车（带数量气泡） {% endcomment -%}
+      <a class="_cartBtn_1hxzp_281 {% if cart.item_count > 0 %}_cartFilled_1hxzp_341{% endif %}" href="{{ routes.cart_url }}" aria-label="Cart, {{ cart.item_count }} item" data-cart-link>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+        {%- if cart.item_count > 0 -%}
+          <span class="_cartCount_1hxzp_345" data-cart-count>{{ cart.item_count }}</span>
+        {%- endif -%}
+      </a>
+
+      {%- comment %} 移动端菜单按钮 {% endcomment -%}
+      <button type="button" class="_iconBtn_1hxzp_244 _menuBtn_1hxzp_377" aria-label="Open menu" aria-expanded="false" data-menu-trigger>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 8h16M4 16h16"></svg>
+      </button>
+    </div>
+  </div>
+
+  {%- comment %} 移动端下拉菜单（默认隐藏，由 JS 控制） {% endcomment -%}
+  <div class="_menu_1hxzp_377" data-mobile-menu hidden>
+    <nav>
+      <a href="{{ routes.root_url }}" class="_menuLink_1hxzp_409">Home</a>
+      <a href="{{ routes.all_products_collection_url }}" class="_menuLink_1hxzp_409">Shop</a>
+      <a href="{{ routes.all_products_collection_url }}" class="_menuLink_1hxzp_409">Games</a>
+    </nav>
+    <div class="_menuSecondary_1hxzp_425">
+      <a href="{{ routes.account_url }}">Account</a>
+      <a href="{{ routes.cart_url }}">Cart</a>
+    </div>
+  </div>
+</header>

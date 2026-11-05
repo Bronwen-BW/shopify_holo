@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    {%- if settings.favicon != blank -%}
+      <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+    {%- else -%}
+      <link rel="icon" type="image/svg+xml" href="{{ 'logo-mark.png' | asset_url }}">
+    {%- endif -%}
+
+    {%- comment %} SEO 元信息（保留 Shopify 原生 meta 渲染） {% endcomment -%}
+    {%- render 'meta-tags' -%}
+
+    {%- comment %} 参考站字体：标题 Rubik + 正文 Figtree {% endcomment -%}
+    {% # theme-check-disable RemoteAsset %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Rubik:wght@500;600;700;800;900&display=swap"
+    >
+
+    {%- comment %} TCG 风格主样式（由参考站构建产物合并，自包含全部组件与动画） {% endcomment -%}
+    {{ 'tcg.css' | asset_url | stylesheet_tag }}
+
+    {%- if request.design_mode -%}
+      {%- render 'theme-editor' -%}
+    {%- endif -%}
+
+    {{ content_for_header }}
+    {% # theme-check-enable RemoteAsset %}
+  </head>
+
+  <body>
+    {%- comment %} 整体复刻参考站 #app 骨架 {% endcomment -%}
+    <div id="app">
+      {%- comment %} 顶部路由加载进度条 {% endcomment -%}
+      <div class="route-progress" aria-hidden="true"></div>
+
+      {%- comment %} 浮动胶囊导航 {% endcomment -%}
+      {% render 'tcg-header' %}
+
+      <div class="route-motion route-enter">
+        <main id="MainContent" role="main">
+          {{ content_for_layout }}
+        </main>
+      </div>
+
+      {%- comment %} 浮动面板页脚 {% endcomment -%}
+      {% render 'tcg-footer' %}
+    </div>
+
+    {%- comment %} 全部交互逻辑（轮播/搜索/移动菜单/滚动揭示/加购/倒计时） {% endcomment -%}
+    <script src="{{ 'tcg.js' | asset_url }}" defer></script>
+  </body>
+</html>

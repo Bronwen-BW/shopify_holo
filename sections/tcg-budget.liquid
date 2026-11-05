@@ -1,0 +1,71 @@
+{%- comment -%}
+  TCG 按预算选购：3 个 band（Under €25 / €25-€100 / €100+）
+  每个 band 绑定一个集合，取前 3 个产品图做旋转堆叠
+{%- endcomment -%}
+{%- assign band_defaults = 'card-venusaur.png,card-charizard.png,card-blastoise.png' | split: ',' -%}
+
+<section class="_section_ido9z_1">
+  <div class="_wide_ido9z_5">
+    <header class="_header_ido9z_10">
+      <h2>Shop by budget</h2>
+      <p>Pick what you'd like to spend and we'll show you everything in stock.</p>
+    </header>
+
+    <div class="_bands_ido9z_36">
+      {%- comment %} 用 capture 循环渲染 3 个 band，配置键通过 case 选择 {% endcomment -%}
+      {%- for tier in (0..2) -%}
+        {%- case tier -%}
+          {%- when 0 -%}
+            {%- assign band_col = collections[section.settings.band_0_collection] -%}
+            {%- assign band_title = section.settings.band_0_title -%}
+            {%- assign band_desc = section.settings.band_0_desc -%}
+          {%- when 1 -%}
+            {%- assign band_col = collections[section.settings.band_1_collection] -%}
+            {%- assign band_title = section.settings.band_1_title -%}
+            {%- assign band_desc = section.settings.band_1_desc -%}
+          {%- when 2 -%}
+            {%- assign band_col = collections[section.settings.band_2_collection] -%}
+            {%- assign band_title = section.settings.band_2_title -%}
+            {%- assign band_desc = section.settings.band_2_desc -%}
+        {%- endcase -%}
+
+        <a data-tier="{{ tier }}" href="{{ band_col.url | default: routes.all_products_collection_url }}" class="_band_ido9z_36">
+          <span class="_copy_ido9z_84">
+            <strong>{{ band_title }}</strong>
+            <span>{{ band_desc }}</span>
+          </span>
+          <span aria-hidden="true" class="_stack_ido9z_102">
+            {%- for i in (0..2) -%}
+              {%- assign stack_product = band_col.products[i] -%}
+              {%- if stack_product.featured_image != blank -%}
+                <img src="{{ stack_product.featured_image | image_url: width: 300 }}" alt="" loading="lazy" draggable="false" style="--i: {{ i }};">
+              {%- else -%}
+                <img src="{{ band_defaults[i] | asset_url }}" alt="" loading="lazy" draggable="false" style="--i: {{ i }};">
+              {%- endif -%}
+            {%- endfor -%}
+          </span>
+        </a>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "TCG 按预算选购",
+  "settings": [
+    { "type": "collection", "id": "band_0_collection", "label": "低档集合" },
+    { "type": "text", "id": "band_0_title", "label": "低档标题", "default": "Under €25" },
+    { "type": "text", "id": "band_0_desc", "label": "低档说明", "default": "Singles, packs and small gifts" },
+    { "type": "collection", "id": "band_1_collection", "label": "中档集合" },
+    { "type": "text", "id": "band_1_title", "label": "中档标题", "default": "€25 to €100" },
+    { "type": "text", "id": "band_1_desc", "label": "中档说明", "default": "Decks, bundles and chase cards" },
+    { "type": "collection", "id": "band_2_collection", "label": "高档集合" },
+    { "type": "text", "id": "band_2_title", "label": "高档标题", "default": "€100 and up" },
+    { "type": "text", "id": "band_2_desc", "label": "高档说明", "default": "Booster boxes and collector pieces" }
+  ],
+  "presets": [
+    { "name": "TCG 按预算选购" }
+  ]
+}
+{% endschema %}

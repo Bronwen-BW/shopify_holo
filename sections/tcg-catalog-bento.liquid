@@ -1,0 +1,95 @@
+{%- comment -%}
+  TCG 分类 Bento：固定 4 格布局
+  Single cards（跨 2 行，扇形卡）/ Sealed / Graded（评级卡）/ Upcoming（跨 2 列）
+  链接可在 section 设置中分别绑定集合
+{%- endcomment -%}
+<section class="_section_10apz_1">
+  <div class="_wide_10apz_5">
+    <header class="_header_10apz_10">
+      <div>
+        <h2>Shop the catalogue your way</h2>
+        <p>Go straight to the product type you collect, or see what is arriving next.</p>
+      </div>
+    </header>
+
+    <div class="_layout_10apz_33">
+      {%- comment %} Single cards（大卡，扇形 3 张） {% endcomment -%}
+      <a
+        data-motion-card="6"
+        href="{{ collections[section.settings.singles_collection].url | default: routes.all_products_collection_url }}"
+        class="_path_10apz_40 _singles_10apz_82"
+        data-reveal
+      >
+        <div class="_cardFan_10apz_194" data-motion-art aria-hidden="true">
+          <img src="{{ 'card-venusaur.png' | asset_url }}" alt="">
+          <img src="{{ 'card-charizard.png' | asset_url }}" alt="">
+          <img src="{{ 'card-blastoise.png' | asset_url }}" alt="">
+        </div>
+        <div class="_copy_10apz_101">
+          <h3>Single cards</h3>
+          <p>Raw and graded singles, with condition, language, finish and stock shown before checkout.</p>
+          <span class="_cta_10apz_129">Shop single cards</span>
+        </div>
+      </a>
+
+      {%- comment %} Sealed products {% endcomment -%}
+      <a
+        href="{{ collections[section.settings.sealed_collection].url | default: routes.all_products_collection_url }}"
+        class="_path_10apz_40 _sealed_10apz_88"
+        data-reveal
+      >
+        <div class="_copy_10apz_101">
+          <h3>Sealed products</h3>
+          <p>Booster boxes, packs and decks.</p>
+          <span class="_cta_10apz_129">Shop sealed</span>
+        </div>
+      </a>
+
+      {%- comment %} Graded cards（评级 slab） {% endcomment -%}
+      <a
+        data-motion-card="12"
+        href="{{ collections[section.settings.graded_collection].url | default: routes.all_products_collection_url }}"
+        class="_path_10apz_40 _graded_10apz_92"
+        data-reveal
+      >
+        <span class="_slab_10apz_234" data-motion-art aria-hidden="true">
+          <span class="_slabLabel_10apz_253"><i></i><b>10</b></span>
+          <img src="{{ 'card-umbreon.png' | asset_url }}" alt="">
+        </span>
+        <div class="_copy_10apz_101">
+          <h3>Graded cards</h3>
+          <p>Slabs with the grade clearly shown.</p>
+          <span class="_cta_10apz_129">Shop graded</span>
+        </div>
+      </a>
+
+      {%- comment %} Upcoming releases（跨 2 列） {% endcomment -%}
+      <a
+        href="{{ collections[section.settings.releases_collection].url | default: routes.all_products_collection_url }}"
+        class="_path_10apz_40 _releases_10apz_96"
+        data-reveal
+      >
+        <div class="_copy_10apz_101">
+          <h3>Upcoming releases</h3>
+          <p>Pre-order announced sets before release day, sorted by game.</p>
+          <span class="_cta_10apz_129">See upcoming releases</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "TCG 分类 Bento",
+  "settings": [
+    { "type": "collection", "id": "singles_collection", "label": "Single cards 集合" },
+    { "type": "collection", "id": "sealed_collection", "label": "Sealed 集合" },
+    { "type": "collection", "id": "graded_collection", "label": "Graded 集合" },
+    { "type": "collection", "id": "releases_collection", "label": "Upcoming 集合" }
+  ],
+  "presets": [
+    { "name": "TCG 分类 Bento" }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,33 @@
+{%- comment -%}
+  TCG 404 页面（对齐参考站 not found）
+  创意：数字 4 + 卡牌槽（月亮伊布）+ 数字 4
+{%- endcomment -%}
+
+<main class="_page_5xn5p_1">
+  <section class="_content_5xn5p_34" aria-labelledby="not-found-title">
+    <span class="_eyebrow_5xn5p_44">Lost in the collection</span>
+
+    <div class="_errorCode_5xn5p_53" aria-label="Error 404">
+      <span>4</span>
+      <figure class="_cardSlot_5xn5p_67"><img src="{{ 'card-umbreon.png' | asset_url }}" alt=""></figure>
+      <span>4</span>
+    </div>
+
+    <h1 id="not-found-title">This page slipped out of its sleeve.</h1>
+    <p>The link may be outdated, or the page may have moved somewhere else in the collection.</p>
+
+    <nav class="_actions_5xn5p_99" aria-label="Not found page navigation">
+      <a href="{{ routes.root_url }}" class="_primaryAction_5xn5p_108">Return home</a>
+      <a href="{{ routes.all_products_collection_url }}" class="_secondaryAction_5xn5p_109">Browse the shop</a>
+    </nav>
+  </section>
+
+  <span class="_reference_5xn5p_45" aria-hidden="true">MLH / 404</span>
+</main>
+
+{% schema %}
+{
+  "name": "TCG 404",
+  "settings": []
+}
+{% endschema %}

@@ -1,0 +1,102 @@
+{%- comment -%}
+  TCG 购物车页（对齐参考站 cart）
+  含步骤进度、商品行（数量调整/删除）、订单汇总、空状态
+{%- endcomment -%}
+
+<main class="_page_1z0wo_1">
+  <div class="container">
+
+    {%- comment %} 结账步骤进度条（全局 header 已含导航，这里只放步骤） {% endcomment -%}
+    <ol class="_steps_16l9l_44" aria-label="Checkout progress" style="margin-bottom:clamp(1.5rem,4vh,2.5rem)">
+      <li class="_stepCurrent_16l9l_96" aria-current="step">
+        <span class="_stepLink_16l9l_54"><span class="_stepDot_16l9l_76" aria-hidden="true">1</span><span class="_stepLabel_16l9l_225">Cart</span></span>
+      </li>
+      <li>
+        <span class="_stepLink_16l9l_54"><span class="_stepDot_16l9l_76" aria-hidden="true">2</span><span class="_stepLabel_16l9l_225">Checkout</span></span>
+      </li>
+      <li>
+        <span class="_stepLink_16l9l_54"><span class="_stepDot_16l9l_76" aria-hidden="true">3</span><span class="_stepLabel_16l9l_225">Confirmation</span></span>
+      </li>
+    </ol>
+
+    {%- if cart.item_count > 0 -%}
+
+      <header class="_header_1z0wo_6">
+        <h1 class="_heading_1z0wo_14">Your cart<span class="_count_1z0wo_27"> ({{ cart.item_count }})</span></h1>
+      </header>
+
+      <div class="_layout_1z0wo_34">
+        <div class="_list_1z0wo_46">
+
+          {%- for item in cart.items -%}
+            <div class="_row_1z0wo_52" data-cart-row data-line="{{ forloop.index }}">
+              <span class="_thumb_1z0wo_62">
+                <img alt="" draggable="false" src="{{ item.image.image_url | default: 'logo-mark.png' }}">
+              </span>
+
+              <div class="_rowInfo_1z0wo_78">
+                <a href="{{ item.url }}" class="_rowName_1z0wo_86">{{ item.product.title }}</a>
+                {%- if item.variant.title != 'Default Title' -%}
+                  <span class="_rowUnitPrice_1z0wo_94">{{ item.variant.title }}</span>
+                {%- endif -%}
+
+                <div class="_qtyControl_1z0wo_100" data-cart-qty>
+                  <button type="button" class="_qtyBtn_1z0wo_110" data-cart-minus aria-label="Decrease quantity">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"></path></svg>
+                  </button>
+                  <span class="_qtyValue_1z0wo_135">{{ item.quantity }}</span>
+                  <button type="button" class="_qtyBtn_1z0wo_110" data-cart-plus aria-label="Increase quantity">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="_rowEnd_1z0wo_145">
+                <span class="_lineTotal_1z0wo_152">{{ item.final_line_price | money }}</span>
+                <button type="button" class="_removeBtn_1z0wo_160" data-cart-remove data-line="{{ forloop.index }}">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>Remove
+                </button>
+              </div>
+            </div>
+          {%- endfor -%}
+        </div>
+
+        {%- comment %} 订单汇总侧栏 {% endcomment -%}
+        <aside class="_summary_1z0wo_183">
+          <h2 class="_summaryTitle_1z0wo_199">Order summary</h2>
+          <div class="_summaryRow_1z0wo_208">
+            <span>Subtotal</span><span>{{ cart.total_price | money }}</span>
+          </div>
+          <div class="_summaryRow_1z0wo_208">
+            <span>Shipping</span><span>Calculated at checkout</span>
+          </div>
+          <div class="_summaryTotal_1z0wo_221">
+            <span>Total</span><span>{{ cart.total_price | money }}</span>
+          </div>
+          <a href="{{ routes.cart_checkout_url }}" class="_checkoutBtn_1z0wo_241">Go to checkout</a>
+          <p class="_summaryNote_1z0wo_291">Secure payment. Prices and stock are checked again before you pay.</p>
+        </aside>
+      </div>
+
+    {%- else -%}
+
+      {%- comment %} 空购物车状态 {% endcomment -%}
+      <div class="_empty_1z0wo_298">
+        <span class="_emptyIcon_1z0wo_311">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path></svg>
+        </span>
+        <h2 class="_emptyTitle_1z0wo_326">Your cart is empty</h2>
+        <p class="_emptyText_1z0wo_334">Browse the newest sealed products and singles, then add them here.</p>
+        <a href="{{ routes.all_products_collection_url }}" class="_emptyCta_1z0wo_340">Start shopping</a>
+      </div>
+
+    {%- endif -%}
+  </div>
+</main>
+
+{% schema %}
+{
+  "name": "TCG 购物车",
+  "settings": []
+}
+{% endschema %}

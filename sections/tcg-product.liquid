@@ -1,0 +1,196 @@
+{%- comment -%}
+  TCG 商品页（结构与 class 对齐参考站 product 页面）
+  数据：product；预售判断 tag 含 pre；单卡判断 type/tag 含 single
+{%- endcomment -%}
+
+{%- assign current_variant = product.selected_or_first_available_variant -%}
+{%- assign is_preorder = false -%}
+{%- if product.tags contains 'pre' or product.tags contains 'preorder' -%}{%- assign is_preorder = true -%}{%- endif -%}
+{%- assign is_single = false -%}
+{%- if product.type contains 'Single' or product.tags contains 'single' -%}{%- assign is_single = true -%}{%- endif -%}
+{%- assign has_many_media = false -%}
+{%- if product.media.size > 1 -%}{%- assign has_many_media = true -%}{%- endif -%}
+{%- assign game_title = product.collections.first.title | default: product.vendor -%}
+
+<div class="_wide_4xdw3_6">
+
+  {%- comment %} 面包屑：返回 + Shop / 游戏 / 当前产品 {% endcomment -%}
+  <nav aria-label="Breadcrumb" class="_breadcrumb_4xdw3_11">
+    <a aria-label="Back to products" href="{{ routes.all_products_collection_url }}" class="_crumbBack_4xdw3_69">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+    </a>
+    <ol>
+      <li><a href="{{ routes.all_products_collection_url }}">Shop</a></li>
+      <li><a href="{{ product.collections.first.url | default: routes.all_products_collection_url }}">{{ game_title }}</a></li>
+      <li aria-current="page"><span>{{ product.title }}</span></li>
+    </ol>
+  </nav>
+
+  <section class="_hero_4xdw3_131 {% if is_single %}{% else %}_sealedHero_4xdw3_1314{% endif %}">
+
+    {%- comment %} 左侧媒体面板 {% endcomment -%}
+    <div class="_mediaPanel_4xdw3_138">
+      <div class="_productMedia_4xdw3_145">
+        <span aria-hidden="true" class="_floor_4xdw3_183"></span>
+        {%- if is_single -%}
+          <div class="_interactiveCard_4xdw3_176" data-tilt-card>
+            <img draggable="false" data-main-image src="{{ current_variant.featured_image.image_url | default: product.featured_image | default: 'logo-mark.png' }}" alt="{{ product.title }}">
+          </div>
+        {%- else -%}
+          <img draggable="false" data-main-image src="{{ current_variant.featured_image.image_url | default: product.featured_image | default: 'logo-mark.png' }}" alt="{{ product.title }}">
+        {%- endif -%}
+      </div>
+
+      {%- if has_many_media -%}
+        <div class="_thumbs_4xdw3_201">
+          {%- for media in product.media -%}
+            <button type="button" class="_thumb_4xdw3_201 {% if forloop.first %}_thumbActive_4xdw3_239{% endif %}" data-thumb data-full="{{ media.preview_image.image_url }}">
+              <img src="{{ media.preview_image.image_url }}" alt="">
+            </button>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- comment %} 右侧购买区（sticky） {% endcomment -%}
+    <aside class="_purchase_4xdw3_269">
+      <header class="_purchaseHeader_4xdw3_280">
+        <div class="_productKicker_4xdw3_286">
+          <a href="{{ product.collections.first.url | default: routes.all_products_collection_url }}" class="_gameLink_4xdw3_346">{{ game_title }}</a>
+          <a href="{{ product.collections.first.url | default: routes.all_products_collection_url }}">{{ product.type }}</a>
+        </div>
+        <div class="_titleRow_4xdw3_379">
+          <h1>{{ product.title }}</h1>
+          <button type="button" class="_saveButton_4xdw3_395" data-wishlist aria-label="Save {{ product.title }} to wishlist" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"></path></svg>
+          </button>
+        </div>
+      </header>
+
+      {%- comment %} 价格 + 库存状态 {% endcomment -%}
+      <div class="_priceStockRow_4xdw3_473">
+        <div class="_priceBlock_4xdw3_481">
+          {%- if current_variant.compare_at_price > current_variant.price -%}
+            <del>{{ current_variant.compare_at_price | money }}</del>
+          {%- endif -%}
+          <p class="_price_4xdw3_473">{{ current_variant.price | money }}</p>
+        </div>
+
+        {%- if is_preorder -%}
+          <div class="_stockLine_4xdw3_501 _stockLinePreorder_4xdw3_520"><span></span>Pre-order</div>
+        {%- elsif product.available -%}
+          <div class="_stockLine_4xdw3_501"><span></span>In stock</div>
+        {%- else -%}
+          <div class="_stockLine_4xdw3_501 _stockLineOut_4xdw3_525"><span></span>Out of stock</div>
+        {%- endif -%}
+      </div>
+
+      {%- comment %} 预售倒计时（metafield custom.release_date 存在时） {% endcomment -%}
+      {%- if is_preorder and product.metafields.custom.release_date != blank -%}
+        <p class="_preorderNotice_4xdw3_530">Releases in <span data-countdown="{{ product.metafields.custom.release_date | date: '%Y-%m-%dT%H:%M:%S' }}"><strong>–</strong></span></p>
+      {%- endif -%}
+
+      {%- comment %} 简短描述（3 行截断） {% endcomment -%}
+      <p class="_description_4xdw3_536">{{ product.description | strip_html | truncate: 280 }}</p>
+
+      {%- comment %} 数量选择 + 主按钮 {% endcomment -%}
+      <div class="_buyArea_4xdw3_623">
+        <div aria-label="Quantity" class="_quantity_4xdw3_629" data-quantity>
+          <button type="button" aria-label="Decrease quantity" data-qty-minus disabled>−</button>
+          <span aria-live="polite" data-qty-value>1</span>
+          <button type="button" aria-label="Increase quantity" data-qty-plus>+</button>
+        </div>
+
+        {%- if product.available -%}
+          <button type="button" class="_primaryButton_4xdw3_673" data-product-add data-variant="{{ current_variant.id }}">
+            {%- if is_preorder -%}Pre-order{%- else -%}Add to cart{%- endif -%}
+          </button>
+        {%- else -%}
+          <button type="button" class="_primaryButton_4xdw3_673" disabled>Sold out</button>
+        {%- endif -%}
+      </div>
+
+      {%- comment %} 底部信息：品相 / 语言 / 发货 {% endcomment -%}
+      <div class="_purchaseFoot_4xdw3_936">
+        <div><span>Condition</span><strong>{% if is_single %}Near Mint{% else %}Sealed{% endif %}</strong></div>
+        <div><span>Language</span><strong>English</strong></div>
+        <div><span>Dispatch</span><strong>Within 1 business day</strong></div>
+      </div>
+    </aside>
+  </section>
+
+  {%- comment %} 详情区：About + 规格 {% endcomment -%}
+  <section id="product-story" class="_detailsSection_4xdw3_1140">
+    <div class="_detailsIntro_4xdw3_1148">
+      <h2>{% if is_single %}About this card{% else %}About this product{% endif %}</h2>
+      {%- if product.description != blank -%}
+        {{ product.description }}
+      {%- else -%}
+        <p>{{ product.title }} — condition checked and stored in a smoke-free, climate-stable room until dispatch.</p>
+      {%- endif -%}
+    </div>
+
+    <dl class="_specifications_4xdw3_1149">
+      <div><dt>Game</dt><dd>{{ game_title }}</dd></div>
+      <div><dt>Set</dt><dd>{{ product.type }}</dd></div>
+      <div><dt>Product type</dt><dd>{% if is_single %}Single card{% else %}Sealed product{% endif %}</dd></div>
+      <div><dt>Condition</dt><dd>{% if is_single %}Near Mint{% else %}Sealed{% endif %}</dd></div>
+      <div><dt>Language</dt><dd>English</dd></div>
+    </dl>
+  </section>
+
+  {%- comment %} 服务带（4 项固定信息） {% endcomment -%}
+  <section aria-label="Service information" class="_serviceBand_4xdw3_1240">
+    <div class="_serviceItem_4xdw3_1250">
+      <span class="_serviceIcon_4xdw3_1269"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.8 8.1 7 10 4.2-1.9 7-5.4 7-10V6l-7-3Z"></path><path d="m9 12 2 2 4-4"></path></svg></span>
+      <div><h3>Condition checked</h3><p>Inspected in clear light before listing.</p></div>
+    </div>
+    <div class="_serviceItem_4xdw3_1250">
+      <span class="_serviceIcon_4xdw3_1269"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Z"></path><path d="m4 7 8 4 8-4v10l-8 4-8-4V7Z"></path><path d="M12 11v10"></path></svg></span>
+      <div><h3>Protected packing</h3><p>Sleeved, rigid, and water resistant.</p></div>
+    </div>
+    <div class="_serviceItem_4xdw3_1250">
+      <span class="_serviceIcon_4xdw3_1269"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"></path><circle cx="7" cy="18" r="1.5"></circle><circle cx="18" cy="18" r="1.5"></circle></svg></span>
+      <div><h3>Tracked delivery</h3><p>Sent from the Netherlands across the EU.</p></div>
+    </div>
+    <div class="_serviceItem_4xdw3_1250">
+      <span class="_serviceIcon_4xdw3_1269"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8V4m0 0h4M4 4l4 4"></path><path d="M5.5 15a8 8 0 1 0 .3-6"></path></svg></span>
+      <div><h3>14-day returns</h3><p>Simple returns under EU consumer rules.</p></div>
+    </div>
+  </section>
+</div>
+
+{%- comment %} 相关推荐：同集合其他产品（复用产品卡） {% endcomment -%}
+{%- if product.collections.first.products.size > 1 -%}
+  <div class="_related_4xdw3_1284">
+    <section class="_section_36e53_1">
+      <div class="_wide_36e53_5">
+        <header class="_header_36e53_10">
+          <div>
+            <h2>More from {{ game_title }}</h2>
+            <p>In stock now, starting with the same set.</p>
+          </div>
+          <a href="{{ product.collections.first.url }}" class="_viewAll_36e53_33">View all</a>
+        </header>
+        <div class="_grid_36e53_53">
+          {%- comment %} 循环同集合产品，跳过当前产品，最多取 4 个（Shopify 无 where_exp，用 if + 计数实现） {% endcomment -%}
+          {%- assign shown = 0 -%}
+          {%- for item in product.collections.first.products -%}
+            {%- if item.id != product.id and shown < 4 -%}
+              {% render 'tcg-product-card', product: item %}
+              {%- assign shown = shown | plus: 1 -%}
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      </div>
+    </section>
+  </div>
+{%- endif -%}
+
+{%- comment %} 区块 schema（商品页固定单块，无需主题编辑配置） {% endcomment -%}
+{% schema %}
+{
+  "name": "TCG 商品页",
+  "settings": []
+}
+{% endschema %}

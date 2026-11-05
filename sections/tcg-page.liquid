@@ -1,0 +1,23 @@
+{%- comment -%}
+  TCG 通用内容页（about / terms / contact 等）
+  深色卡片风格，标题 + 富文本内容，与其他 TCG 页面保持统一
+{%- endcomment -%}
+
+<main class="_page_4xdw3_1">
+  <div class="_wide_4xdw3_6">
+    <article class="tcg-page-card" style="padding:clamp(1.75rem,3.5vw,2.75rem);border-radius:1.25rem;background:#181818">
+      <h1 style="margin-bottom:1.25rem;color:#f9fafb;font-family:Rubik,sans-serif;font-size:clamp(1.8rem,2.6vw,2.4rem);font-weight:800;letter-spacing:-.03em">{{ page.title }}</h1>
+
+      <div class="tcg-rte" style="color:#d4d4d8;font-size:.975rem;line-height:1.8">
+        {{ page.content }}
+      </div>
+    </article>
+  </div>
+</main>
+
+{% schema %}
+{
+  "name": "TCG 内容页",
+  "settings": []
+}
+{% endschema %}

@@ -1,0 +1,74 @@
+{%- comment -%}
+  TCG 产品卡（网格通用组件）
+  入参：product（产品对象）、lazy（是否懒加载，默认 true）
+  class 与参考站 _card_36e53 完全一致
+{%- endcomment -%}
+{%- assign is_preorder = false -%}
+{%- for tag in product.tags -%}
+  {%- assign tag_down = tag | downcase -%}
+  {%- if tag_down contains 'pre' -%}{%- assign is_preorder = true -%}{%- endif -%}
+{%- endfor -%}
+{%- assign current_variant = product.selected_or_first_available_variant -%}
+
+<article data-motion-card="8" class="_card_36e53_65 _cardFill_36e53_74" data-reveal>
+  {%- comment %} 媒体区（整卡可点击） {% endcomment -%}
+  <a href="{{ product.url }}" class="_cardMedia_36e53_85" aria-label="{{ product.title | escape }}">
+    <span class="_cardArtwork_36e53_122">
+      {%- if product.featured_image -%}
+        <img
+          data-motion-art
+          src="{{ product.featured_image | image_url: width: 800 }}"
+          alt="{{ product.title | escape }}"
+          width="{{ product.featured_image.width }}"
+          height="{{ product.featured_image.height }}"
+          draggable="false"
+          {% unless lazy == false %}loading="lazy"{% endunless %}
+        >
+      {%- else -%}
+        {%- comment %} 无图占位 {% endcomment -%}
+        <img data-motion-art src="{{ 'logo-mark.png' | asset_url }}" alt="{{ product.title | escape }}" draggable="false" loading="lazy">
+      {%- endif -%}
+    </span>
+
+    {%- comment %} 状态徽章：预售 / 新品 {% endcomment -%}
+    {%- if is_preorder -%}
+      <span class="_badge_36e53_217 _badgePreorder_36e53_232">Pre-order</span>
+    {%- else -%}
+      <span class="_badge_36e53_217">New</span>
+    {%- endif -%}
+
+    {%- comment %} 预售倒计时（仅当产品定义了发布日期 metafield 时显示） {% endcomment -%}
+    {%- if product.metafields.custom.release_date != blank -%}
+      <span class="_preorderCountdown_36e53_237" data-countdown="{{ product.metafields.custom.release_date | date: '%Y-%m-%dT%H:%M:%S' }}">Releases in <strong>—</strong></span>
+    {%- endif -%}
+  </a>
+
+  {%- comment %} 信息区 {% endcomment -%}
+  <div class="_cardBody_36e53_256">
+    <a href="{{ product.url }}" class="_cardInfo_36e53_264">
+      <span class="_cardName_36e53_275">{{ product.title }}</span>
+      {%- if product.type != blank -%}
+        <span class="_cardSet_36e53_289">{{ product.type }}</span>
+      {%- endif -%}
+    </a>
+
+    <div class="_cardFooter_36e53_309">
+      <span class="_cardPricing_36e53_326">
+        <span class="_cardPrice_36e53_317">{{ product.price | money }}</span>
+      </span>
+
+      {%- comment %} 加购按钮（AJAX 加购，data-variant 供 JS 读取） {% endcomment -%}
+      <button
+        type="button"
+        class="_addBtn_36e53_338"
+        data-add
+        data-variant="{{ current_variant.id }}"
+        {% unless current_variant.available %}disabled{% endunless %}
+        aria-label="Add {{ product.title | escape }} to cart"
+      >
+        <span>{% if is_preorder %}Pre-order{% else %}Add{% endif %}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
+      </button>
+    </div>
+  </div>
+</article>

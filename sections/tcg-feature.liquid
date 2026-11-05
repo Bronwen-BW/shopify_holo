@@ -1,0 +1,54 @@
+{%- comment -%}
+  TCG 收藏信心特性卡：左侧 3 张卡牌堆叠舞台，右侧事实清单与按钮
+  图片与文案对齐参考站，链接可在设置中绑定
+{%- endcomment -%}
+<section class="_section_3nsi1_1">
+  <div class="_layout_3nsi1_5">
+
+    {%- comment %} 左侧卡牌堆叠舞台 {% endcomment -%}
+    <div class="_cardStage_3nsi1_16" aria-hidden="true">
+      <div class="_card_3nsi1_16 _cardBack_3nsi1_43"><img src="{{ 'card-charizard.png' | asset_url }}" alt="" loading="lazy"></div>
+      <div class="_card_3nsi1_16 _cardMiddle_3nsi1_49"><img src="{{ 'card-palkia.png' | asset_url }}" alt="" loading="lazy"></div>
+      <div class="_card_3nsi1_16 _cardFront_3nsi1_55"><img src="{{ 'card-umbreon.png' | asset_url }}" alt="" loading="lazy"></div>
+      <div class="_cardNote_3nsi1_60">
+        <span>Exact card shown</span>
+        <strong>Photo, printing and condition stay together.</strong>
+      </div>
+    </div>
+
+    {%- comment %} 右侧内容 {% endcomment -%}
+    <div class="_content_3nsi1_91">
+      <div class="_intro_3nsi1_98">
+        <h2>Know exactly which card is arriving</h2>
+        <p>The option you choose stays connected to its image, finish, language, condition and live stock.</p>
+      </div>
+      <dl class="_facts_3nsi1_119">
+        <div>
+          <dt>Choose precisely</dt>
+          <dd>The product image changes with the selected printing.</dd>
+        </div>
+        <div>
+          <dt>Trust the stock</dt>
+          <dd>Unavailable variants remain visible, but cannot be bought.</dd>
+        </div>
+        <div>
+          <dt>Follow the order</dt>
+          <dd>Use delivery or local pickup and track it from your account.</dd>
+        </div>
+      </dl>
+      <div class="_actions_3nsi1_141">
+        <a href="{{ routes.all_products_collection_url }}" class="_primaryAction_3nsi1_149">Browse single cards</a>
+        <a href="{{ routes.account_url }}" class="_accountAction_3nsi1_195">Create an account</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "TCG 收藏信心特性卡",
+  "presets": [
+    { "name": "TCG 收藏信心特性卡" }
+  ]
+}
+{% endschema %}

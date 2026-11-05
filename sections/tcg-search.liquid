@@ -1,0 +1,121 @@
+{%- comment -%}
+  TCG 搜索/商店页（对齐参考站 shop + filters）
+  搜索 form GET 提交；排序 select 自动提交；游戏/格式/价格/库存用 URL 参数
+{%- endcomment -%}
+
+{%- assign q = search.query | default: search.terms -%}
+{%- comment %} 游戏 tab 列表：先 split 成数组，再交给 for 循环（for 不能直接内联 split） {% endcomment -%}
+{%- assign game_names = 'Pokémon,Yu-Gi-Oh!,Magic,Disney Lorcana,Riftbound,Digimon,Cyberpunk' | split: ',' -%}
+
+<main class="_page_1nz9z_1">
+  <div class="_wide_1nz9z_7">
+
+    <header class="_head_1nz9z_12">
+      <div class="_titleRow_1nz9z_21">
+        <h1>Shop</h1>
+        <p class="_resultCount_1nz9z_36">{{ search.results_count }} results</p>
+      </div>
+
+      <div class="_searchRow_1nz9z_44">
+        <form action="{{ routes.search_url }}" method="get" role="search" class="_searchField_1nz9z_51" style="display:inline-flex">
+          <span class="_srOnly_1nz9z_873">Search products</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+          <input type="search" name="q" value="{{ q }}" placeholder="Search a card, set, or game…" aria-label="Search products">
+        </form>
+
+        <label class="_sortField_1nz9z_151">
+          <span>Sort</span>
+          <select data-auto-submit aria-label="Sort products">
+            <option value="relevance" {% if search.sort_by == 'relevance' %}selected{% endif %}>Featured</option>
+            <option value="price-ascending" {% if search.sort_by == 'price-ascending' %}selected{% endif %}>Price: low to high</option>
+            <option value="price-descending" {% if search.sort_by == 'price-descending' %}selected{% endif %}>Price: high to low</option>
+            <option value="title-ascending" {% if search.sort_by == 'title-ascending' %}selected{% endif %}>Name: A to Z</option>
+          </select>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+        </label>
+      </div>
+    </header>
+
+    <div class="_filterBar_1nz9z_270">
+      <div class="_gameTabs_1nz9z_277" role="group" aria-label="Game">
+        <a class="_gameTab_1nz9z_277 _gameTabActive_1nz9z_313" href="{{ routes.search_url }}">All games</a>
+        {%- for g in game_names -%}
+          <a class="_gameTab_1nz9z_277" href="{{ routes.search_url }}?q={{ g | url_encode }}">{{ g }}</a>
+        {%- endfor -%}
+      </div>
+      <button type="button" class="_filterToggle_1nz9z_197" data-filter-toggle aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M6 12h12M10 18h4"></path></svg>
+        <span>Filters</span>
+      </button>
+    </div>
+
+    <div class="_shell_1nz9z_265">
+      <aside class="_rail_1nz9z_318" aria-label="Shop filters">
+        <div class="_railHead_1nz9z_335">
+          <h2>Filters</h2>
+          <a class="_railResetTop_1nz9z_351" href="{{ routes.search_url }}">Reset</a>
+          <button type="button" class="_railClose_1nz9z_374" aria-label="Close filters">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+          </button>
+        </div>
+
+        {%- comment %} 格式筛选（按产品类型） {% endcomment -%}
+        <div class="_group_1nz9z_432" role="group">
+          <p>Format</p>
+          <div class="_segmented_1nz9z_445">
+            <a class="_segmentActive_1nz9z_491" href="{{ routes.search_url }}?q={{ q | url_encode }}">All</a>
+            <a class="_gameTab_1nz9z_277" href="{{ routes.search_url }}?q={{ q | url_encode }}&filter.type=Sealed" style="border-radius:9999px">Sealed</a>
+            <a class="_gameTab_1nz9z_277" href="{{ routes.search_url }}?q={{ q | url_encode }}&filter.type=Single" style="border-radius:9999px">Singles</a>
+          </div>
+        </div>
+
+        {%- comment %} 价格区间筛选 {% endcomment -%}
+        <div class="_group_1nz9z_432" role="group">
+          <p>Price</p>
+          <div class="_priceChips_1nz9z_496">
+            <a class="_priceChip_1nz9z_496 _priceChipActive_1nz9z_522" href="{{ routes.search_url }}?q={{ q | url_encode }}">Any price</a>
+            <a class="_priceChip_1nz9z_496" href="{{ routes.search_url }}?q={{ q | url_encode }}&filter.v.price.lte=25">Under €25</a>
+            <a class="_priceChip_1nz9z_496" href="{{ routes.search_url }}?q={{ q | url_encode }}&filter.v.price.gte=25&filter.v.price.lte=100">€25 – €100</a>
+            <a class="_priceChip_1nz9z_496" href="{{ routes.search_url }}?q={{ q | url_encode }}&filter.v.price.gte=100">€100 and up</a>
+          </div>
+        </div>
+
+        {%- comment %} 仅看有货 {% endcomment -%}
+        <div class="_group_1nz9z_432">
+          <a class="_switch_1nz9z_532" href="{{ routes.search_url }}?q={{ q | url_encode }}&filter.v.availability=1" style="text-decoration:none">
+            <span class="_switchTrack_1nz9z_549" aria-hidden="true"><span></span></span>
+            <span>In stock only</span>
+          </a>
+        </div>
+      </aside>
+
+      <section class="_results_1nz9z_657" aria-label="Products">
+        {%- if q != blank -%}
+          <div class="_chips_1nz9z_661">
+            <span class="_chip_1nz9z_661"><span>“{{ q }}”</span></span>
+            <a class="_chipClear_1nz9z_727" href="{{ routes.search_url }}">Clear all</a>
+          </div>
+        {%- endif -%}
+
+        {%- paginate search.results by 12 -%}
+          {%- if search.results.size > 0 -%}
+            <div class="_grid_1nz9z_751">
+              {%- for product in search.results -%}
+                {% render 'tcg-product-card', product: product %}
+              {%- endfor -%}
+            </div>
+          {%- else -%}
+            <p style="color:#a1a1aa;padding:3rem 0;text-align:center">No products match “{{ q }}”. Try another card, set, or game.</p>
+          {%- endif -%}
+        {%- endpaginate -%}
+      </section>
+    </div>
+  </div>
+</main>
+
+{% schema %}
+{
+  "name": "TCG 搜索",
+  "settings": []
+}
+{% endschema %}

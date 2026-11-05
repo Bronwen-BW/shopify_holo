@@ -1,0 +1,81 @@
+{%- comment -%}
+  TCG Shop by set：大卡轨道，每个 block 绑定一个集合
+  显示集合封面图、游戏名、系列名、产品数量
+{%- endcomment -%}
+<section class="_section_qxt27_1">
+  <div class="_wide_qxt27_5">
+    <header class="_header_qxt27_10">
+      <div>
+        <h2>Shop by set</h2>
+        <p>The sets we carry the most sealed products from right now.</p>
+      </div>
+      <a href="{{ routes.all_products_collection_url }}" class="_viewAll_qxt27_33">All products</a>
+    </header>
+
+    <div class="_rail_qxt27_81">
+      {%- for block in section.blocks -%}
+        {%- assign set_col = collections[block.settings.collection] -%}
+        <a
+          data-motion-card="9"
+          href="{{ set_col.url | default: routes.all_products_collection_url }}"
+          class="_collection_qxt27_87"
+          data-reveal
+          style="--frame: {{ block.settings.frame_color }};"
+          {{ block.shopify_attributes }}
+        >
+          <span class="_media_qxt27_116" aria-hidden="true">
+            {%- if set_col.featured_image != blank -%}
+              <img data-motion-art src="{{ set_col.featured_image | image_url: width: 600 }}" alt="" draggable="false" loading="lazy">
+            {%- endif -%}
+          </span>
+          <span class="_body_qxt27_137">
+            <span class="_game_qxt27_152">{{ block.settings.game_label }}</span>
+            <h3>{{ set_col.title }}</h3>
+            <span class="_count_qxt27_159">{{ set_col.products_count }} products</span>
+          </span>
+        </a>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "TCG 系列轨道",
+  "max_blocks": 6,
+  "blocks": [
+    {
+      "type": "set",
+      "name": "系列",
+      "settings": [
+        { "type": "collection", "id": "collection", "label": "绑定集合" },
+        { "type": "text", "id": "game_label", "label": "游戏名", "default": "Pokémon" },
+        {
+          "type": "select",
+          "id": "frame_color",
+          "label": "主题色",
+          "default": "#2ed39a",
+          "options": [
+            { "value": "#2ed39a", "label": "Pokémon 绿" },
+            { "value": "#a78bfa", "label": "Yu-Gi-Oh 紫" },
+            { "value": "#f28753", "label": "Magic 橙" },
+            { "value": "#c084fc", "label": "Lorcana 紫" },
+            { "value": "#7dd3fc", "label": "Riftbound 天蓝" },
+            { "value": "#60a5fa", "label": "Digimon 蓝" },
+            { "value": "#facc15", "label": "Cyberpunk 黄" }
+          ]
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "TCG 系列轨道",
+      "blocks": [
+        { "type": "set", "settings": { "game_label": "Pokémon", "frame_color": "#2ed39a" } },
+        { "type": "set", "settings": { "game_label": "Magic: The Gathering", "frame_color": "#f28753" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

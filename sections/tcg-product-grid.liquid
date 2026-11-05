@@ -1,0 +1,46 @@
+{%- comment -%}
+  TCG 产品网格（Upcoming / New arrivals 通用）
+  绑定一个集合，按设定数量渲染产品卡
+{%- endcomment -%}
+{%- assign grid_collection = collections[section.settings.collection] | default: collections.all -%}
+
+<section class="_section_36e53_1">
+  <div class="_wide_36e53_5">
+    <header class="_header_36e53_10">
+      <div>
+        <h2>{{ section.settings.heading }}</h2>
+        <p>{{ section.settings.subheading }}</p>
+      </div>
+      <a href="{{ grid_collection.url }}" class="_viewAll_36e53_33">View all</a>
+    </header>
+
+    <div class="_grid_36e53_53">
+      {%- for product in grid_collection.products limit: section.settings.limit -%}
+        {% render 'tcg-product-card', product: product %}
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "TCG 产品网格",
+  "settings": [
+    { "type": "collection", "id": "collection", "label": "产品集合（默认全部）" },
+    { "type": "text", "id": "heading", "label": "标题", "default": "New arrivals and best sellers" },
+    { "type": "text", "id": "subheading", "label": "副标题", "default": "Fresh stock and the products collectors keep coming back for." },
+    {
+      "type": "range",
+      "id": "limit",
+      "label": "显示数量",
+      "min": 2,
+      "max": 12,
+      "step": 2,
+      "default": 4
+    }
+  ],
+  "presets": [
+    { "name": "TCG 产品网格" }
+  ]
+}
+{% endschema %}

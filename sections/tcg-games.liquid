@@ -1,0 +1,109 @@
+{%- comment -%}
+  TCG 游戏目录：第一个 block 为 feature 大卡，其余为 tile 小卡
+  每个 block 绑定一个 Shopify 集合，frame 色可在 block 中选择
+{%- endcomment -%}
+<section class="_section_hndqm_1">
+  <div class="_wide_hndqm_5">
+    <header class="_header_hndqm_10">
+      <div>
+        <h2>Trading card games</h2>
+        <p>Each game has its own storefront with current stock, set releases, singles and sealed products.</p>
+      </div>
+      <a href="{{ routes.all_products_collection_url }}" class="_allGames_hndqm_33">Browse all games</a>
+    </header>
+
+    <div class="_directory_hndqm_81">
+      {%- for block in section.blocks -%}
+        {%- assign game_col = collections[block.settings.collection] -%}
+        {%- if forloop.first -%}
+          {%- comment %} Feature 大卡 {% endcomment -%}
+          <a
+            data-motion-card="10"
+            href="{{ game_col.url | default: routes.all_products_collection_url }}"
+            class="_feature_hndqm_87"
+            data-reveal
+            style="--frame: {{ block.settings.frame_color }};"
+            {{ block.shopify_attributes }}
+          >
+            <div class="_featureBody_hndqm_146">
+              <h3 class="_featureName_hndqm_155">{{ block.settings.name | default: game_col.title }}</h3>
+              <p class="_tagline_hndqm_164">{{ block.settings.tagline }}</p>
+              <span class="_featureCta_hndqm_171">Shop</span>
+            </div>
+            {%- if block.settings.image != blank -%}
+              <img class="_featureArt_hndqm_220" data-motion-art src="{{ block.settings.image | image_url: width: 500 }}" alt="" draggable="false">
+            {%- elsif game_col.featured_image != blank -%}
+              <img class="_featureArt_hndqm_220" data-motion-art src="{{ game_col.featured_image | image_url: width: 500 }}" alt="" draggable="false">
+            {%- endif -%}
+          </a>
+        {%- endif -%}
+      {%- endfor -%}
+
+      {%- if section.blocks.size > 1 -%}
+        <ul class="_list_hndqm_232">
+          {%- for block in section.blocks offset: 1 -%}
+            {%- assign game_col = collections[block.settings.collection] -%}
+            <li data-reveal {{ block.shopify_attributes }}>
+              <a
+                href="{{ game_col.url | default: routes.all_products_collection_url }}"
+                class="_tile_hndqm_88"
+                style="--frame: {{ block.settings.frame_color }};"
+              >
+                <strong class="_tileName_hndqm_251">{{ block.settings.name | default: game_col.title }}</strong>
+                <span class="_tagline_hndqm_164">{{ block.settings.tagline }}</span>
+              </a>
+            </li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "TCG 游戏目录",
+  "max_blocks": 8,
+  "blocks": [
+    {
+      "type": "game",
+      "name": "游戏",
+      "settings": [
+        { "type": "collection", "id": "collection", "label": "绑定集合" },
+        { "type": "text", "id": "name", "label": "游戏名称", "default": "Pokémon" },
+        { "type": "text", "id": "tagline", "label": "副标题", "default": "Singles, sealed, and graded rares" },
+        {
+          "type": "select",
+          "id": "frame_color",
+          "label": "主题色",
+          "default": "#2ed39a",
+          "options": [
+            { "value": "#2ed39a", "label": "Pokémon 绿" },
+            { "value": "#a78bfa", "label": "Yu-Gi-Oh 紫" },
+            { "value": "#f28753", "label": "Magic 橙" },
+            { "value": "#c084fc", "label": "Lorcana 紫" },
+            { "value": "#7dd3fc", "label": "Riftbound 天蓝" },
+            { "value": "#60a5fa", "label": "Digimon 蓝" },
+            { "value": "#facc15", "label": "Cyberpunk 黄" }
+          ]
+        },
+        { "type": "image_picker", "id": "image", "label": "大卡艺术图（仅首个生效）" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "TCG 游戏目录",
+      "blocks": [
+        { "type": "game", "settings": { "name": "Pokémon", "tagline": "Singles, sealed, and graded rares", "frame_color": "#2ed39a" } },
+        { "type": "game", "settings": { "name": "Yu-Gi-Oh!", "tagline": "Old favourites and the newest sets", "frame_color": "#a78bfa" } },
+        { "type": "game", "settings": { "name": "Magic: The Gathering", "tagline": "Commander, Standard, and more", "frame_color": "#f28753" } },
+        { "type": "game", "settings": { "name": "Disney Lorcana", "tagline": "Enchanted cards and new Disney sets", "frame_color": "#c084fc" } },
+        { "type": "game", "settings": { "name": "Riftbound", "tagline": "League of Legends comes to the tabletop", "frame_color": "#7dd3fc" } },
+        { "type": "game", "settings": { "name": "Digimon", "tagline": "Tamers, alternate arts, and sealed sets", "frame_color": "#60a5fa" } },
+        { "type": "game", "settings": { "name": "Cyberpunk", "tagline": "Cards and releases from Night City", "frame_color": "#facc15" } }
+      ]
+    }
+  ]
+}
+{% endschema %}
