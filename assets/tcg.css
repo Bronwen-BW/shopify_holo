@@ -671,64 +671,14 @@ html[data-theme="light"] ._breadcrumb_4xdw3_11 li[aria-current="page"] span {
   font-weight: 600;
 }
 
-/* ===== SKU 选择器：仅保留 SKU 名称，隐藏缩略图、编码、价格等其他信息 ===== */
-.tcg-sku-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
-  gap: 0.5rem;
-}
-.tcg-sku-card {
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.5rem;
-  padding: 0.5rem 0.85rem !important;
-  border-radius: var(--tcg-radius-sm);
-  background: var(--tcg-surface-soft);
-  border: 1.5px solid var(--tcg-border);
-  text-align: center;
-  cursor: pointer;
-  transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
-}
-.tcg-sku-card:hover {
-  border-color: var(--tcg-border-strong);
-  background: var(--tcg-surface-hover);
-}
-.tcg-sku-card.is-active {
-  border-color: var(--tcg-accent);
-  background: var(--tcg-accent-soft);
-  box-shadow: 0 0 0 1px var(--tcg-accent);
-}
-.tcg-sku-card.is-soldout {
-  opacity: 0.55;
-}
+/* ===== SKU 选择器：仅保留属性选择胶囊，隐藏图2所示的组合方格及其他信息 ===== */
+.tcg-sku-grid,
 .tcg-sku-card-thumb,
 .tcg-sku-card-meta,
 .tcg-sku-current-code,
-.tcg-sku-select-wrap {
+.tcg-sku-select-wrap,
+._variantSummary_4xdw3_598 {
   display: none !important;
-}
-.tcg-sku-card-body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-  width: 100%;
-}
-.tcg-sku-card-title {
-  color: var(--tcg-text);
-  font-family: Rubik, sans-serif;
-  font-size: 0.85rem;
-  font-weight: 600;
-  line-height: 1.3;
-  text-align: center;
-  white-space: normal;
-  word-break: break-word;
-  overflow-wrap: anywhere;
-}
-.tcg-sku-card.is-active .tcg-sku-card-title {
-  color: var(--tcg-accent-hover);
-  font-weight: 700;
 }
 .tcg-qty-input,
 .tcg-cart-qty-input {
