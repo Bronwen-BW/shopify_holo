@@ -1,0 +1,83 @@
+{%- comment -%}
+  TCG 顶部导航：每个导航项都是一个可编辑区块。
+  在主题编辑器中可新增、删除、排序、查看并编辑导航项，保存后桌面和移动菜单同步更新。
+{%- endcomment -%}
+{% render 'tcg-header', section: section %}
+
+{% schema %}
+{
+  "name": "TCG 导航",
+  "tag": "section",
+  "class": "tcg-nav-section",
+  "max_blocks": 12,
+  "settings": [
+    {
+      "type": "text",
+      "id": "search_placeholder",
+      "label": "搜索框提示文字",
+      "default": "Search cards, sets, sealed…"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "nav_item",
+      "name": "导航项",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "导航名称",
+          "default": "Home"
+        },
+        {
+          "type": "url",
+          "id": "url",
+          "label": "导航链接"
+        },
+        {
+          "type": "checkbox",
+          "id": "active",
+          "label": "始终高亮（当前页也会自动高亮）",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "TCG 导航",
+      "blocks": [
+        {
+          "type": "nav_item",
+          "settings": {
+            "label": "Home",
+            "url": "/",
+            "active": true
+          }
+        },
+        {
+          "type": "nav_item",
+          "settings": {
+            "label": "Shop",
+            "url": "shopify://collections/all"
+          }
+        },
+        {
+          "type": "nav_item",
+          "settings": {
+            "label": "Games",
+            "url": "shopify://collections/all"
+          }
+        },
+        {
+          "type": "nav_item",
+          "settings": {
+            "label": "Accessories",
+            "url": "shopify://collections/all"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

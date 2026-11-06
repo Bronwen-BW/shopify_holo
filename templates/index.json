@@ -10,7 +10,7 @@
         "slide_1": {
           "type": "slide",
           "settings": {
-            "image_url": "card-charizard.png",
+            "image_url": "https://images.pokemontcg.io/sv3/223.png",
             "eyebrow": "Pokémon TCG",
             "title": "Scarlet & Violet 151",
             "text": "经典初代回归，单卡、整盒与评级卡同步上架。",
@@ -21,7 +21,7 @@
         "slide_2": {
           "type": "slide",
           "settings": {
-            "image_url": "card-umbreon.png",
+            "image_url": "https://images.pokemontcg.io/swsh7/215.png",
             "eyebrow": "Yu-Gi-Oh!",
             "title": "Moonlit rarities",
             "text": "高罕贵卡与复古补充包，数量有限。",
@@ -31,7 +31,7 @@
         "slide_3": {
           "type": "slide",
           "settings": {
-            "image_url": "card-palkia.png",
+            "image_url": "https://images.pokemontcg.io/cel25/8.png",
             "eyebrow": "Pre-order",
             "title": "下一弹现已开放预购",
             "text": "提前锁定首发批次，发售日优先发货。",
@@ -44,7 +44,7 @@
           "settings": {
             "product": "",
             "title": "Charizard ex 特别收藏盒",
-            "image": "card-charizard.png",
+            "image": "https://images.pokemontcg.io/sv3/223.png",
             "subtitle": "Pokémon · Sealed",
             "badge": "HOT",
             "link": "/collections/pokemon"
@@ -55,7 +55,7 @@
           "settings": {
             "product": "",
             "title": "Umbreon VMAX 高罕单卡",
-            "image": "card-umbreon.png",
+            "image": "https://images.pokemontcg.io/swsh7/215.png",
             "subtitle": "Pokémon · Singles",
             "badge": "RARE",
             "link": "/collections/singles"
@@ -66,7 +66,7 @@
           "settings": {
             "product": "",
             "title": "Blastoise 经典复刻",
-            "image": "card-blastoise.png",
+            "image": "https://images.pokemontcg.io/base1/2.png",
             "subtitle": "Pokémon · Graded",
             "link": "/collections/graded"
           }
@@ -76,7 +76,7 @@
           "settings": {
             "product": "",
             "title": "Venusaur 礼盒",
-            "image": "card-venusaur.png",
+            "image": "https://images.pokemontcg.io/base1/15.png",
             "subtitle": "Pokémon · Gift box",
             "link": "/collections/gifts"
           }
@@ -86,7 +86,7 @@
           "settings": {
             "product": "",
             "title": "Palkia 主题套装",
-            "image": "card-palkia.png",
+            "image": "https://images.pokemontcg.io/cel25/8.png",
             "subtitle": "Pokémon · Bundle",
             "link": "/collections/bundles"
           }

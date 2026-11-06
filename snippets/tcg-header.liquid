@@ -13,14 +13,18 @@
       <span class="_logoText_1hxzp_32">TCG<span class="_logoAccent_1hxzp_103">Haven</span></span>
     </a>
 
-    {%- comment %} 桌面主导航 {% endcomment -%}
+    {%- comment %} 桌面主导航：由 section.blocks 驱动，支持编辑器增删改与排序 {% endcomment -%}
     <nav class="_navWrap_1hxzp_109" aria-label="Main">
       <ul class="_nav_1hxzp_1">
         <li class="_indicator_1hxzp_122" aria-hidden="true"></li>
-        <li><a class="_navLink_1hxzp_145 {% if request.page_type == 'index' %}_navLinkActive_1hxzp_163{% endif %}" href="{{ routes.root_url }}">Home</a></li>
-        <li><a class="_navLink_1hxzp_145 {% if request.page_type == 'collection' %}_navLinkActive_1hxzp_163{% endif %}" href="{{ routes.all_products_collection_url }}">Shop</a></li>
-        <li><a class="_navLink_1hxzp_145" href="{{ routes.all_products_collection_url }}">Games</a></li>
-        <li><a class="_navLink_1hxzp_145" href="{{ routes.all_products_collection_url }}">Accessories</a></li>
+        {%- for block in section.blocks -%}
+          {%- assign nav_url = block.settings.url | default: routes.all_products_collection_url -%}
+          {%- assign nav_active = block.settings.active -%}
+          {%- if request.path == nav_url -%}{%- assign nav_active = true -%}{%- endif -%}
+          <li {{ block.shopify_attributes }}>
+            <a class="_navLink_1hxzp_145 {% if nav_active %}_navLinkActive_1hxzp_163{% endif %}" href="{{ nav_url }}"{% if nav_active %} aria-current="page"{% endif %}>{{ block.settings.label }}</a>
+          </li>
+        {%- endfor -%}
       </ul>
     </nav>
 
@@ -28,16 +32,17 @@
     <div class="_actions_1hxzp_167">
 
       {%- comment %} 可展开搜索框（提交到 Shopify 搜索页） {% endcomment -%}
-      <form class="_searchWrap_1hxzp_52" role="search" action="{{ routes.search_url }}" method="get">
+      <form class="_searchWrap_1hxzp_52" role="search" action="{{ routes.search_url }}" method="get" data-shopify-search>
+        <input type="hidden" name="type" value="product">
         <input
           type="search"
           name="q"
+          value="{{ search.terms | escape }}"
           class="_searchInput_1hxzp_52"
-          placeholder="Search cards, sets, sealed…"
+          placeholder="{{ section.settings.search_placeholder | default: 'Search cards, sets, sealed…' | escape }}"
           aria-label="Search the catalogue"
-          aria-autocomplete="list"
         >
-        <button type="button" class="_iconBtn_1hxzp_244 _searchTrigger_1hxzp_58" aria-label="Open search" data-search-trigger>
+        <button type="submit" class="_iconBtn_1hxzp_244 _searchTrigger_1hxzp_58" aria-label="Search products" data-search-trigger>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.35-4.35"></path></svg>
         </button>
       </form>
@@ -76,9 +81,9 @@
   {%- comment %} 移动端下拉菜单（默认隐藏，由 JS 控制） {% endcomment -%}
   <div class="_menu_1hxzp_377" data-mobile-menu hidden>
     <nav>
-      <a href="{{ routes.root_url }}" class="_menuLink_1hxzp_409">Home</a>
-      <a href="{{ routes.all_products_collection_url }}" class="_menuLink_1hxzp_409">Shop</a>
-      <a href="{{ routes.all_products_collection_url }}" class="_menuLink_1hxzp_409">Games</a>
+      {%- for block in section.blocks -%}
+        <a href="{{ block.settings.url | default: routes.all_products_collection_url }}" class="_menuLink_1hxzp_409">{{ block.settings.label }}</a>
+      {%- endfor -%}
     </nav>
     <div class="_menuSecondary_1hxzp_425">
       <a href="{{ routes.account_url }}">Account</a>

@@ -50,18 +50,32 @@
   })();
 
   /* -------------------------------------------------------------------
-   * 3. 搜索框展开 / 收起
+   * 3. Shopify 商品搜索：展开输入、回车或点击提交到商城搜索页
    * ----------------------------------------------------------------- */
   (function searchToggle() {
-    var trigger = document.querySelector('[data-search-trigger]');
-    if (!trigger) return;
-    var form = trigger.closest('form');
-    var input = form.querySelector('input');
-    trigger.addEventListener('click', function () {
-      var opened = form.classList.toggle('_searchOpen_1hxzp_45');
-      if (opened) input.focus();
+    var form = document.querySelector('[data-shopify-search]');
+    if (!form) return;
+    var trigger = form.querySelector('[data-search-trigger]');
+    var input = form.querySelector('input[name="q"]');
+
+    trigger.addEventListener('click', function (event) {
+      var opened = form.classList.contains('_searchOpen_1hxzp_45');
+      if (!opened || !input.value.trim()) {
+        event.preventDefault();
+        form.classList.add('_searchOpen_1hxzp_45');
+        input.focus();
+      }
     });
-    // 失焦且输入为空时收起（移动端体验）
+
+    form.addEventListener('submit', function (event) {
+      if (!input.value.trim()) {
+        event.preventDefault();
+        form.classList.add('_searchOpen_1hxzp_45');
+        input.focus();
+      }
+    });
+
+    // 移动端失焦且没有搜索词时收起；有词时保留并同步到商城搜索
     input.addEventListener('blur', function () {
       if (!input.value && window.matchMedia('(max-width: 1023px)').matches) {
         form.classList.remove('_searchOpen_1hxzp_45');

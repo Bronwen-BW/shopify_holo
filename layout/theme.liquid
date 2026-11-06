@@ -39,8 +39,8 @@
       {%- comment %} 顶部路由加载进度条 {% endcomment -%}
       <div class="route-progress" aria-hidden="true"></div>
 
-      {%- comment %} 浮动胶囊导航 {% endcomment -%}
-      {% render 'tcg-header' %}
+      {%- comment %} 可编辑的浮动胶囊导航（导航项在主题编辑器中增删改） {% endcomment -%}
+      {% sections 'header-group' %}
 
       <div class="route-motion route-enter">
         <main id="MainContent" role="main">
