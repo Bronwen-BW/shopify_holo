@@ -54,7 +54,7 @@
 
       <div class="route-motion route-enter">
         <main id="MainContent" role="main">
-          {%- if request.page_type == 'policy' -%}
+          {%- if request.page_type == 'policy' or request.path contains '/policies/' -%}
             <div class="_page_4xdw3_1">
               <div class="_wide_4xdw3_6">
                 <nav class="tcg-policy-nav" aria-label="Store policies">

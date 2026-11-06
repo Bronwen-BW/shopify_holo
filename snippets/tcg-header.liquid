@@ -22,12 +22,18 @@
 
     {%- comment %} 桌面主导航：由 section.blocks 驱动，支持编辑器增删改与排序 {% endcomment -%}
     <nav class="_navWrap_1hxzp_109" aria-label="Main">
-      <ul class="_nav_1hxzp_1">
-        <li class="_indicator_1hxzp_122" aria-hidden="true"></li>
+      <ul class="_nav_1hxzp_1" data-tcg-nav-list>
+        <li class="_indicator_1hxzp_122" aria-hidden="true" data-tcg-nav-indicator></li>
         {%- for block in section.blocks -%}
           {%- assign nav_url = block.settings.url | default: routes.all_products_collection_url -%}
-          {%- assign nav_active = block.settings.active -%}
-          {%- if request.path == nav_url -%}{%- assign nav_active = true -%}{%- endif -%}
+          {%- assign nav_active = false -%}
+          {%- if request.path == nav_url -%}
+            {%- assign nav_active = true -%}
+          {%- elsif nav_url == '/' and request.page_type == 'index' -%}
+            {%- assign nav_active = true -%}
+          {%- elsif nav_url != '/' and nav_url != blank and request.path contains nav_url -%}
+            {%- assign nav_active = true -%}
+          {%- endif -%}
           <li {{ block.shopify_attributes }}>
             <a class="_navLink_1hxzp_145 {% if nav_active %}_navLinkActive_1hxzp_163{% endif %}" href="{{ nav_url }}"{% if nav_active %} aria-current="page"{% endif %}>{{ block.settings.label }}</a>
           </li>

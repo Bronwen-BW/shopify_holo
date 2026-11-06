@@ -132,8 +132,15 @@
     });
 
     input.addEventListener('blur', function () {
-      if (!input.value && window.matchMedia('(max-width: 1023px)').matches) {
+      if (!input.value.trim()) {
         form.classList.remove('_searchOpen_1hxzp_45');
+      }
+    });
+
+    input.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        form.classList.remove('_searchOpen_1hxzp_45');
+        input.blur();
       }
     });
   })();
