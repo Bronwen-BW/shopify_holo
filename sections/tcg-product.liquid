@@ -148,7 +148,7 @@
           <p class="_description_4xdw3_536">{{ product.description | strip_html | truncate: 280 }}</p>
         {%- endif -%}
 
-        {%- comment %} ================= 完整 SKU / 多规格选择区（图文卡片 + 属性组 + 下拉同步，无截断） ================= {% endcomment -%}
+        {%- comment %} ================= 完整 SKU / 多规格选择区（仅展示 SKU 名称，联动主图/价格/库存） ================= {% endcomment -%}
         <div class="_variantPicker_4xdw3_548 tcg-sku-section" data-sku-picker>
           <div class="tcg-sku-header">
             <span class="tcg-sku-label">
@@ -158,10 +158,96 @@
                 Selected Specification / SKU
               {%- endif -%}
             </span>
-            <span class="tcg-sku-current-code">
+            <span class="tcg-sku-current-code" hidden>
               SKU: <strong data-variant-sku>{{ current_variant.sku | default: 'Standard' }}</strong>
             </span>
           </div>
+
+          {%- comment %} 多维属性按钮组（当商品定义了非默认属性时显示） {% endcomment -%}
+          {%- unless product.has_only_default_variant -%}
+            {%- if product.options_with_values.size > 1 -%}
+              <div class="tcg-option-groups" data-option-groups>
+                {%- for option in product.options_with_values -%}
+                  <div class="tcg-option-group" data-option-index="{{ forloop.index0 }}">
+                    <span class="tcg-option-name">{{ option.name }}: <strong data-option-selected-val>{{ option.selected_value }}</strong></span>
+                    <div class="tcg-option-values">
+                      {%- for value in option.values -%}
+                        <button
+                          type="button"
+                          class="tcg-option-pill {% if option.selected_value == value %}is-selected{% endif %}"
+                          data-option-btn
+                          data-option-position="{{ option.position }}"
+                          data-option-value="{{ value | escape }}"
+                        >
+                          {{ value }}
+                        </button>
+                      {%- endfor -%}
+                    </div>
+                  </div>
+                {%- endfor -%}
+              </div>
+            {%- endif -%}
+          {%- endunless -%}
+
+          {%- comment %} SKU 选择网格：仅保留 SKU 名称，隐藏缩略图、编码、价格与库存等其他信息 {% endcomment -%}
+          {%- if section.settings.show_sku_grid != false -%}
+            <div class="tcg-sku-grid" role="radiogroup" aria-label="Product SKUs" data-sku-grid>
+              {%- for variant in product.variants -%}
+                {%- assign v_img_obj = variant.featured_image | default: product.featured_image -%}
+                {%- if v_img_obj != blank -%}
+                  {%- assign v_thumb = v_img_obj | image_url: width: 160 -%}
+                  {%- assign v_full = v_img_obj | image_url: width: 1400 -%}
+                {%- else -%}
+                  {%- assign v_thumb = 'logo-mark.png' | asset_url -%}
+                  {%- assign v_full = 'logo-mark.png' | asset_url -%}
+                {%- endif -%}
+                {%- assign v_title = variant.title -%}
+                {%- if v_title == 'Default Title' -%}
+                  {%- assign v_title = product.title -%}
+                {%- endif -%}
+
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked="{% if variant.id == current_variant.id %}true{% else %}false{% endif %}"
+                  class="tcg-sku-card {% if variant.id == current_variant.id %}is-active{% endif %} {% unless variant.available %}is-soldout{% endunless %}"
+                  data-sku-card
+                  data-variant-id="{{ variant.id }}"
+                  data-variant-title="{{ v_title | escape }}"
+                  data-variant-sku="{{ variant.sku | default: '—' | escape }}"
+                  data-variant-price="{{ variant.price | money | escape }}"
+                  data-variant-compare="{% if variant.compare_at_price > variant.price %}{{ variant.compare_at_price | money | escape }}{% endif %}"
+                  data-variant-available="{{ variant.available }}"
+                  data-variant-qty="{{ variant.inventory_quantity | default: 0 }}"
+                  data-variant-tracked="{{ variant.inventory_management | escape }}"
+                  data-variant-image="{{ v_full }}"
+                  data-variant-media-id="{{ variant.featured_media.id }}"
+                >
+                  <span class="tcg-sku-card-body">
+                    <strong class="tcg-sku-card-title">{{ v_title }}</strong>
+                  </span>
+                </button>
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+
+          {%- comment %} 隐藏同步用的原生 select（供 JS 双向同步使用，不在界面显示额外信息） {% endcomment -%}
+          {%- if product.variants.size > 1 -%}
+            <label class="tcg-sku-select-wrap" hidden>
+              <span>Quick SKU Switcher</span>
+              <select data-variant-select aria-label="Select SKU">
+                {%- for variant in product.variants -%}
+                  <option
+                    value="{{ variant.id }}"
+                    {% if variant.id == current_variant.id %}selected{% endif %}
+                  >
+                    {{ variant.title }}
+                  </option>
+                {%- endfor -%}
+              </select>
+            </label>
+          {%- endif -%}
+        </div>
 
           {%- comment %} 多维属性按钮组（当商品定义了非默认属性时显示） {% endcomment -%}
           {%- unless product.has_only_default_variant -%}
