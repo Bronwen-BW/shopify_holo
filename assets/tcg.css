@@ -34,15 +34,15 @@
 .tcg-rte strong{color:#f9fafb}
 ._menu_1hxzp_377[hidden]{display:none!important}
 
-/* Hero 轮播背景：在幻灯片完整区域内平铺，repeat 无缝衔接、不裁切、不留白 */
+/* Hero 轮播背景：单图与幻灯片完整区域等尺寸，允许拉伸以铺满，不平铺 */
 ._slideBg_tcg1{
   position:absolute;
   z-index:-2;
   inset:0;
   overflow:hidden;
-  background-repeat:repeat;
+  background-repeat:no-repeat;
   background-position:0 0;
-  background-size:clamp(6rem,12vw,9rem) auto;
+  background-size:100% 100%;
   opacity:0;
   transition:opacity .7s cubic-bezier(.22,1,.36,1);
 }
@@ -84,8 +84,7 @@
 @media (max-width:640px){._heroBtnGroup_tcg1{max-width:88%;gap:.4rem}._heroBtn_tcg1{min-height:2.2rem;padding:.5rem .85rem;font-size:.8rem}}
 @media (prefers-reduced-motion:reduce){._heroBtn_tcg1{transition:none}}
 
-/* ===== 移动端：按钮组回归文档流，背景继续在完整幻灯片区域内平铺 ===== */
+/* ===== 移动端：按钮组回归文档流，单图继续拉伸铺满完整幻灯片区域 ===== */
 @media (max-width:768px){
-  ._slideBg_tcg1{background-size:6rem auto}
   ._heroBtnGroup_tcg1{position:relative;inset:auto;z-index:2;transform:none}
 }
