@@ -1,123 +1,265 @@
 {%- comment -%}
-  TCG 主展示区：左侧自动轮播 + 右侧 Ready to ship 货架
-  轮播最多支持 10 页（可在主题编辑器中设置页数），每页以对应产品图作为全幅底图
+  TCG 主展示区：左侧自动轮播 + 右侧热门商品货架
+
+  【可配置数据】本分区使用 section.blocks（按 block_order 排序）：
+    - slide        : 一张轮播项（图片 / 眉标 / 标题 / 文案 / 整图链接 / 主题色）
+    - hero_button  : 轮播项上的按钮，用 settings.slide_id 关联到某个 slide 的 block id
+                     （文字 / 链接 / 位置 / 样式 / 跳转行为 / 加购变体）
+    - hot_product  : 右侧热门商品项（商品 handle，可覆盖标题 / 图片 / 副标题 / 链接 / 角标）
+  未配置任何 slide 时，自动回退到「按集合取前 N 个产品」的旧逻辑。
 {%- endcomment -%}
+
+{%- assign slide_count = 0 -%}
+{%- assign hot_count = 0 -%}
+{%- for block in section.blocks -%}
+  {%- if block.type == 'slide' -%}{%- assign slide_count = slide_count | plus: 1 -%}{%- endif -%}
+  {%- if block.type == 'hot_product' -%}{%- assign hot_count = hot_count | plus: 1 -%}{%- endif -%}
+{%- endfor -%}
+
+{%- assign custom_mode = false -%}
+{%- if slide_count > 0 -%}{%- assign custom_mode = true -%}{%- endif -%}
+
 {%- assign hero_collection = collections[section.settings.collection] | default: collections.all -%}
 {%- assign hero_products = hero_collection.products | slice: 0, section.settings.slides_to_show -%}
 {%- assign shelf_products = hero_collection.products | slice: 0, 5 -%}
-{%- comment %} 各轮播主题色（按页数取模循环使用） {% endcomment -%}
 {%- assign themes = '#72522b,#216b4d,#216b4d,#7a3828,#7a3828,#4c1d95,#155e75,#713f12,#3f6212,#831843' | split: ',' -%}
-{%- comment %} 背景图链接：英文逗号分隔，按顺序对应各页，未填的页回退用产品主图 {% endcomment -%}
 {%- assign bg_links = section.settings.background_images | default: '' | split: ',' -%}
+{%- assign positions = 'top-left,top-right,center,bottom-left,bottom-right' | split: ',' -%}
+
+{%- comment -%} 把「图片路径或外链」统一解析成可用 URL {%- endcomment -%}
+{%- comment -%} image_picker 的值交给 image_url；纯文件名交给 asset_url；完整 URL 原样使用 {%- endcomment -%}
 
 <section class="_showcase_n65qd_1">
   <div class="_grid_n65qd_6">
 
-    {%- comment %} 轮播舞台 {% endcomment -%}
+    {%- comment %} ================= 轮播舞台 ================= {% endcomment -%}
     <div class="_stage_n65qd_20" data-hero data-motion-card="5">
       <div class="_spotlight_n65qd_40" aria-hidden="true"></div>
 
-      {%- for product in hero_products -%}
-        {%- assign is_preorder = false -%}
-        {%- for tag in product.tags -%}
-          {%- assign tag_down = tag | downcase -%}
-          {%- if tag_down contains 'pre' -%}{%- assign is_preorder = true -%}{%- endif -%}
-        {%- endfor -%}
-        {%- assign theme_index = forloop.index0 | modulo: themes.size -%}
-        {%- assign bg_link = bg_links[forloop.index0] | strip -%}
+      {%- if custom_mode -%}
+        {%- comment %} ---------- 自定义轮播项 ---------- {% endcomment -%}
+        {%- assign slide_index = 0 -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type != 'slide' -%}{%- continue -%}{%- endif -%}
+          {%- assign theme_index = slide_index | modulo: themes.size -%}
+          {%- assign theme_color = block.settings.theme | default: themes[theme_index] -%}
 
-        <article
-          class="_slide_n65qd_49 {% if forloop.first %}_slideActive_n65qd_71{% endif %}"
-          data-slide
-          {% if forloop.first == false %}inert aria-hidden="true"{% else %}aria-hidden="false"{% endif %}
-          style="--theme: {{ themes[theme_index] }};"
-        >
-          {%- comment %} 幻灯片底图：优先使用设置的图片链接，否则用产品主图；全幅铺满 + 渐变遮罩保证文字可读 {% endcomment -%}
-          {%- if bg_link != blank or product.featured_image -%}
-            <div class="_slideBg_tcg1" aria-hidden="true">
-              <img
-                src="{% if bg_link != blank %}{{ bg_link }}{% else %}{{ product.featured_image | image_url: width: 1800 }}{% endif %}"
-                alt=""
-                draggable="false"
-                {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}
-                decoding="async"
-              >
-              <span class="_slideBgOverlay_tcg1"></span>
-            </div>
+          {%- assign raw_img = block.settings.image_url | default: '' | strip -%}
+          {%- if raw_img == blank and block.settings.image != blank -%}
+            {%- assign raw_img = block.settings.image | image_url: width: 1800 -%}
           {%- endif -%}
-
-          <div class="_copy_n65qd_79">
-            <p class="_meta_n65qd_86">
-              <span class="_game_n65qd_96">{{ product.type | default: product.vendor }}</span>
-              {%- if is_preorder -%}
-                <span class="_tag_n65qd_100 _tagPreorder_n65qd_108">Pre-order</span>
-              {%- endif -%}
-            </p>
-            <h2 class="_title_n65qd_113">{{ product.title }}</h2>
-            <p class="_blurb_n65qd_124">{{ product.description | strip_html | truncate: 320 }}</p>
-          </div>
-
-          {%- comment %} 仅当没有背景图时才显示悬浮产品占位图，避免与底图重复 {% endcomment -%}
-          {%- unless product.featured_image -%}
-          <div data-motion-art class="_art_n65qd_269">
-            <img class="_artImage_n65qd_278" src="{{ 'logo-mark.png' | asset_url }}" alt="{{ product.title | escape }}">
-            <span aria-hidden="true" class="_floor_n65qd_290"></span>
-          </div>
+          {%- assign slide_img = raw_img -%}
+          {%- unless raw_img contains '://' or raw_img contains '//' -%}
+            {%- if raw_img != blank -%}{%- assign slide_img = raw_img | asset_url -%}{%- endif -%}
           {%- endunless -%}
-        </article>
-      {%- endfor -%}
 
-      {%- comment %} 圆点导航（点击切换，6 秒自动推进） {% endcomment -%}
-      <div class="_dots_tcg1" role="tablist" aria-label="Featured products">
-        {%- for product in hero_products -%}
-          <button
-            type="button"
-            role="tab"
-            class="_dot_tcg1 {% if forloop.first %}_dotActive_tcg1{% endif %}"
-            data-segment
-            aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
-            aria-label="Show {{ product.title | escape }}"
-          ></button>
+          <article
+            class="_slide_n65qd_49 {% if slide_index == 0 %}_slideActive_n65qd_71{% endif %}"
+            data-slide
+            {% if slide_index != 0 %}inert aria-hidden="true"{% else %}aria-hidden="false"{% endif %}
+            style="--theme: {{ theme_color }};"
+          >
+            {%- if slide_img != blank -%}
+              <div class="_slideBg_tcg1" aria-hidden="true">
+                <img src="{{ slide_img }}" alt="" draggable="false"
+                  {% if slide_index == 0 %}fetchpriority="high"{% else %}loading="lazy"{% endif %} decoding="async">
+                <span class="_slideBgOverlay_tcg1"></span>
+              </div>
+            {%- endif -%}
+
+            <div class="_copy_n65qd_79">
+              {%- if block.settings.eyebrow != blank -%}
+                <p class="_meta_n65qd_86"><span class="_game_n65qd_96">{{ block.settings.eyebrow }}</span></p>
+              {%- endif -%}
+              {%- if block.settings.title != blank -%}
+                <h2 class="_title_n65qd_113">{{ block.settings.title }}</h2>
+              {%- endif -%}
+              {%- if block.settings.text != blank -%}
+                <p class="_blurb_n65qd_124">{{ block.settings.text }}</p>
+              {%- endif -%}
+            </div>
+
+            {%- comment %} 按位置分组渲染按钮，同一位置的按钮自动横排且互不重叠 {% endcomment -%}
+            {%- for pos in positions -%}
+              <div class="_heroBtnGroup_tcg1 _heroBtnGroup_{{ pos }}">
+                {%- for btn in section.blocks -%}
+                  {%- if btn.type != 'hero_button' -%}{%- continue -%}{%- endif -%}
+                  {%- if btn.settings.slide_id != block.id -%}{%- continue -%}{%- endif -%}
+                  {%- assign btn_pos = btn.settings.position | default: 'bottom-left' -%}
+                  {%- if btn_pos != pos -%}{%- continue -%}{%- endif -%}
+                  {%- assign btn_style = btn.settings.style | default: 'primary' -%}
+                  {%- assign behavior = btn.settings.target | default: '_self' -%}
+                  {%- assign btn_label = btn.settings.label | default: '了解更多' -%}
+
+                  {%- if behavior == 'add_to_cart' -%}
+                    <button type="button" class="_heroBtn_tcg1 _heroBtn_{{ btn_style }}" data-add
+                      data-variant="{{ btn.settings.variant_id }}" aria-label="{{ btn_label | escape }}">
+                      {{ btn_label }}
+                    </button>
+                  {%- elsif behavior == 'scroll' -%}
+                    <a class="_heroBtn_tcg1 _heroBtn_{{ btn_style }}" href="#{{ btn.settings.url | remove_first: '#' | escape }}" data-scroll>
+                      {{- btn_label -}}
+                    </a>
+                  {%- else -%}
+                    <a class="_heroBtn_tcg1 _heroBtn_{{ btn_style }}" href="{{ btn.settings.url | default: '#' | escape }}"
+                      {% if behavior == '_blank' %}target="_blank" rel="noopener noreferrer"{% else %}target="_self"{% endif %}>
+                      {{- btn_label -}}
+                    </a>
+                  {%- endif -%}
+                {%- endfor -%}
+              </div>
+            {%- endfor -%}
+
+            {%- if block.settings.link != blank -%}
+              <a class="_heroSlideLink_tcg1" href="{{ block.settings.link | escape }}" aria-label="{{ block.settings.title | default: '查看' | escape }}"></a>
+            {%- endif -%}
+
+            {%- assign slide_index = slide_index | plus: 1 -%}
+          </article>
         {%- endfor -%}
+
+      {%- else -%}
+        {%- comment %} ---------- 回退：按集合动态生成 ---------- {% endcomment -%}
+        {%- for product in hero_products -%}
+          {%- assign is_preorder = false -%}
+          {%- for tag in product.tags -%}
+            {%- assign tag_down = tag | downcase -%}
+            {%- if tag_down contains 'pre' -%}{%- assign is_preorder = true -%}{%- endif -%}
+          {%- endfor -%}
+          {%- assign theme_index = forloop.index0 | modulo: themes.size -%}
+          {%- assign bg_link = bg_links[forloop.index0] | strip -%}
+
+          <article
+            class="_slide_n65qd_49 {% if forloop.first %}_slideActive_n65qd_71{% endif %}"
+            data-slide
+            {% if forloop.first == false %}inert aria-hidden="true"{% else %}aria-hidden="false"{% endif %}
+            style="--theme: {{ themes[theme_index] }};"
+          >
+            {%- if bg_link != blank or product.featured_image -%}
+              <div class="_slideBg_tcg1" aria-hidden="true">
+                <img src="{% if bg_link != blank %}{{ bg_link }}{% else %}{{ product.featured_image | image_url: width: 1800 }}{% endif %}"
+                  alt="" draggable="false" {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %} decoding="async">
+                <span class="_slideBgOverlay_tcg1"></span>
+              </div>
+            {%- endif -%}
+
+            <div class="_copy_n65qd_79">
+              <p class="_meta_n65qd_86">
+                <span class="_game_n65qd_96">{{ product.type | default: product.vendor }}</span>
+                {%- if is_preorder -%}<span class="_tag_n65qd_100 _tagPreorder_n65qd_108">Pre-order</span>{%- endif -%}
+              </p>
+              <h2 class="_title_n65qd_113">{{ product.title }}</h2>
+              <p class="_blurb_n65qd_124">{{ product.description | strip_html | truncate: 320 }}</p>
+            </div>
+
+            {%- unless product.featured_image -%}
+              <div data-motion-art class="_art_n65qd_269">
+                <img class="_artImage_n65qd_278" src="{{ 'logo-mark.png' | asset_url }}" alt="{{ product.title | escape }}">
+                <span aria-hidden="true" class="_floor_n65qd_290"></span>
+              </div>
+            {%- endunless -%}
+          </article>
+        {%- endfor -%}
+      {%- endif -%}
+
+      {%- comment %} 圆点导航：数量必须与 data-slide 一致（JS 依赖） {% endcomment -%}
+      <div class="_dots_tcg1" role="tablist" aria-label="Featured products">
+        {%- if custom_mode -%}
+          {%- assign dot_i = 0 -%}
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'slide' -%}
+              <button type="button" role="tab" class="_dot_tcg1{% if dot_i == 0 %} _dotActive_tcg1{% endif %}"
+                data-segment aria-selected="{% if dot_i == 0 %}true{% else %}false{% endif %}"
+                aria-label="Show {{ block.settings.title | default: 'slide' | escape }}"></button>
+              {%- assign dot_i = dot_i | plus: 1 -%}
+            {%- endif -%}
+          {%- endfor -%}
+        {%- else -%}
+          {%- for product in hero_products -%}
+            <button type="button" role="tab" class="_dot_tcg1 {% if forloop.first %}_dotActive_tcg1{% endif %}"
+              data-segment aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+              aria-label="Show {{ product.title | escape }}"></button>
+          {%- endfor -%}
+        {%- endif -%}
       </div>
     </div>
 
-    {%- comment %} Ready to ship 货架 {% endcomment -%}
+    {%- comment %} ================= 热门商品货架 ================= {% endcomment -%}
     <aside class="_shelf_n65qd_394" aria-labelledby="ready-to-ship-title">
       <header class="_shelfHeader_n65qd_403">
-        <h2 id="ready-to-ship-title">Ready to ship</h2>
-        <a href="{{ routes.all_products_collection_url }}" class="_viewAll_n65qd_419">View all</a>
+        <h2 id="ready-to-ship-title">{{ section.settings.shelf_heading | default: 'Ready to ship' }}</h2>
+        <a href="{{ section.settings.shelf_link | default: routes.all_products_collection_url }}" class="_viewAll_n65qd_419">View all</a>
       </header>
       <ul class="_shelfList_n65qd_442">
-        {%- for product in shelf_products -%}
-          {%- assign variant = product.selected_or_first_available_variant -%}
-          <li class="_shelfItem_n65qd_449" data-motion-card="10">
-            <a href="{{ product.url }}" class="_shelfLink_n65qd_462">
-              <span class="_thumb_n65qd_476">
-                {%- if product.featured_image -%}
-                  <img data-motion-art src="{{ product.featured_image | image_url: width: 200 }}" alt="" draggable="false" loading="eager" decoding="async">
-                {%- else -%}
-                  <img data-motion-art src="{{ 'logo-mark.png' | asset_url }}" alt="" draggable="false">
-                {%- endif -%}
-              </span>
-              <span class="_itemInfo_n65qd_493">
-                <span class="_itemName_n65qd_500">{{ product.title }}</span>
-                <span class="_itemSet_n65qd_513">{{ product.type }}</span>
-                <span class="_itemPrice_n65qd_521">{{ product.price | money }}</span>
-              </span>
-            </a>
-            <button
-              type="button"
-              class="_addBtn_n65qd_530"
-              data-add
-              data-variant="{{ variant.id }}"
-              {% unless variant.available %}disabled{% endunless %}
-              aria-label="Add {{ product.title | escape }} to cart"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
-            </button>
-          </li>
-        {%- endfor -%}
+        {%- if hot_count > 0 -%}
+          {%- comment %} ---------- 自定义热门商品（按 block_order 排序） ---------- {% endcomment -%}
+          {%- for block in section.blocks -%}
+            {%- if block.type != 'hot_product' -%}{%- continue -%}{%- endif -%}
+            {%- assign p = all_products[block.settings.product] -%}
+            {%- assign item_title = block.settings.title | default: p.title | default: '商品' -%}
+            {%- assign item_sub = block.settings.subtitle | default: p.type -%}
+            {%- assign item_link = block.settings.link | default: p.url | default: '#' -%}
+
+            {%- assign raw_img = block.settings.image | default: '' | strip -%}
+            {%- assign item_img = raw_img -%}
+            {%- unless raw_img contains '://' or raw_img contains '//' -%}
+              {%- if raw_img != blank -%}{%- assign item_img = raw_img | asset_url -%}{%- endif -%}
+            {%- endunless -%}
+            {%- if item_img == blank and p.featured_image -%}
+              {%- assign item_img = p.featured_image | image_url: width: 200 -%}
+            {%- endif -%}
+            {%- if item_img == blank -%}{%- assign item_img = 'logo-mark.png' | asset_url -%}{%- endif -%}
+
+            {%- assign variant = p.selected_or_first_available_variant -%}
+            <li class="_shelfItem_n65qd_449" data-motion-card="10">
+              <a href="{{ item_link }}" class="_shelfLink_n65qd_462">
+                <span class="_thumb_n65qd_476">
+                  <img data-motion-art src="{{ item_img }}" alt="{{ item_title | escape }}" draggable="false" loading="eager" decoding="async">
+                  {%- if block.settings.badge != blank -%}
+                    <span class="_heroBadge_tcg1">{{ block.settings.badge }}</span>
+                  {%- endif -%}
+                </span>
+                <span class="_itemInfo_n65qd_493">
+                  <span class="_itemName_n65qd_500">{{ item_title }}</span>
+                  {%- if item_sub != blank -%}<span class="_itemSet_n65qd_513">{{ item_sub }}</span>{%- endif -%}
+                  {%- if p.price -%}<span class="_itemPrice_n65qd_521">{{ p.price | money }}</span>{%- endif -%}
+                </span>
+              </a>
+              {%- if variant and variant.available -%}
+                <button type="button" class="_addBtn_n65qd_530" data-add data-variant="{{ variant.id }}"
+                  aria-label="Add {{ item_title | escape }} to cart">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+                </button>
+              {%- endif -%}
+            </li>
+          {%- endfor -%}
+        {%- else -%}
+          {%- comment %} ---------- 回退：集合前 5 个商品 ---------- {% endcomment -%}
+          {%- for product in shelf_products -%}
+            {%- assign variant = product.selected_or_first_available_variant -%}
+            <li class="_shelfItem_n65qd_449" data-motion-card="10">
+              <a href="{{ product.url }}" class="_shelfLink_n65qd_462">
+                <span class="_thumb_n65qd_476">
+                  {%- if product.featured_image -%}
+                    <img data-motion-art src="{{ product.featured_image | image_url: width: 200 }}" alt="" draggable="false" loading="eager" decoding="async">
+                  {%- else -%}
+                    <img data-motion-art src="{{ 'logo-mark.png' | asset_url }}" alt="" draggable="false">
+                  {%- endif -%}
+                </span>
+                <span class="_itemInfo_n65qd_493">
+                  <span class="_itemName_n65qd_500">{{ product.title }}</span>
+                  <span class="_itemSet_n65qd_513">{{ product.type }}</span>
+                  <span class="_itemPrice_n65qd_521">{{ product.price | money }}</span>
+                </span>
+              </a>
+              <button type="button" class="_addBtn_n65qd_530" data-add data-variant="{{ variant.id }}"
+                {% unless variant.available %}disabled{% endunless %}
+                aria-label="Add {{ product.title | escape }} to cart">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+              </button>
+            </li>
+          {%- endfor -%}
+        {%- endif -%}
       </ul>
     </aside>
   </div>
@@ -126,16 +268,28 @@
 {% schema %}
 {
   "name": "TCG 主展示轮播",
+  "max_blocks": 60,
   "settings": [
+    {
+      "type": "text",
+      "id": "shelf_heading",
+      "label": "热门商品区标题",
+      "default": "Ready to ship"
+    },
+    {
+      "type": "url",
+      "id": "shelf_link",
+      "label": "“查看全部”链接"
+    },
     {
       "type": "collection",
       "id": "collection",
-      "label": "轮播产品来源集合（默认全部）"
+      "label": "回退：产品来源集合（未配置轮播项时使用）"
     },
     {
       "type": "range",
       "id": "slides_to_show",
-      "label": "轮播页数（最多 10 页）",
+      "label": "回退：轮播页数（最多 10 页）",
       "min": 1,
       "max": 10,
       "step": 1,
@@ -144,7 +298,81 @@
     {
       "type": "textarea",
       "id": "background_images",
-      "label": "背景图链接（英文逗号分隔，按顺序对应各页，最多 10 个；留空的页使用产品主图）"
+      "label": "回退：背景图链接（英文逗号分隔，按顺序对应各页；留空的页使用产品主图）"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "轮播项",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "背景图片（Shopify 图片）" },
+        { "type": "text", "id": "image_url", "label": "或：图片文件名 / 完整 URL（如 card-charizard.png）" },
+        { "type": "text", "id": "eyebrow", "label": "眉标 / 分类" },
+        { "type": "text", "id": "title", "label": "标题", "default": "新系列上市" },
+        { "type": "textarea", "id": "text", "label": "文案" },
+        { "type": "url", "id": "link", "label": "整张轮播点击链接（留空则不叠加）" },
+        { "type": "color", "id": "theme", "label": "主题色", "default": "#216b4d" }
+      ]
+    },
+    {
+      "type": "hero_button",
+      "name": "轮播按钮",
+      "settings": [
+        { "type": "text", "id": "slide_id", "label": "所属轮播项 ID（编辑器自动维护）" },
+        { "type": "text", "id": "label", "label": "按钮文字", "default": "立即选购" },
+        { "type": "url", "id": "url", "label": "跳转链接 / 锚点" },
+        {
+          "type": "select",
+          "id": "position",
+          "label": "位置",
+          "default": "bottom-left",
+          "options": [
+            { "value": "top-left", "label": "左上" },
+            { "value": "top-right", "label": "右上" },
+            { "value": "center", "label": "居中" },
+            { "value": "bottom-left", "label": "左下" },
+            { "value": "bottom-right", "label": "右下" }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "style",
+          "label": "样式",
+          "default": "primary",
+          "options": [
+            { "value": "primary", "label": "主按钮（绿色实心）" },
+            { "value": "secondary", "label": "次按钮（描边）" },
+            { "value": "ghost", "label": "幽灵（半透明）" },
+            { "value": "light", "label": "浅色实心" }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "target",
+          "label": "跳转行为",
+          "default": "_self",
+          "options": [
+            { "value": "_self", "label": "当前窗口打开" },
+            { "value": "_blank", "label": "新窗口打开" },
+            { "value": "add_to_cart", "label": "加入购物车" },
+            { "value": "scroll", "label": "页内锚点滚动" }
+          ]
+        },
+        { "type": "text", "id": "variant_id", "label": "加购变体 ID（跳转行为=加购时填写）" }
+      ]
+    },
+    {
+      "type": "hot_product",
+      "name": "热门商品",
+      "settings": [
+        { "type": "product", "id": "product", "label": "商品 handle" },
+        { "type": "text", "id": "title", "label": "标题覆盖（留空取商品标题）" },
+        { "type": "text", "id": "image", "label": "图片覆盖：文件名 / URL（留空取商品图）" },
+        { "type": "text", "id": "subtitle", "label": "副标题覆盖" },
+        { "type": "url", "id": "link", "label": "链接覆盖" },
+        { "type": "text", "id": "badge", "label": "角标文字（如 HOT）" }
+      ]
     }
   ],
   "presets": [

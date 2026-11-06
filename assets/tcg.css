@@ -47,3 +47,28 @@
 ._dot_tcg1:hover{background:#f9fafb73}
 ._dot_tcg1:focus-visible{outline:2px solid #34d399;outline-offset:2px}
 ._dotActive_tcg1{background:#34d399;box-shadow:0 0 10px #34d39980;transform:scale(1.2)}
+
+/* ===== 可配置轮播：按钮 / 整图链接 / 热门商品角标 ===== */
+._slide_n65qd_49{position:relative}
+._heroSlideLink_tcg1{position:absolute;inset:0;z-index:1}
+._heroBtnGroup_tcg1{position:absolute;z-index:6;display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;max-width:min(90%,34rem)}
+._heroBtnGroup_tcg1:empty{display:none}
+._heroBtnGroup_top-left{left:clamp(2rem,4.5vw,4.5rem);top:clamp(1.8rem,4vw,3rem)}
+._heroBtnGroup_top-right{right:clamp(2rem,4.5vw,4.5rem);top:clamp(1.8rem,4vw,3rem);justify-content:flex-end}
+._heroBtnGroup_center{left:50%;top:50%;transform:translate(-50%,-50%);justify-content:center}
+._heroBtnGroup_bottom-left{left:clamp(2rem,4.5vw,4.5rem);bottom:clamp(4.6rem,8vw,6rem)}
+._heroBtnGroup_bottom-right{right:clamp(2rem,4.5vw,4.5rem);bottom:clamp(4.6rem,8vw,6rem);justify-content:flex-end}
+._heroBtn_tcg1{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;min-height:2.6rem;padding:.62rem 1.25rem;border:1px solid transparent;border-radius:.75rem;font:700 .9rem/1.2 Rubik,ui-sans-serif,system-ui,sans-serif;text-decoration:none;white-space:nowrap;cursor:pointer;transition:transform .2s ease,background-color .2s ease,box-shadow .2s ease}
+._heroBtn_tcg1:hover{transform:translateY(-2px)}
+._heroBtn_tcg1:focus-visible{outline:2px solid #34d399;outline-offset:3px}
+._heroBtn_primary{background:#34d399;color:#0b1512;box-shadow:0 6px 22px #34d39940}
+._heroBtn_primary:hover{background:#5ce0b0}
+._heroBtn_secondary{background:transparent;color:#f9fafb;border-color:#f9fafb99}
+._heroBtn_secondary:hover{background:#f9fafb1f}
+._heroBtn_ghost{background:#ffffff1f;color:#f9fafb;backdrop-filter:blur(8px)}
+._heroBtn_ghost:hover{background:#ffffff33}
+._heroBtn_light{background:#f9fafb;color:#181818}
+._heroBtn_light:hover{background:#d4d4d8}
+._heroBadge_tcg1{position:absolute;top:.3rem;left:.3rem;z-index:2;padding:.15rem .45rem;border-radius:.35rem;background:#34d399;color:#0b1512;font:700 .62rem/1.4 Rubik,ui-sans-serif,system-ui,sans-serif;letter-spacing:.04em}
+@media (max-width:640px){._heroBtnGroup_tcg1{max-width:88%;gap:.4rem}._heroBtn_tcg1{min-height:2.2rem;padding:.5rem .85rem;font-size:.8rem}}
+@media (prefers-reduced-motion:reduce){._heroBtn_tcg1{transition:none}}
