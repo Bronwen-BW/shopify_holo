@@ -1346,3 +1346,102 @@ html[data-theme="light"] ._stage_n65qd_20 ._game_n65qd_96 {
   color: #f9fafb !important;
 }
 
+/* ===== Shop by set (_qxt27_)：一行 4 格、紧凑尺寸、适配容器宽度且整齐对齐 ===== */
+._rail_qxt27_81 {
+  display: grid !important;
+  grid-template-columns: repeat(var(--tcg-sets-cols, 4), minmax(0, 1fr)) !important;
+  gap: clamp(0.75rem, 1.3vw, 1.15rem) !important;
+  align-items: stretch !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+@media (max-width: 1024px) {
+  ._rail_qxt27_81 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 560px) {
+  ._rail_qxt27_81 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+._collection_qxt27_87 {
+  position: relative;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between;
+  min-width: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  border-radius: 0.875rem;
+  box-sizing: border-box;
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (hover: hover) {
+  ._collection_qxt27_87:hover {
+    transform: translateY(-3px);
+  }
+}
+._media_qxt27_116 {
+  position: relative;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 100% !important;
+  height: clamp(10.5rem, 13.5vw, 13rem) !important;
+  max-height: 13rem !important;
+  aspect-ratio: auto !important;
+  padding: 0.9rem 1.1rem !important;
+  overflow: hidden !important;
+  box-sizing: border-box;
+}
+._media_qxt27_116 img {
+  display: block;
+  width: auto !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  margin-inline: auto;
+  filter: drop-shadow(0 0.65rem 0.75rem rgba(0, 0, 0, 0.32));
+}
+._body_qxt27_137 {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.2rem !important;
+  padding: 0.7rem 1.1rem 1.05rem !important;
+  margin-top: auto;
+  min-width: 0;
+  box-sizing: border-box;
+}
+._body_qxt27_137 h3 {
+  margin: 0;
+  color: var(--tcg-text) !important;
+  font-family: Rubik, ui-sans-serif, system-ui, sans-serif;
+  font-size: 1rem !important;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.3 !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+._game_qxt27_152 {
+  font-size: 0.78rem !important;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+html[data-theme="light"] ._game_qxt27_152 {
+  color: color-mix(in srgb, var(--frame, #10b981) 82%, #0f172a) !important;
+}
+._count_qxt27_159 {
+  margin-top: 0.15rem !important;
+  color: var(--tcg-text-muted) !important;
+  font-size: 0.78rem !important;
+  line-height: 1.25;
+}
+

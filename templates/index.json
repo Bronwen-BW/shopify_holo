@@ -181,6 +181,7 @@
           "type": "set",
           "settings": {
             "game_label": "Pokémon",
+            "title": "Scarlet & Violet — 151",
             "frame_color": "#2ed39a"
           }
         },
@@ -188,15 +189,36 @@
           "type": "set",
           "settings": {
             "game_label": "Magic: The Gathering",
+            "title": "Modern Horizons & Commander",
             "frame_color": "#f28753"
+          }
+        },
+        "s3": {
+          "type": "set",
+          "settings": {
+            "game_label": "Pokémon",
+            "title": "Prismatic Evolutions",
+            "frame_color": "#a78bfa"
+          }
+        },
+        "s4": {
+          "type": "set",
+          "settings": {
+            "game_label": "Collectors",
+            "title": "Collectors Vault",
+            "frame_color": "#60a5fa"
           }
         }
       },
       "block_order": [
         "s1",
-        "s2"
+        "s2",
+        "s3",
+        "s4"
       ],
-      "settings": {}
+      "settings": {
+        "columns_desktop": 4
+      }
     },
     "upcoming": {
       "type": "tcg-product-grid",

@@ -15,7 +15,7 @@
       <a href="{{ routes.all_products_collection_url }}" class="_viewAll_qxt27_33">All products</a>
     </header>
 
-    <div class="_rail_qxt27_81">
+    <div class="_rail_qxt27_81" style="--tcg-sets-cols: {{ section.settings.columns_desktop | default: 4 }};">
       {%- for block in section.blocks -%}
         {%- assign set_col = collections[block.settings.collection] -%}
         {%- assign fb_idx = forloop.index0 | modulo: fallback_arts.size -%}
@@ -53,10 +53,19 @@
 {% schema %}
 {
   "name": "TCG 系列轨道",
-  "max_blocks": 6,
+  "max_blocks": 12,
   "settings": [
     { "type": "text", "id": "heading", "label": "标题", "default": "Shop by set" },
-    { "type": "text", "id": "subheading", "label": "副标题", "default": "The sets we carry the most sealed products and singles from right now." }
+    { "type": "text", "id": "subheading", "label": "副标题", "default": "The sets we carry the most sealed products and singles from right now." },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "桌面端每行显示格数",
+      "min": 2,
+      "max": 4,
+      "step": 1,
+      "default": 4
+    }
   ],
   "blocks": [
     {
@@ -90,7 +99,9 @@
       "name": "TCG 系列轨道",
       "blocks": [
         { "type": "set", "settings": { "game_label": "Pokémon", "title": "Scarlet & Violet — 151", "frame_color": "#2ed39a" } },
-        { "type": "set", "settings": { "game_label": "Magic: The Gathering", "title": "Modern Horizons & Commander", "frame_color": "#f28753" } }
+        { "type": "set", "settings": { "game_label": "Magic: The Gathering", "title": "Modern Horizons & Commander", "frame_color": "#f28753" } },
+        { "type": "set", "settings": { "game_label": "Pokémon", "title": "Prismatic Evolutions", "frame_color": "#a78bfa" } },
+        { "type": "set", "settings": { "game_label": "Collectors", "title": "Collectors Vault", "frame_color": "#60a5fa" } }
       ]
     }
   ]
