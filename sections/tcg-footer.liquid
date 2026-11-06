@@ -1,0 +1,79 @@
+{%- comment -%}
+  TCG 全局页脚分区：支持在主题编辑器中配置品牌介绍、支付说明及页脚导航链接。
+{%- endcomment -%}
+{% render 'tcg-footer', section: section %}
+
+{% schema %}
+{
+  "name": "TCG 页脚",
+  "tag": "section",
+  "class": "tcg-footer-section",
+  "max_blocks": 24,
+  "settings": [
+    {
+      "type": "text",
+      "id": "brand_prefix",
+      "label": "品牌主名称",
+      "default": "TCG"
+    },
+    {
+      "type": "text",
+      "id": "brand_accent",
+      "label": "品牌高亮后缀",
+      "default": "Haven"
+    },
+    {
+      "type": "textarea",
+      "id": "blurb",
+      "label": "品牌简介",
+      "default": "A haven for collectors. Singles, sealed product, and accessories across the games you play, condition-checked and shipped fast."
+    },
+    {
+      "type": "url",
+      "id": "instagram_url",
+      "label": "Instagram 链接"
+    },
+    {
+      "type": "text",
+      "id": "payments_note",
+      "label": "安全支付说明",
+      "default": "Secure checkout powered by Shopify Payments"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "footer_link",
+      "name": "页脚链接",
+      "settings": [
+        {
+          "type": "select",
+          "id": "column",
+          "label": "所属栏目",
+          "default": "company",
+          "options": [
+            { "value": "shop", "label": "Shop 商城栏" },
+            { "value": "account", "label": "Account 账户栏" },
+            { "value": "company", "label": "Company 公司与政策栏" }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "链接名称",
+          "default": "About us"
+        },
+        {
+          "type": "url",
+          "id": "url",
+          "label": "链接地址"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "TCG 页脚"
+    }
+  ]
+}
+{% endschema %}

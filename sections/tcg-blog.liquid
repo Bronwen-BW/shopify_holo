@@ -1,0 +1,57 @@
+{%- comment -%}
+  TCG 博客列表页（使用 Shopify 官方 blog.articles 接口）
+{%- endcomment -%}
+
+<div class="_page_4xdw3_1">
+  <div class="_wide_4xdw3_6">
+    <header class="_header_1z0wo_6">
+      <div>
+        <span class="tcg-eyebrow">Collector Journal</span>
+        <h1 class="_heading_1z0wo_14">{{ blog.title | default: section.settings.heading | default: 'News & Set Guides' }}</h1>
+      </div>
+    </header>
+
+    {%- paginate blog.articles by 9 -%}
+      {%- if blog.articles.size > 0 -%}
+        <div class="tcg-pillars-grid">
+          {%- for article in blog.articles -%}
+            <a href="{{ article.url }}" class="tcg-card-panel tcg-blog-card">
+              {%- if article.image -%}
+                <div class="tcg-blog-thumb">
+                  <img src="{{ article.image | image_url: width: 600 }}" alt="{{ article.title | escape }}" loading="lazy">
+                </div>
+              {%- endif -%}
+              <span class="tcg-eyebrow">{{ article.published_at | date: '%b %d, %Y' }}</span>
+              <h3>{{ article.title }}</h3>
+              <p class="tcg-muted-text">{{ article.excerpt_or_content | strip_html | truncate: 140 }}</p>
+            </a>
+          {%- endfor -%}
+        </div>
+      {%- else -%}
+        <div class="tcg-card-panel">
+          <p class="tcg-muted-text">No articles published yet.</p>
+        </div>
+      {%- endif -%}
+
+      {%- if paginate.pages > 1 -%}
+        <nav class="tcg-pagination" aria-label="Blog pagination">
+          {%- if paginate.previous -%}<a href="{{ paginate.previous.url }}" class="tcg-page-btn">← Previous</a>{%- endif -%}
+          <span class="tcg-page-status">Page {{ paginate.current_page }} of {{ paginate.pages }}</span>
+          {%- if paginate.next -%}<a href="{{ paginate.next.url }}" class="tcg-page-btn">Next →</a>{%- endif -%}
+        </nav>
+      {%- endif -%}
+    {%- endpaginate -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "TCG 博客列表",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "默认标题", "default": "News & Set Guides" }
+  ],
+  "presets": [
+    { "name": "TCG 博客列表" }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,15 @@
+{
+  "sections": {
+    "main": {
+      "type": "tcg-checkout",
+      "settings": {
+        "heading": "Checkout & Payment",
+        "subheading": "Review your order details and proceed to official Shopify encrypted payment.",
+        "cta_label": "Continue to Official Shopify Payment"
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

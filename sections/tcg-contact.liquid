@@ -1,0 +1,166 @@
+{%- comment -%}
+  TCG Contact 联系我们页面（使用 Shopify 官方 {% form 'contact' %} 接口与 shop.email）
+{%- endcomment -%}
+
+<div class="_page_4xdw3_1" data-tcg-contact-section>
+  <div class="_wide_4xdw3_6">
+
+    <header class="_header_1z0wo_6">
+      <div>
+        <span class="tcg-eyebrow">{{ section.settings.eyebrow | default: 'Collector Support' }}</span>
+        <h1 class="_heading_1z0wo_14">{{ section.settings.heading | default: 'Contact Us' }}</h1>
+        <p class="tcg-subtext">{{ section.settings.subheading | default: 'Questions about card condition, graded slab serials, pre-order dates, or an existing order? Send us a message below.' }}</p>
+      </div>
+    </header>
+
+    <div class="tcg-contact-grid">
+      {%- comment %} 左侧：Shopify 官方联系表单 {% form 'contact' %} {% endcomment -%}
+      <section class="tcg-card-panel">
+        <h2>Send us a message</h2>
+
+        {%- form 'contact', id: 'ContactForm', class: 'tcg-auth-form' -%}
+          {%- if form.posted_successfully? -%}
+            <div class="tcg-alert tcg-alert-success" role="status" tabindex="-1" autofocus>
+              Thank you for contacting us! Our collector support team has received your message and will reply within 1 business day.
+            </div>
+          {%- elsif form.errors -%}
+            <div class="tcg-alert tcg-alert-error" role="alert">
+              {{ form.errors | default_errors }}
+            </div>
+          {%- endif -%}
+
+          <div class="tcg-form-grid-2">
+            <div class="tcg-form-row">
+              <label class="tcg-field-label" for="ContactForm-name">Your name</label>
+              <input
+                class="tcg-input"
+                autocomplete="name"
+                type="text"
+                id="ContactForm-name"
+                name="contact[name]"
+                value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}"
+                placeholder="Your name"
+              >
+            </div>
+
+            <div class="tcg-form-row">
+              <label class="tcg-field-label" for="ContactForm-email">Email address *</label>
+              <input
+                autocomplete="email"
+                type="email"
+                id="ContactForm-email"
+                class="tcg-input"
+                name="contact[email]"
+                spellcheck="false"
+                autocapitalize="off"
+                value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}"
+                placeholder="collector@example.com"
+                required
+              >
+            </div>
+          </div>
+
+          <div class="tcg-form-grid-2">
+            <div class="tcg-form-row">
+              <label class="tcg-field-label" for="ContactForm-phone">Phone number (optional)</label>
+              <input
+                type="tel"
+                id="ContactForm-phone"
+                class="tcg-input"
+                autocomplete="tel"
+                name="contact[phone]"
+                value="{% if form.phone %}{{ form.phone }}{% elsif customer %}{{ customer.phone }}{% endif %}"
+                placeholder="+31 6 12345678"
+              >
+            </div>
+
+            <div class="tcg-form-row">
+              <label class="tcg-field-label" for="ContactForm-order">Order number / Card SKU (optional)</label>
+              <input
+                type="text"
+                id="ContactForm-order"
+                class="tcg-input"
+                name="contact[order_number]"
+                placeholder="e.g. #1024 or M6A-131-103"
+              >
+            </div>
+          </div>
+
+          <div class="tcg-form-row">
+            <label class="tcg-field-label" for="ContactForm-body">Message *</label>
+            <textarea
+              rows="5"
+              id="ContactForm-body"
+              class="tcg-textarea"
+              name="contact[body]"
+              placeholder="Tell us how we can help…"
+              required
+            >{{- form.body -}}</textarea>
+          </div>
+
+          <button type="submit" class="_primaryButton_4xdw3_673" style="width:100%;">
+            {{ section.settings.submit_label | default: 'Send message' }}
+          </button>
+        {%- endform -%}
+      </section>
+
+      {%- comment %} 右侧：官方联系渠道与常见问题 {% endcomment -%}
+      <aside class="tcg-contact-side">
+        <div class="tcg-card-panel">
+          <h2>Direct Support Channels</h2>
+          <dl class="tcg-info-list">
+            <div>
+              <dt>Official Support Email</dt>
+              <dd><a href="mailto:{{ section.settings.support_email | default: shop.email | default: 'support@tcghaven.store' }}" class="tcg-link-accent">{{ section.settings.support_email | default: shop.email | default: 'support@tcghaven.store' }}</a></dd>
+            </div>
+            <div>
+              <dt>Support Hours</dt>
+              <dd>{{ section.settings.support_hours | default: 'Monday – Friday, 09:00 – 18:00 CET' }}</dd>
+            </div>
+            <div>
+              <dt>Warehouse &amp; Dispatch</dt>
+              <dd>{{ section.settings.location_text | default: 'Utrecht, The Netherlands · EU & Worldwide Tracked Shipping' }}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="tcg-card-panel" style="margin-top:1rem;">
+          <h2>Quick Answers</h2>
+          <div class="tcg-faq-list">
+            <details class="tcg-faq-item" open>
+              <summary>Can I request close-up photos of a single card or slab?</summary>
+              <p>Yes! Include the SKU code in your message above and our vault team will send high-resolution front and back close-ups.</p>
+            </details>
+            <details class="tcg-faq-item">
+              <summary>When do pre-order items ship?</summary>
+              <p>Pre-orders are dispatched so they arrive on or right after the official release date. Combined orders ship when all items are ready.</p>
+            </details>
+            <details class="tcg-faq-item">
+              <summary>How do I start a return?</summary>
+              <p>See our <a href="/pages/shipping-returns" class="tcg-link-accent">Shipping &amp; returns</a> page or send your order number above within 14 days of delivery.</p>
+            </details>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "TCG Contact 联系我们",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "眉标", "default": "Collector Support" },
+    { "type": "text", "id": "heading", "label": "标题", "default": "Contact Us" },
+    { "type": "textarea", "id": "subheading", "label": "副标题", "default": "Questions about card condition, graded slab serials, pre-order dates, or an existing order? Send us a message below." },
+    { "type": "text", "id": "submit_label", "label": "提交按钮文字", "default": "Send message" },
+    { "type": "text", "id": "support_email", "label": "客服邮箱（留空取店铺官方邮箱）" },
+    { "type": "text", "id": "support_hours", "label": "服务时间", "default": "Monday – Friday, 09:00 – 18:00 CET" },
+    { "type": "text", "id": "location_text", "label": "发货地说明", "default": "Utrecht, The Netherlands · EU & Worldwide Tracked Shipping" }
+  ],
+  "presets": [
+    { "name": "TCG Contact 联系我们" }
+  ]
+}
+{% endschema %}

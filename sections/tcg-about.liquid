@@ -1,0 +1,113 @@
+{%- comment -%}
+  TCG About Us 页面（品牌故事、藏家承诺、数据指标与 Shopify page.content 集成）
+{%- endcomment -%}
+
+<div class="_page_4xdw3_1" data-tcg-about-section>
+  <div class="_wide_4xdw3_6">
+
+    {%- comment %} 顶部 Hero 介绍卡 {% endcomment -%}
+    <section class="tcg-hero-banner-card">
+      <div class="tcg-hero-banner-copy">
+        <span class="tcg-eyebrow">{{ section.settings.eyebrow | default: 'About TCGHaven' }}</span>
+        <h1 class="_heading_1z0wo_14">{{ section.settings.heading | default: 'Built by Collectors, for Collectors.' }}</h1>
+        <p class="tcg-lead-text">
+          {{ section.settings.intro | default: 'We specialize in authentic singles, factory-sealed booster boxes, and precision-graded collector slabs across Pokémon, Yu-Gi-Oh!, Magic: The Gathering, Disney Lorcana, and more.' }}
+        </p>
+        <div class="_actions_dtm2o_101" style="margin-top:1.5rem;">
+          <a href="{{ routes.all_products_collection_url }}" class="_primaryButton_4xdw3_673" style="flex:none;">Explore the catalog</a>
+          <a href="/pages/contact" class="tcg-btn-secondary">Get in touch</a>
+        </div>
+      </div>
+      <div class="tcg-hero-banner-art">
+        <img src="{{ 'card-charizard.png' | asset_url }}" alt="" loading="lazy">
+        <img src="{{ 'card-umbreon.png' | asset_url }}" alt="" loading="lazy">
+      </div>
+    </section>
+
+    {%- comment %} 核心指标横幅 {% endcomment -%}
+    <section class="tcg-stats-strip">
+      <div class="tcg-stat-box">
+        <strong>{{ section.settings.stat_1_value | default: '100%' }}</strong>
+        <span>{{ section.settings.stat_1_label | default: 'Authentic & Verified Cards' }}</span>
+      </div>
+      <div class="tcg-stat-box">
+        <strong>{{ section.settings.stat_2_value | default: '24h' }}</strong>
+        <span>{{ section.settings.stat_2_label | default: 'Tracked Warehouse Dispatch' }}</span>
+      </div>
+      <div class="tcg-stat-box">
+        <strong>{{ section.settings.stat_3_value | default: '4-Layer' }}</strong>
+        <span>{{ section.settings.stat_3_label | default: 'Sleeve + Toploader + Rigid Armor' }}</span>
+      </div>
+      <div class="tcg-stat-box">
+        <strong>{{ section.settings.stat_4_value | default: '14-Day' }}</strong>
+        <span>{{ section.settings.stat_4_label | default: 'Collector Return Guarantee' }}</span>
+      </div>
+    </section>
+
+    {%- comment %} 后台 Page 富文本内容（若商家在 Shopify Pages 填写了内容则展示） {% endcomment -%}
+    {%- if page != blank and page.content != blank -%}
+      <article class="tcg-card-panel tcg-rte" style="margin-top:1.5rem;">
+        {{ page.content }}
+      </article>
+    {%- endif -%}
+
+    {%- comment %} 三大核心承诺 {% endcomment -%}
+    <section class="tcg-pillars-grid" style="margin-top:1.5rem;">
+      {%- if section.blocks.size > 0 -%}
+        {%- for block in section.blocks -%}
+          <div class="tcg-card-panel" {{ block.shopify_attributes }}>
+            <h3>{{ block.settings.title }}</h3>
+            <p class="tcg-muted-text" style="margin-top:.5rem;">{{ block.settings.text }}</p>
+          </div>
+        {%- endfor -%}
+      {%- else -%}
+        <div class="tcg-card-panel">
+          <h3>Strict Grading &amp; Condition Checks</h3>
+          <p class="tcg-muted-text" style="margin-top:.5rem;">Every single card is inspected under studio lighting for surface, centering, corners, and edges before entering our climate-controlled vault.</p>
+        </div>
+        <div class="tcg-card-panel">
+          <h3>Factory-Sealed Provenance</h3>
+          <p class="tcg-muted-text" style="margin-top:.5rem;">Our booster boxes, Elite Trainer Boxes, and collector gift sets come directly from authorized distribution channels with intact factory wrap.</p>
+        </div>
+        <div class="tcg-card-panel">
+          <h3>Collector-Grade Packaging</h3>
+          <p class="tcg-muted-text" style="margin-top:.5rem;">Singles ship in a penny sleeve, rigid toploader, team bag, and bubble mailer. Graded slabs and sealed boxes ship double-boxed with corner protection.</p>
+        </div>
+      {%- endif -%}
+    </section>
+
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "TCG About Us",
+  "max_blocks": 6,
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "眉标", "default": "About TCGHaven" },
+    { "type": "text", "id": "heading", "label": "主标题", "default": "Built by Collectors, for Collectors." },
+    { "type": "textarea", "id": "intro", "label": "核心简介", "default": "We specialize in authentic singles, factory-sealed booster boxes, and precision-graded collector slabs across Pokémon, Yu-Gi-Oh!, Magic: The Gathering, Disney Lorcana, and more." },
+    { "type": "text", "id": "stat_1_value", "label": "指标 1 数值", "default": "100%" },
+    { "type": "text", "id": "stat_1_label", "label": "指标 1 说明", "default": "Authentic & Verified Cards" },
+    { "type": "text", "id": "stat_2_value", "label": "指标 2 数值", "default": "24h" },
+    { "type": "text", "id": "stat_2_label", "label": "指标 2 说明", "default": "Tracked Warehouse Dispatch" },
+    { "type": "text", "id": "stat_3_value", "label": "指标 3 数值", "default": "4-Layer" },
+    { "type": "text", "id": "stat_3_label", "label": "指标 3 说明", "default": "Sleeve + Toploader + Rigid Armor" },
+    { "type": "text", "id": "stat_4_value", "label": "指标 4 数值", "default": "14-Day" },
+    { "type": "text", "id": "stat_4_label", "label": "指标 4 说明", "default": "Collector Return Guarantee" }
+  ],
+  "blocks": [
+    {
+      "type": "pillar",
+      "name": "品牌承诺卡片",
+      "settings": [
+        { "type": "text", "id": "title", "label": "标题", "default": "Strict Grading & Condition Checks" },
+        { "type": "textarea", "id": "text", "label": "描述", "default": "Every single card is inspected under studio lighting before entering our climate-controlled vault." }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "TCG About Us" }
+  ]
+}
+{% endschema %}

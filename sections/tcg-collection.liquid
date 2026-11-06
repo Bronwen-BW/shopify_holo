@@ -1,115 +1,187 @@
 {%- comment -%}
-  TCG 集合页（对齐参考站 /categories/<game>）
-  含游戏 header+tabs、hero 统计与下一个产品、目的地导航、分页产品网格
+  TCG 集合/分类页
+  功能：
+  1. 完整支持 Shopify 官方集合对象（collection）、官方排序参数（sort_by）与库存筛选
+  2. 支持快速切换店铺内全部商品系列（collections）
+  3. 修复精选商品图片 filter（featured_product.featured_image | image_url）与分页样式
 {%- endcomment -%}
 
-{%- comment %} 统计：预售数 + 按 product.type 去重得到 set 数 {% endcomment -%}
 {%- assign pre_count = 0 -%}
 {%- assign type_list = '' -%}
 {%- for p in collection.products -%}
   {%- if p.tags contains 'pre' or p.tags contains 'preorder' -%}
     {%- assign pre_count = pre_count | plus: 1 -%}
   {%- endif -%}
-  {%- assign t = p.type | append: '|' -%}
-  {%- unless type_list contains t -%}
-    {%- assign type_list = type_list | append: t -%}
-  {%- endunless -%}
+  {%- if p.type != blank -%}
+    {%- assign t = p.type | append: '|' -%}
+    {%- unless type_list contains t -%}
+      {%- assign type_list = type_list | append: t -%}
+    {%- endunless -%}
+  {%- endif -%}
 {%- endfor -%}
-{%- assign set_count = type_list | split: '|' | size | minus: 1 -%}
-{%- if set_count < 0 -%}{%- assign set_count = 0 -%}{%- endif -%}
+{%- assign set_count = type_list | split: '|' | size -%}
 {%- assign featured_product = collection.products.first -%}
+{%- assign per_page = section.settings.products_per_page | default: 12 -%}
+{%- assign sort_by = collection.sort_by | default: collection.default_sort_by -%}
 
-<div class="_wide_dtm2o_6">
+<div class="_page_dtm2o_1" data-tcg-collection-section>
+  <div class="_wide_dtm2o_6">
 
-  {%- comment %} 游戏 header：返回 + 标题 + 页面 tabs {% endcomment -%}
-  <header class="_header_1fncu_1">
-    <div class="_titleBlock_1fncu_34">
-      <a href="{{ routes.all_products_collection_url }}" class="_back_1fncu_49">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>All games
-      </a>
-      <h1>{{ collection.title }}</h1>
-    </div>
-    <nav class="_tabs_1fncu_73" aria-label="{{ collection.title }} pages">
-      <a class="_tab_1fncu_73 _tabActive_1fncu_108" aria-current="page" href="{{ collection.url }}">Overview</a>
-      <a class="_tab_1fncu_73" href="{{ collection.url }}#tcg-grid">Shop</a>
-      <a class="_tab_1fncu_73" href="{{ collection.url }}#tcg-grid">Sets</a>
-      <a class="_tab_1fncu_73" href="{{ collection.url }}#tcg-grid">Releases</a>
-    </nav>
-  </header>
-
-  {%- comment %} Hero：介绍 + 统计 + 下一个产品舞台 {% endcomment -%}
-  <section class="_hero_dtm2o_17">
-    <div class="_intro_dtm2o_64">
-      {%- if collection.description != blank -%}
-        <p class="_descriptor_dtm2o_82">{{ collection.description | strip_html | truncate: 160 }}</p>
-      {%- endif -%}
-      <p class="_blurb_dtm2o_93">Singles, sealed products and graded slabs, all condition-checked before they ship. Browse the newest releases and best sellers below.</p>
-
-      <div class="_actions_dtm2o_101">
-        <a href="#tcg-grid" class="_primaryAction_dtm2o_108">Shop {{ collection.title }}</a>
-        <a href="#tcg-grid" class="_secondaryAction_dtm2o_154">Release calendar</a>
+    {%- comment %} 顶部：返回全部系列 + 标题 + 系列快速切换 Tabs {% endcomment -%}
+    <header class="_header_1fncu_1">
+      <div class="_titleBlock_1fncu_34">
+        <a href="{{ routes.collections_url }}" class="_back_1fncu_49">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>All collections
+        </a>
+        <h1>{{ collection.title | default: 'All Products' }}</h1>
       </div>
-
-      <div class="_stats_dtm2o_202">
-        <span>{{ collection.products_count }} <em>products</em></span>
-        <span>{{ set_count }} <em>sets</em></span>
-        <span class="_statSoon_dtm2o_218">{{ pre_count }} arriving soon</span>
-      </div>
-    </div>
-
-    {%- if featured_product -%}
-      <a href="{{ featured_product.url }}" class="_showcase_dtm2o_223">
-        <span class="_productStage_dtm2o_237">
-          <img alt="" draggable="false" src="{{ featured_product.featured_image.image_url | default: 'logo-mark.png' }}">
-        </span>
-        <span class="_showcaseCaption_dtm2o_271">
-          <small>Next release</small>
-          <strong>{{ featured_product.title }}</strong>
-        </span>
-      </a>
-    {%- endif -%}
-  </section>
-
-  {%- comment %} 目的地导航：Shop / Sets / Releases {% endcomment -%}
-  <nav class="_destinations_dtm2o_310" aria-label="{{ collection.title }} store pages">
-    <a href="#tcg-grid"><strong>Shop</strong><small>Every product in stock</small></a>
-    <a href="#tcg-grid"><strong>Sets</strong><small>Browse by expansion</small></a>
-    <a href="#tcg-grid"><strong>Releases</strong><small>What is arriving next</small></a>
-  </nav>
-</div>
-
-{%- comment %} 产品网格（分页） {% endcomment -%}
-<section class="_section_36e53_1" id="tcg-grid">
-  <div class="_wide_36e53_5">
-    <header class="_header_36e53_10">
-      <div><h2>Newest in {{ collection.title }}</h2></div>
+      <nav class="_tabs_1fncu_73" aria-label="Store collections">
+        <a class="_tab_1fncu_73 {% if collection.handle == 'all' %}_tabActive_1fncu_108{% endif %}" href="{{ routes.all_products_collection_url }}">All</a>
+        {%- for col in collections limit: 8 -%}
+          {%- unless col.handle == 'frontpage' -%}
+            <a
+              class="_tab_1fncu_73 {% if col.handle == collection.handle %}_tabActive_1fncu_108{% endif %}"
+              {% if col.handle == collection.handle %}aria-current="page"{% endif %}
+              href="{{ col.url }}"
+            >
+              {{ col.title }}
+            </a>
+          {%- endunless -%}
+        {%- endfor -%}
+      </nav>
     </header>
 
-    {%- paginate collection.products by 12 -%}
-      <div class="_grid_36e53_53">
-        {%- for product in collection.products -%}
-          {% render 'tcg-product-card', product: product %}
-        {%- endfor -%}
+    {%- comment %} Hero：介绍 + 统计 + 精选产品舞台 {% endcomment -%}
+    <section class="_hero_dtm2o_17">
+      <div class="_intro_dtm2o_64">
+        {%- if collection.description != blank -%}
+          <p class="_descriptor_dtm2o_82">{{ collection.description | strip_html | truncate: 160 }}</p>
+        {%- endif -%}
+        <p class="_blurb_dtm2o_93">
+          {{ section.settings.blurb | default: 'Singles, sealed products and graded slabs, all condition-checked before they ship. Browse the newest releases and best sellers below.' }}
+        </p>
+
+        <div class="_actions_dtm2o_101">
+          <a href="#tcg-grid" class="_primaryAction_dtm2o_108">Browse {{ collection.title }}</a>
+          <a href="{{ routes.collections_url }}" class="_secondaryAction_dtm2o_154">All categories</a>
+        </div>
+
+        <div class="_stats_dtm2o_202">
+          <span>{{ collection.products_count | default: 0 }} <em>products</em></span>
+          <span>{{ set_count }} <em>categories</em></span>
+          <span class="_statSoon_dtm2o_218">{{ pre_count }} arriving soon</span>
+        </div>
       </div>
 
-      {%- if paginate.pages > 1 -%}
-        <nav class="tcg-pagination" aria-label="Pagination" style="display:flex;justify-content:center;gap:.5rem;margin-top:2rem;">
-          {%- if paginate.previous -%}
-            <a href="{{ paginate.previous.url }}" style="padding:.6rem 1.1rem;border-radius:9999px;background:#f9fafb12;color:#f9fafb;font-family:Rubik;font-weight:600;font-size:.875rem;">Previous</a>
-          {%- endif -%}
-          <span style="padding:.6rem 1.1rem;color:#a1a1aa;font-family:Rubik;font-size:.875rem;">Page {{ paginate.current_page }} of {{ paginate.pages }}</span>
-          {%- if paginate.next -%}
-            <a href="{{ paginate.next.url }}" style="padding:.6rem 1.1rem;border-radius:9999px;background:#f9fafb12;color:#f9fafb;font-family:Rubik;font-weight:600;font-size:.875rem;">Next</a>
-          {%- endif -%}
-        </nav>
+      {%- if featured_product -%}
+        {%- if featured_product.featured_image != blank -%}
+          {%- assign feat_img = featured_product.featured_image | image_url: width: 800 -%}
+        {%- else -%}
+          {%- assign feat_img = 'logo-mark.png' | asset_url -%}
+        {%- endif -%}
+        <a href="{{ featured_product.url }}" class="_showcase_dtm2o_223">
+          <span class="_productStage_dtm2o_237">
+            <img alt="{{ featured_product.title | escape }}" draggable="false" src="{{ feat_img }}">
+          </span>
+          <span class="_showcaseCaption_dtm2o_271">
+            <small>Featured in {{ collection.title }}</small>
+            <strong>{{ featured_product.title }}</strong>
+          </span>
+        </a>
       {%- endif -%}
-    {%- endpaginate -%}
+    </section>
+
+    {%- comment %} 目的地快捷筛选导航 {% endcomment -%}
+    <nav class="_destinations_dtm2o_310" aria-label="{{ collection.title }} quick filters">
+      <a href="{{ collection.url }}#tcg-grid"><strong>All in {{ collection.title }}</strong><small>{{ collection.products_count }} items available</small></a>
+      <a href="{{ collection.url }}?sort_by=created-descending#tcg-grid"><strong>New releases</strong><small>Sorted by newest arrivals</small></a>
+      <a href="{{ collection.url }}?sort_by=best-selling#tcg-grid"><strong>Best sellers</strong><small>Most popular collector picks</small></a>
+    </nav>
   </div>
-</section>
+
+  {%- comment %} 产品网格（含 Shopify 官方排序与分页） {% endcomment -%}
+  <section class="_section_36e53_1" id="tcg-grid">
+    <div class="_wide_36e53_5">
+      <header class="_header_36e53_10">
+        <div>
+          <h2>Products in {{ collection.title }}</h2>
+          <p>Showing {{ collection.products_count }} products in this collection.</p>
+        </div>
+
+        {%- if section.settings.show_sort != false -%}
+          <label class="_sortField_1nz9z_151">
+            <span>Sort by</span>
+            <select data-auto-submit aria-label="Sort collection products">
+              {%- for option in collection.sort_options -%}
+                <option value="{{ option.value }}" {% if option.value == sort_by %}selected{% endif %}>{{ option.name }}</option>
+              {%- endfor -%}
+            </select>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+          </label>
+        {%- endif -%}
+      </header>
+
+      {%- paginate collection.products by per_page -%}
+        {%- if collection.products.size > 0 -%}
+          <div class="_grid_36e53_53">
+            {%- for product in collection.products -%}
+              {% render 'tcg-product-card', product: product %}
+            {%- endfor -%}
+          </div>
+        {%- else -%}
+          <div class="_empty_1z0wo_298">
+            <h3 class="_emptyTitle_1z0wo_326">No products in this collection yet</h3>
+            <p class="_emptyText_1z0wo_334">Check back soon or browse our full product catalog.</p>
+            <a href="{{ routes.all_products_collection_url }}" class="_emptyCta_1z0wo_340">View all products</a>
+          </div>
+        {%- endif -%}
+
+        {%- if paginate.pages > 1 -%}
+          <nav class="tcg-pagination" aria-label="Pagination">
+            {%- if paginate.previous -%}
+              <a href="{{ paginate.previous.url }}" class="tcg-page-btn">← Previous</a>
+            {%- endif -%}
+            <span class="tcg-page-status">Page {{ paginate.current_page }} of {{ paginate.pages }}</span>
+            {%- if paginate.next -%}
+              <a href="{{ paginate.next.url }}" class="tcg-page-btn">Next →</a>
+            {%- endif -%}
+          </nav>
+        {%- endif -%}
+      {%- endpaginate -%}
+    </div>
+  </section>
+</div>
 
 {% schema %}
 {
   "name": "TCG 集合页",
-  "settings": []
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "blurb",
+      "label": "集合顶部默认介绍文案",
+      "default": "Singles, sealed products and graded slabs, all condition-checked before they ship. Browse the newest releases and best sellers below."
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "每页显示商品数",
+      "min": 4,
+      "max": 24,
+      "step": 4,
+      "default": 12
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sort",
+      "label": "显示 Shopify 官方排序下拉框",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "TCG 集合页"
+    }
+  ]
 }
 {% endschema %}

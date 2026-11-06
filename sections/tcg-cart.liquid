@@ -1,50 +1,99 @@
 {%- comment -%}
-  TCG 购物车页（对齐参考站 cart）
-  含步骤进度、商品行（数量调整/删除）、订单汇总、空状态
+  TCG 购物车页
+  功能：
+  1. 统一使用全站标准宽度容器 _wide_4xdw3_6
+  2. 基于 Shopify 官方表单 action="{{ routes.cart_url }}" method="post"、/cart/change.js、/cart/update.js、routes.cart_checkout_url
+  3. 完整显示商品主图/SKU图、变体规格名、SKU 编码、单价、小计、订单备注、折扣码与动态加速结账按钮
 {%- endcomment -%}
 
-<main class="_page_1z0wo_1">
-  <div class="container">
+<div class="_page_1z0wo_1" data-tcg-cart-section>
+  <div class="_wide_4xdw3_6">
 
-    {%- comment %} 结账步骤进度条（全局 header 已含导航，这里只放步骤） {% endcomment -%}
-    <ol class="_steps_16l9l_44" aria-label="Checkout progress" style="margin-bottom:clamp(1.5rem,4vh,2.5rem)">
+    {%- comment %} 结账步骤进度条 {% endcomment -%}
+    <ol class="_steps_16l9l_44" aria-label="Checkout progress" style="margin-bottom:clamp(1.5rem,4vh,2.5rem);width:fit-content;">
       <li class="_stepCurrent_16l9l_96" aria-current="step">
-        <span class="_stepLink_16l9l_54"><span class="_stepDot_16l9l_76" aria-hidden="true">1</span><span class="_stepLabel_16l9l_225">Cart</span></span>
+        <a href="{{ routes.cart_url }}" class="_stepLink_16l9l_54">
+          <span class="_stepDot_16l9l_76" aria-hidden="true">1</span>
+          <span class="_stepLabel_16l9l_225">Cart</span>
+        </a>
       </li>
       <li>
-        <span class="_stepLink_16l9l_54"><span class="_stepDot_16l9l_76" aria-hidden="true">2</span><span class="_stepLabel_16l9l_225">Checkout</span></span>
+        <a href="{{ routes.cart_checkout_url }}" class="_stepLink_16l9l_54">
+          <span class="_stepDot_16l9l_76" aria-hidden="true">2</span>
+          <span class="_stepLabel_16l9l_225">Checkout &amp; Payment</span>
+        </a>
       </li>
       <li>
-        <span class="_stepLink_16l9l_54"><span class="_stepDot_16l9l_76" aria-hidden="true">3</span><span class="_stepLabel_16l9l_225">Confirmation</span></span>
+        <span class="_stepLink_16l9l_54">
+          <span class="_stepDot_16l9l_76" aria-hidden="true">3</span>
+          <span class="_stepLabel_16l9l_225">Confirmation</span>
+        </span>
       </li>
     </ol>
 
     {%- if cart.item_count > 0 -%}
 
       <header class="_header_1z0wo_6">
-        <h1 class="_heading_1z0wo_14">Your cart<span class="_count_1z0wo_27"> ({{ cart.item_count }})</span></h1>
+        <h1 class="_heading_1z0wo_14">
+          {{ section.settings.heading | default: 'Your cart' }}
+          <span class="_count_1z0wo_27"> ({{ cart.item_count }} {% if cart.item_count == 1 %}item{% else %}items{% endif %})</span>
+        </h1>
+        <a href="{{ routes.all_products_collection_url }}" class="tcg-link-subtle">← Continue shopping</a>
       </header>
 
-      <div class="_layout_1z0wo_34">
+      <form action="{{ routes.cart_url }}" method="post" id="tcg-cart-form" class="_layout_1z0wo_34" novalidate>
         <div class="_list_1z0wo_46">
 
           {%- for item in cart.items -%}
-            <div class="_row_1z0wo_52" data-cart-row data-line="{{ forloop.index }}">
-              <span class="_thumb_1z0wo_62">
-                <img alt="" draggable="false" src="{{ item.image.image_url | default: 'logo-mark.png' }}">
-              </span>
+            {%- if item.image != blank -%}
+              {%- assign item_img = item.image | image_url: width: 240 -%}
+            {%- else -%}
+              {%- assign item_img = 'logo-mark.png' | asset_url -%}
+            {%- endif -%}
+
+            <div class="_row_1z0wo_52" data-cart-row data-line="{{ forloop.index }}" data-key="{{ item.key }}">
+              <a href="{{ item.url }}" class="_thumb_1z0wo_62">
+                <img alt="{{ item.title | escape }}" draggable="false" src="{{ item_img }}" loading="lazy">
+              </a>
 
               <div class="_rowInfo_1z0wo_78">
                 <a href="{{ item.url }}" class="_rowName_1z0wo_86">{{ item.product.title }}</a>
-                {%- if item.variant.title != 'Default Title' -%}
-                  <span class="_rowUnitPrice_1z0wo_94">{{ item.variant.title }}</span>
+
+                <div class="tcg-cart-meta">
+                  {%- if item.variant.title != 'Default Title' -%}
+                    <span class="_rowUnitPrice_1z0wo_94">{{ item.variant.title }}</span>
+                  {%- endif -%}
+                  {%- if item.sku != blank -%}
+                    <code class="tcg-sku-code">SKU: {{ item.sku }}</code>
+                  {%- endif -%}
+                  <span class="_rowUnitPrice_1z0wo_94">{{ item.final_price | money }} each</span>
+                </div>
+
+                {%- if item.line_level_discount_allocations.size > 0 -%}
+                  <div class="tcg-cart-discounts">
+                    {%- for allocation in item.line_level_discount_allocations -%}
+                      <span class="tcg-discount-pill">
+                        {{ allocation.discount_application.title }} (-{{ allocation.amount | money }})
+                      </span>
+                    {%- endfor -%}
+                  </div>
                 {%- endif -%}
 
                 <div class="_qtyControl_1z0wo_100" data-cart-qty>
                   <button type="button" class="_qtyBtn_1z0wo_110" data-cart-minus aria-label="Decrease quantity">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"></path></svg>
                   </button>
-                  <span class="_qtyValue_1z0wo_135">{{ item.quantity }}</span>
+                  <input
+                    type="number"
+                    name="updates[]"
+                    value="{{ item.quantity }}"
+                    min="0"
+                    aria-label="Quantity for {{ item.title | escape }}"
+                    class="tcg-cart-qty-input"
+                    data-cart-qty-input
+                    data-line="{{ forloop.index }}"
+                  >
+                  <span class="_qtyValue_1z0wo_135" hidden>{{ item.quantity }}</span>
                   <button type="button" class="_qtyBtn_1z0wo_110" data-cart-plus aria-label="Increase quantity">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
                   </button>
@@ -52,6 +101,9 @@
               </div>
 
               <div class="_rowEnd_1z0wo_145">
+                {%- if item.original_line_price != item.final_line_price -%}
+                  <del class="tcg-line-compare">{{ item.original_line_price | money }}</del>
+                {%- endif -%}
                 <span class="_lineTotal_1z0wo_152">{{ item.final_line_price | money }}</span>
                 <button type="button" class="_removeBtn_1z0wo_160" data-cart-remove data-line="{{ forloop.index }}">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>Remove
@@ -59,24 +111,77 @@
               </div>
             </div>
           {%- endfor -%}
+
+          {%- if section.settings.show_cart_note != false -%}
+            <div class="tcg-cart-note-card">
+              <label for="CartSpecialInstructions" class="tcg-field-label">Order note / Packing instructions</label>
+              <textarea
+                name="note"
+                id="CartSpecialInstructions"
+                class="tcg-textarea"
+                rows="3"
+                placeholder="Add special packing or delivery notes for our warehouse…"
+                data-cart-note
+              >{{ cart.note }}</textarea>
+            </div>
+          {%- endif -%}
         </div>
 
-        {%- comment %} 订单汇总侧栏 {% endcomment -%}
+        {%- comment %} 订单汇总与 Shopify 官方结账侧栏 {% endcomment -%}
         <aside class="_summary_1z0wo_183">
           <h2 class="_summaryTitle_1z0wo_199">Order summary</h2>
+
           <div class="_summaryRow_1z0wo_208">
-            <span>Subtotal</span><span>{{ cart.total_price | money }}</span>
+            <span>Items ({{ cart.item_count }})</span>
+            <span>{{ cart.original_total_price | money }}</span>
           </div>
+
+          {%- if cart.total_discount > 0 -%}
+            <div class="_summaryRow_1z0wo_208 tcg-summary-discount">
+              <span>Discounts</span>
+              <span>-{{ cart.total_discount | money }}</span>
+            </div>
+          {%- endif -%}
+
           <div class="_summaryRow_1z0wo_208">
-            <span>Shipping</span><span>Calculated at checkout</span>
+            <span>Shipping</span>
+            <span>Calculated at checkout</span>
           </div>
+
+          {%- if section.settings.show_discount_box != false -%}
+            <div class="tcg-discount-field">
+              <label for="CartDiscountInput" class="tcg-field-label">Discount / Promo code</label>
+              <input
+                type="text"
+                name="discount"
+                id="CartDiscountInput"
+                class="tcg-input"
+                placeholder="Enter promo code (applied at checkout)"
+                data-cart-discount
+              >
+            </div>
+          {%- endif -%}
+
           <div class="_summaryTotal_1z0wo_221">
-            <span>Total</span><span>{{ cart.total_price | money }}</span>
+            <span>Estimated total</span>
+            <span>{{ cart.total_price | money }}</span>
           </div>
-          <a href="{{ routes.cart_checkout_url }}" class="_checkoutBtn_1z0wo_241">Go to checkout</a>
-          <p class="_summaryNote_1z0wo_291">Secure payment. Prices and stock are checked again before you pay.</p>
+
+          <button type="submit" name="checkout" class="_checkoutBtn_1z0wo_241">
+            {{ section.settings.checkout_label | default: 'Go to checkout' }}
+          </button>
+
+          {%- if additional_checkout_buttons -%}
+            <div class="tcg-additional-checkout">
+              {{ content_for_additional_checkout_buttons }}
+            </div>
+          {%- endif -%}
+
+          <p class="_summaryNote_1z0wo_291">
+            {{ section.settings.security_note | default: 'Secure payment via Shopify Checkout. Taxes and shipping calculated before payment.' }}
+          </p>
         </aside>
-      </div>
+      </form>
 
     {%- else -%}
 
@@ -92,11 +197,47 @@
 
     {%- endif -%}
   </div>
-</main>
+</div>
 
 {% schema %}
 {
   "name": "TCG 购物车",
-  "settings": []
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "页面标题",
+      "default": "Your cart"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cart_note",
+      "label": "显示订单备注输入框",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_discount_box",
+      "label": "显示折扣码输入框",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "checkout_label",
+      "label": "结账按钮文字",
+      "default": "Go to checkout"
+    },
+    {
+      "type": "text",
+      "id": "security_note",
+      "label": "底部安全提示文字",
+      "default": "Secure payment via Shopify Checkout. Taxes and shipping calculated before payment."
+    }
+  ],
+  "presets": [
+    {
+      "name": "TCG 购物车"
+    }
+  ]
 }
 {% endschema %}

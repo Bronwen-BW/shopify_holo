@@ -1,0 +1,170 @@
+{%- comment -%}
+  TCG 客户登录页（使用 Shopify 官方 {% form 'customer_login' %}、{% form 'recover_customer_password' %} 与 {% form 'guest_login' %}）
+{%- endcomment -%}
+
+<div class="_page_4xdw3_1" data-tcg-auth-section>
+  <div class="_wide_4xdw3_6">
+    <div class="tcg-auth-shell">
+
+      {%- comment %} ================= 1. 找回密码表单（隐藏切换） ================= {% endcomment -%}
+      <section id="recover" class="tcg-auth-card" data-recover-panel hidden>
+        <header class="tcg-auth-header">
+          <span class="tcg-eyebrow">Account Recovery</span>
+          <h1>{{ section.settings.recover_heading | default: 'Reset your password' }}</h1>
+          <p>{{ section.settings.recover_subtext | default: 'Enter your email address and we will send you an official link to reset your password.' }}</p>
+        </header>
+
+        {%- form 'recover_customer_password', class: 'tcg-auth-form' -%}
+          {%- assign recover_success = form.posted_successfully? -%}
+          {%- if form.errors -%}
+            <div class="tcg-alert tcg-alert-error" role="alert">
+              {{ form.errors | default_errors }}
+            </div>
+          {%- endif -%}
+
+          <div class="tcg-form-row">
+            <label for="RecoverEmail" class="tcg-field-label">Email address</label>
+            <input
+              type="email"
+              name="email"
+              id="RecoverEmail"
+              class="tcg-input"
+              autocomplete="email"
+              autocorrect="off"
+              autocapitalize="off"
+              placeholder="collector@example.com"
+              required
+            >
+          </div>
+
+          <div class="tcg-auth-actions">
+            <button type="submit" class="_primaryButton_4xdw3_673" style="width:100%;">Send reset link</button>
+            <a href="#login" class="tcg-btn-secondary" data-toggle-recover="false" style="width:100%;text-align:center;">Back to sign in</a>
+          </div>
+        {%- endform -%}
+      </section>
+
+      {%- comment %} ================= 2. 客户登录主表单 ================= {% endcomment -%}
+      <section id="login" class="tcg-auth-card" data-login-panel>
+        <header class="tcg-auth-header">
+          <span class="tcg-eyebrow">Collector Portal</span>
+          <h1>{{ section.settings.heading | default: 'Sign in to your account' }}</h1>
+          <p>{{ section.settings.subheading | default: 'Track your orders, manage saved addresses, and access your collector history.' }}</p>
+        </header>
+
+        {%- if recover_success == true -%}
+          <div class="tcg-alert tcg-alert-success" role="status">
+            We've sent you an email with a link to update your password.
+          </div>
+        {%- endif -%}
+
+        {%- form 'customer_login', novalidate: 'novalidate', class: 'tcg-auth-form' -%}
+          {%- if form.errors -%}
+            <div class="tcg-alert tcg-alert-error" role="alert">
+              {{ form.errors | default_errors }}
+            </div>
+          {%- endif -%}
+
+          <div class="tcg-form-row">
+            <label for="CustomerEmail" class="tcg-field-label">Email address</label>
+            <input
+              type="email"
+              name="customer[email]"
+              id="CustomerEmail"
+              class="tcg-input"
+              autocomplete="email"
+              autocorrect="off"
+              autocapitalize="off"
+              placeholder="collector@example.com"
+              required
+            >
+          </div>
+
+          {%- if form.password_needed -%}
+            <div class="tcg-form-row">
+              <div class="tcg-label-row">
+                <label for="CustomerPassword" class="tcg-field-label">Password</label>
+                <a href="#recover" class="tcg-link-accent" data-toggle-recover="true">Forgot password?</a>
+              </div>
+              <input
+                type="password"
+                value=""
+                name="customer[password]"
+                id="CustomerPassword"
+                class="tcg-input"
+                autocomplete="current-password"
+                placeholder="••••••••"
+                required
+              >
+            </div>
+          {%- endif -%}
+
+          <div class="tcg-auth-actions">
+            <button type="submit" class="_primaryButton_4xdw3_673" style="width:100%;">
+              {{ section.settings.submit_label | default: 'Sign in' }}
+            </button>
+          </div>
+        {%- endform -%}
+
+        <footer class="tcg-auth-footer">
+          <p>New to {{ shop.name | default: 'TCGHaven' }}? <a href="{{ routes.account_register_url }}" class="tcg-link-accent">Create an account →</a></p>
+        </footer>
+      </section>
+
+      {%- comment %} ================= 3. 游客继续结账（当由结账跳转且店铺开启 guest_login 时） ================= {% endcomment -%}
+      {%- if shop.checkout.guest_login -%}
+        <section class="tcg-auth-card" style="margin-top:1rem;">
+          <h2>Continue as a guest</h2>
+          <p class="tcg-muted-text" style="margin:.5rem 0 1rem;">No account required — proceed straight to Shopify Checkout.</p>
+          {%- form 'guest_login' -%}
+            <button type="submit" class="tcg-btn-secondary" style="width:100%;">Continue to checkout</button>
+          {%- endform -%}
+        </section>
+      {%- endif -%}
+
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "TCG 登录页",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "登录标题",
+      "default": "Sign in to your account"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "登录副标题",
+      "default": "Track your orders, manage saved addresses, and access your collector history."
+    },
+    {
+      "type": "text",
+      "id": "submit_label",
+      "label": "登录按钮文字",
+      "default": "Sign in"
+    },
+    {
+      "type": "text",
+      "id": "recover_heading",
+      "label": "找回密码标题",
+      "default": "Reset your password"
+    },
+    {
+      "type": "text",
+      "id": "recover_subtext",
+      "label": "找回密码说明",
+      "default": "Enter your email address and we will send you an official link to reset your password."
+    }
+  ],
+  "presets": [
+    {
+      "name": "TCG 登录页"
+    }
+  ]
+}
+{% endschema %}

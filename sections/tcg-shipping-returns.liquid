@@ -1,0 +1,140 @@
+{%- comment -%}
+  TCG Shipping & Returns 配送与退换货页
+  集成 Shopify 官方 shop.shipping_policy 与 shop.refund_policy 接口及自定义配置
+{%- endcomment -%}
+
+<div class="_page_4xdw3_1" data-tcg-shipping-section>
+  <div class="_wide_4xdw3_6">
+
+    <header class="_header_1z0wo_6">
+      <div>
+        <span class="tcg-eyebrow">{{ section.settings.eyebrow | default: 'Fulfillment & Guarantees' }}</span>
+        <h1 class="_heading_1z0wo_14">{{ section.settings.heading | default: 'Shipping & Returns' }}</h1>
+        <p class="tcg-subtext">{{ section.settings.subheading | default: 'Collector-grade protective packaging, fast tracked dispatch, and transparent 14-day return rules.' }}</p>
+      </div>
+      <a href="/pages/contact" class="tcg-btn-secondary">Need help with an order?</a>
+    </header>
+
+    {%- comment %} 发货时效与包装标准 3 卡 {% endcomment -%}
+    <section class="tcg-pillars-grid">
+      <div class="tcg-card-panel">
+        <span class="tcg-badge-pill">Dispatch</span>
+        <h3 style="margin-top:.6rem;">{{ section.settings.card_1_title | default: 'Dispatched Within 1 Business Day' }}</h3>
+        <p class="tcg-muted-text" style="margin-top:.45rem;">{{ section.settings.card_1_text | default: 'In-stock orders placed before 16:00 CET ship the same or next business day with full parcel tracking.' }}</p>
+      </div>
+      <div class="tcg-card-panel">
+        <span class="tcg-badge-pill">Armor Packing</span>
+        <h3 style="margin-top:.6rem;">{{ section.settings.card_2_title | default: 'Sleeve + Toploader + Rigid Box' }}</h3>
+        <p class="tcg-muted-text" style="margin-top:.45rem;">{{ section.settings.card_2_text | default: 'Every single card is double-sleeved, placed in a rigid toploader, sealed in a team bag, and packed in a water-resistant rigid mailer.' }}</p>
+      </div>
+      <div class="tcg-card-panel" id="returns">
+        <span class="tcg-badge-pill">Returns</span>
+        <h3 style="margin-top:.6rem;">{{ section.settings.card_3_title | default: '14-Day Return Guarantee' }}</h3>
+        <p class="tcg-muted-text" style="margin-top:.45rem;">{{ section.settings.card_3_text | default: 'Unopened sealed products and unaltered singles/slabs can be returned within 14 days of delivery for a full refund.' }}</p>
+      </div>
+    </section>
+
+    <div class="tcg-account-grid" style="margin-top:1.5rem;">
+      {%- comment %} 左侧：配送费率表与 Shopify 官方 Shipping Policy {% endcomment -%}
+      <section class="tcg-card-panel">
+        <h2>Shipping Zones &amp; Estimated Delivery</h2>
+        <div class="tcg-table-wrap" style="margin-top:1rem;">
+          <table class="tcg-table" role="table">
+            <thead>
+              <tr>
+                <th scope="col">Region</th>
+                <th scope="col">Carrier</th>
+                <th scope="col">Transit Time</th>
+                <th scope="col">Tracking</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Netherlands &amp; Belgium</strong></td>
+                <td>PostNL / DHL Tracked</td>
+                <td>1 – 2 business days</td>
+                <td><span class="tcg-status-chip">Included</span></td>
+              </tr>
+              <tr>
+                <td><strong>Germany, France &amp; EU Core</strong></td>
+                <td>DHL / DPD Parcel</td>
+                <td>2 – 4 business days</td>
+                <td><span class="tcg-status-chip">Included</span></td>
+              </tr>
+              <tr>
+                <td><strong>Rest of Europe &amp; UK</strong></td>
+                <td>DHL Express / International</td>
+                <td>3 – 6 business days</td>
+                <td><span class="tcg-status-chip">Included</span></td>
+              </tr>
+              <tr>
+                <td><strong>North America &amp; Asia-Pacific</strong></td>
+                <td>DHL Express / FedEx Priority</td>
+                <td>4 – 8 business days</td>
+                <td><span class="tcg-status-chip">Included</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {%- if shop.shipping_policy != blank and shop.shipping_policy.body != blank -%}
+          <div class="tcg-rte" style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--tcg-border);">
+            <h3>Official Store Shipping Policy</h3>
+            {{ shop.shipping_policy.body }}
+          </div>
+        {%- endif -%}
+      </section>
+
+      {%- comment %} 右侧：退换货流程与 Shopify 官方 Refund Policy {% endcomment -%}
+      <aside class="tcg-card-panel">
+        <h2>Returns &amp; Order Withdrawal</h2>
+        <div class="tcg-rte" style="margin-top:.75rem;">
+          {%- if shop.refund_policy != blank and shop.refund_policy.body != blank -%}
+            {{ shop.refund_policy.body }}
+          {%- else -%}
+            <p>We want you to collect with complete confidence. Under EU consumer protection rules, you have <strong>14 calendar days</strong> after receiving your order to request a return or order withdrawal.</p>
+            <h3>Return Conditions</h3>
+            <ul>
+              <li><strong>Sealed Products &amp; Booster Boxes:</strong> Must remain in their original, unopened factory shrink-wrap with security seals intact.</li>
+              <li><strong>Graded Slabs &amp; Magnetic Cases:</strong> Must remain sealed in their original tamper-evident sleeve/case with matching serial number.</li>
+              <li><strong>Single Cards:</strong> Must be returned in the exact condition dispatched inside the protective sleeve and toploader provided.</li>
+            </ul>
+            <h3>How to Start a Return</h3>
+            <ol>
+              <li>Visit our <a href="/pages/contact">Contact page</a> and enter your order number.</li>
+              <li>Receive your return authorization label and packing checklist within 24 hours.</li>
+              <li>Once inspected at our vault, your refund is issued to your original Shopify payment method within 3–5 business days.</li>
+            </ol>
+          {%- endif -%}
+        </div>
+      </aside>
+    </div>
+
+    {%- if page != blank and page.content != blank -%}
+      <article class="tcg-card-panel tcg-rte" style="margin-top:1.5rem;">
+        {{ page.content }}
+      </article>
+    {%- endif -%}
+
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "TCG Shipping & Returns",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "眉标", "default": "Fulfillment & Guarantees" },
+    { "type": "text", "id": "heading", "label": "标题", "default": "Shipping & Returns" },
+    { "type": "textarea", "id": "subheading", "label": "副标题", "default": "Collector-grade protective packaging, fast tracked dispatch, and transparent 14-day return rules." },
+    { "type": "text", "id": "card_1_title", "label": "卡片 1 标题", "default": "Dispatched Within 1 Business Day" },
+    { "type": "textarea", "id": "card_1_text", "label": "卡片 1 说明", "default": "In-stock orders placed before 16:00 CET ship the same or next business day with full parcel tracking." },
+    { "type": "text", "id": "card_2_title", "label": "卡片 2 标题", "default": "Sleeve + Toploader + Rigid Box" },
+    { "type": "textarea", "id": "card_2_text", "label": "卡片 2 说明", "default": "Every single card is double-sleeved, placed in a rigid toploader, sealed in a team bag, and packed in a water-resistant rigid mailer." },
+    { "type": "text", "id": "card_3_title", "label": "卡片 3 标题", "default": "14-Day Return Guarantee" },
+    { "type": "textarea", "id": "card_3_text", "label": "卡片 3 说明", "default": "Unopened sealed products and unaltered singles/slabs can be returned within 14 days of delivery for a full refund." }
+  ],
+  "presets": [
+    { "name": "TCG Shipping & Returns" }
+  ]
+}
+{% endschema %}

@@ -1,6 +1,6 @@
 {%- comment -%}
   TCG 顶部导航：每个导航项都是一个可编辑区块。
-  在主题编辑器中可新增、删除、排序、查看并编辑导航项，保存后桌面和移动菜单同步更新。
+  在主题编辑器中可新增、删除、排序、查看并编辑导航项，以及配置黑夜/白天模式切换按钮。
 {%- endcomment -%}
 {% render 'tcg-header', section: section %}
 
@@ -13,9 +13,37 @@
   "settings": [
     {
       "type": "text",
+      "id": "brand_prefix",
+      "label": "品牌主名称",
+      "default": "TCG"
+    },
+    {
+      "type": "text",
+      "id": "brand_accent",
+      "label": "品牌高亮后缀",
+      "default": "Haven"
+    },
+    {
+      "type": "text",
       "id": "search_placeholder",
       "label": "搜索框提示文字",
       "default": "Search cards, sets, sealed…"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_theme_toggle",
+      "label": "显示黑夜/白天模式切换图标按钮",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "default_theme_mode",
+      "label": "默认主题模式",
+      "default": "dark",
+      "options": [
+        { "value": "dark", "label": "黑夜模式 (Dark)" },
+        { "value": "light", "label": "白天模式 (Light)" }
+      ]
     }
   ],
   "blocks": [
@@ -59,21 +87,28 @@
           "type": "nav_item",
           "settings": {
             "label": "Shop",
-            "url": "shopify://collections/all"
+            "url": "/collections/all"
           }
         },
         {
           "type": "nav_item",
           "settings": {
             "label": "Games",
-            "url": "shopify://collections/all"
+            "url": "/collections"
           }
         },
         {
           "type": "nav_item",
           "settings": {
-            "label": "Accessories",
-            "url": "shopify://collections/all"
+            "label": "About",
+            "url": "/pages/about"
+          }
+        },
+        {
+          "type": "nav_item",
+          "settings": {
+            "label": "Contact",
+            "url": "/pages/contact"
           }
         }
       ]

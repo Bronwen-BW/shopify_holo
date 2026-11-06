@@ -1,0 +1,78 @@
+{%- comment -%}
+  TCG 全部分类目录页（/collections，对应 templates/list-collections.json）
+  使用 Shopify 官方 collections 对象遍历展示所有商品系列
+{%- endcomment -%}
+{%- assign fallback_arts = 'card-charizard.png,card-umbreon.png,card-blastoise.png,card-venusaur.png,card-palkia.png' | split: ',' -%}
+{%- assign colors = '#2ed39a,#a78bfa,#f28753,#c084fc,#7dd3fc,#60a5fa,#facc15' | split: ',' -%}
+
+<div class="_page_dtm2o_1" data-tcg-collection-list>
+  <div class="_wide_4xdw3_6">
+    <header class="_header_36e53_10" style="margin-bottom:2rem;">
+      <div>
+        <h1 class="_heading_1z0wo_14">{{ section.settings.heading | default: 'All Collections & Categories' }}</h1>
+        <p class="tcg-subtext">{{ section.settings.subheading | default: 'Browse all trading card games, expansions, graded slabs, and collector series.' }}</p>
+      </div>
+      <a href="{{ routes.all_products_collection_url }}" class="_viewAll_36e53_33">View all products →</a>
+    </header>
+
+    <div class="_rail_qxt27_81 tcg-collections-grid">
+      {%- assign shown_col = 0 -%}
+      {%- for col in collections -%}
+        {%- if col.handle == 'frontpage' -%}{%- continue -%}{%- endif -%}
+        {%- assign c_idx = shown_col | modulo: colors.size -%}
+        {%- assign a_idx = shown_col | modulo: fallback_arts.size -%}
+        {%- assign col_img = col.featured_image | default: col.products.first.featured_image -%}
+        {%- assign shown_col = shown_col | plus: 1 -%}
+
+        <a
+          data-motion-card="9"
+          href="{{ col.url }}"
+          class="_collection_qxt27_87"
+          data-reveal
+          style="--frame: {{ colors[c_idx] }};"
+        >
+          <span class="_media_qxt27_116" aria-hidden="true">
+            {%- if col_img != blank -%}
+              <img data-motion-art src="{{ col_img | image_url: width: 600 }}" alt="{{ col.title | escape }}" draggable="false" loading="lazy">
+            {%- else -%}
+              <img data-motion-art src="{{ fallback_arts[a_idx] | asset_url }}" alt="{{ col.title | escape }}" draggable="false" loading="lazy">
+            {%- endif -%}
+          </span>
+          <span class="_body_qxt27_137">
+            <span class="_game_qxt27_152">Collection</span>
+            <h3>{{ col.title }}</h3>
+            {%- if col.description != blank -%}
+              <p class="tcg-col-desc">{{ col.description | strip_html | truncate: 90 }}</p>
+            {%- endif -%}
+            <span class="_count_qxt27_159">{{ col.products_count }} products</span>
+          </span>
+        </a>
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "TCG 全部分类列表",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "标题",
+      "default": "All Collections & Categories"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "副标题",
+      "default": "Browse all trading card games, expansions, graded slabs, and collector series."
+    }
+  ],
+  "presets": [
+    {
+      "name": "TCG 全部分类列表"
+    }
+  ]
+}
+{% endschema %}

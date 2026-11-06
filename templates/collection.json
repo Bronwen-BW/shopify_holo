@@ -2,7 +2,11 @@
   "sections": {
     "main": {
       "type": "tcg-collection",
-      "settings": {}
+      "settings": {
+        "blurb": "Singles, sealed products and graded slabs, all condition-checked before they ship. Browse the newest releases and best sellers below.",
+        "products_per_page": 12,
+        "show_sort": true
+      }
     }
   },
   "order": [

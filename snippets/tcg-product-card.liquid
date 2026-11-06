@@ -1,7 +1,7 @@
 {%- comment -%}
   TCG 产品卡（网格通用组件）
   入参：product（产品对象）、lazy（是否懒加载，默认 true）
-  class 与参考站 _card_36e53 完全一致
+  支持展示多 SKU 数量标识、原价对比及 Shopify 官方 AJAX 加购
 {%- endcomment -%}
 {%- assign is_preorder = false -%}
 {%- for tag in product.tags -%}
@@ -25,14 +25,15 @@
           {% unless lazy == false %}loading="lazy"{% endunless %}
         >
       {%- else -%}
-        {%- comment %} 无图占位 {% endcomment -%}
         <img data-motion-art src="{{ 'logo-mark.png' | asset_url }}" alt="{{ product.title | escape }}" draggable="false" loading="lazy">
       {%- endif -%}
     </span>
 
-    {%- comment %} 状态徽章：预售 / 新品 {% endcomment -%}
+    {%- comment %} 状态徽章：预售 / 多规格 / 新品 {% endcomment -%}
     {%- if is_preorder -%}
       <span class="_badge_36e53_217 _badgePreorder_36e53_232">Pre-order</span>
+    {%- elsif product.variants.size > 1 -%}
+      <span class="_badge_36e53_217">{{ product.variants.size }} SKUs</span>
     {%- else -%}
       <span class="_badge_36e53_217">New</span>
     {%- endif -%}
@@ -48,16 +49,23 @@
     <a href="{{ product.url }}" class="_cardInfo_36e53_264">
       <span class="_cardName_36e53_275">{{ product.title }}</span>
       {%- if product.type != blank -%}
-        <span class="_cardSet_36e53_289">{{ product.type }}</span>
+        <span class="_cardSet_36e53_289">{{ product.type }}{% if current_variant.sku != blank %} · {{ current_variant.sku }}{% endif %}</span>
+      {%- elsif current_variant.sku != blank -%}
+        <span class="_cardSet_36e53_289">SKU: {{ current_variant.sku }}</span>
       {%- endif -%}
     </a>
 
     <div class="_cardFooter_36e53_309">
       <span class="_cardPricing_36e53_326">
-        <span class="_cardPrice_36e53_317">{{ product.price | money }}</span>
+        {%- if current_variant.compare_at_price > current_variant.price -%}
+          <del>{{ current_variant.compare_at_price | money }}</del>
+        {%- endif -%}
+        <span class="_cardPrice_36e53_317">
+          {%- if product.price_varies -%}From {{ product.price_min | money }}{%- else -%}{{ product.price | money }}{%- endif -%}
+        </span>
       </span>
 
-      {%- comment %} 加购按钮（AJAX 加购，data-variant 供 JS 读取） {% endcomment -%}
+      {%- comment %} 加购按钮（使用 Shopify 官方 /cart/add.js 接口） {% endcomment -%}
       <button
         type="button"
         class="_addBtn_36e53_338"
@@ -66,7 +74,7 @@
         {% unless current_variant.available %}disabled{% endunless %}
         aria-label="Add {{ product.title | escape }} to cart"
       >
-        <span>{% if is_preorder %}Pre-order{% else %}Add{% endif %}</span>
+        <span>{% if current_variant.available == false %}Sold out{% elsif is_preorder %}Pre-order{% else %}Add{% endif %}</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
       </button>
     </div>

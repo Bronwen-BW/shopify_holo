@@ -1,0 +1,17 @@
+{
+  "sections": {
+    "main": {
+      "type": "tcg-policy",
+      "settings": {
+        "eyebrow": "Legal & Compliance",
+        "heading": "Store Policies & Terms",
+        "subheading": "Official privacy, terms of service, shipping, and refund policies for our store.",
+        "privacy_fallback": "We respect your privacy and protect your personal data in accordance with GDPR and Shopify data protection standards.",
+        "terms_fallback": "By visiting our store and purchasing collector trading cards, graded slabs, or sealed products, you agree to be bound by these Terms of Service."
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

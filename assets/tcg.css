@@ -22,69 +22,1167 @@
 
 /* ===== 内页区块：404 页面（index-BE5LEwlz.css）===== */
 ._page_5xn5p_1{position:relative;display:grid;min-height:calc(100svh - 4.9rem);place-items:center;overflow:hidden;padding:clamp(7rem,12vw,10rem) 1.5rem clamp(5rem,8vw,7rem);background:#0e1210}._page_5xn5p_1:before,._page_5xn5p_1:after{position:absolute;content:"";pointer-events:none}._page_5xn5p_1:before{top:0;bottom:0;left:50%;width:1px;background:#f9fafb0e}._page_5xn5p_1:after{top:50%;right:0;left:0;height:1px;background:#f9fafb09}._content_5xn5p_34{position:relative;z-index:1;display:flex;width:min(100%,48rem);align-items:center;flex-direction:column;text-align:center}._eyebrow_5xn5p_44,._reference_5xn5p_45{color:#f9fafb73;font-size:.67rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase}._errorCode_5xn5p_53{display:flex;align-items:center;justify-content:center;gap:clamp(.6rem,2vw,1.5rem);margin-block:clamp(1.5rem,4vw,2.5rem);color:#f9fafb;font-family:Rubik,ui-sans-serif,system-ui,sans-serif;font-size:clamp(7.5rem,20vw,14rem);font-weight:600;letter-spacing:-.08em;line-height:.72}._cardSlot_5xn5p_67{width:clamp(4.8rem,10vw,7.25rem);transform:rotate(5deg)}._cardSlot_5xn5p_67 img{width:100%;filter:saturate(.84) brightness(.9);transition:filter .3s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}._errorCode_5xn5p_53:hover ._cardSlot_5xn5p_67 img{filter:saturate(1) brightness(1);transform:translateY(-.35rem) rotate(-2deg)}._content_5xn5p_34 h1{max-width:13ch;font-size:clamp(2rem,4.5vw,3.75rem);font-weight:600;letter-spacing:-.04em;line-height:1}._content_5xn5p_34 p{max-width:34rem;margin-top:1.25rem;color:#a1a1aa;font-size:clamp(.95rem,1.5vw,1.08rem);line-height:1.65}._actions_5xn5p_99{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.75rem;margin-top:2rem}._primaryAction_5xn5p_108,._secondaryAction_5xn5p_109{display:inline-flex;min-height:3rem;align-items:center;justify-content:center;padding:.75rem 1.3rem;border:1px solid transparent;border-radius:.3125rem;font-weight:700;transition:background .15s ease-out,border-color .15s ease-out,color .15s ease-out,transform .15s ease-out}._primaryAction_5xn5p_108{background:#10b981;color:#06100c}._primaryAction_5xn5p_108:hover,._primaryAction_5xn5p_108:focus-visible{background:#34d399;transform:translateY(-2px)}._secondaryAction_5xn5p_109{border-color:#f9fafb24;color:#f9fafb}._secondaryAction_5xn5p_109:hover,._secondaryAction_5xn5p_109:focus-visible{border-color:#f9fafb57;background:#f9fafb0e;transform:translateY(-2px)}._primaryAction_5xn5p_108:focus-visible,._secondaryAction_5xn5p_109:focus-visible{outline:2px solid #34d399;outline-offset:3px}._reference_5xn5p_45{position:absolute;right:clamp(1.25rem,4vw,3.5rem);bottom:clamp(1.25rem,3vw,2.25rem)}@media(max-width:640px){._page_5xn5p_1{min-height:calc(100svh - 4rem);padding-block:6.5rem 4.5rem}._errorCode_5xn5p_53{gap:.35rem}._cardSlot_5xn5p_67{width:clamp(4rem,19vw,5.25rem)}._actions_5xn5p_99{width:100%;flex-direction:column}._primaryAction_5xn5p_108,._secondaryAction_5xn5p_109{width:min(100%,20rem)}._reference_5xn5p_45{right:1.25rem;bottom:1.25rem}}@media(prefers-reduced-motion:reduce){._errorCode_5xn5p_53:hover ._cardSlot_5xn5p_67 img,._primaryAction_5xn5p_108:hover,._primaryAction_5xn5p_108:focus-visible,._secondaryAction_5xn5p_109:hover,._secondaryAction_5xn5p_109:focus-visible{transform:none}}
-/* ===== 通用内容页富文本排版 ===== */
-.tcg-rte{color:#d4d4d8}
-.tcg-rte h2,.tcg-rte h3{margin:1.6rem 0 .7rem;color:#f9fafb;font-family:Rubik,sans-serif;font-weight:700;letter-spacing:-.02em}
-.tcg-rte h2{font-size:1.4rem}.tcg-rte h3{font-size:1.15rem}
-.tcg-rte p{margin:.7rem 0}
-.tcg-rte a{color:#34d399;text-decoration:underline;text-underline-offset:3px}
-.tcg-rte ul,.tcg-rte ol{margin:.7rem 0;padding-left:1.3rem}
-.tcg-rte li{margin:.3rem 0}
-.tcg-rte img{max-width:100%;height:auto;border-radius:.875rem}
-.tcg-rte strong{color:#f9fafb}
-._menu_1hxzp_377[hidden]{display:none!important}
-
-/* Hero 轮播背景：单图与幻灯片完整区域等尺寸，允许拉伸以铺满，不平铺 */
-._slideBg_tcg1{
-  position:absolute;
-  z-index:-2;
-  inset:0;
-  overflow:hidden;
-  background-repeat:no-repeat;
-  background-position:0 0;
-  background-size:100% 100%;
-  opacity:0;
-  transition:opacity .7s cubic-bezier(.22,1,.36,1);
+/* ===== 全站统一设计规范：色彩变量、字号阶梯、容器布局与黑夜/白天模式 ===== */
+:root,
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --tcg-bg: #111214;
+  --tcg-surface: #18191c;
+  --tcg-surface-elevated: #202227;
+  --tcg-surface-soft: rgba(249, 250, 251, 0.06);
+  --tcg-surface-hover: rgba(249, 250, 251, 0.10);
+  --tcg-glass: rgba(24, 25, 28, 0.84);
+  --tcg-border: rgba(249, 250, 251, 0.09);
+  --tcg-border-strong: rgba(249, 250, 251, 0.16);
+  --tcg-text: #f9fafb;
+  --tcg-text-secondary: #d4d4d8;
+  --tcg-text-muted: #9ca3af;
+  --tcg-accent: #10b981;
+  --tcg-accent-hover: #34d399;
+  --tcg-accent-soft: rgba(16, 185, 129, 0.16);
+  --tcg-accent-fg: #03231a;
+  --tcg-danger: #f87171;
+  --tcg-warning: #fbbf24;
+  --tcg-container: min(110rem, 100% - clamp(2rem, 4vw, 3rem));
+  --tcg-radius-lg: 1.25rem;
+  --tcg-radius-md: 0.875rem;
+  --tcg-radius-sm: 0.625rem;
+  --tcg-fs-xs: 0.75rem;
+  --tcg-fs-sm: 0.875rem;
+  --tcg-fs-base: 0.96875rem;
+  --tcg-fs-md: 1.125rem;
+  --tcg-fs-lg: clamp(1.25rem, 1.8vw, 1.5rem);
+  --tcg-fs-xl: clamp(1.65rem, 2.5vw, 2.25rem);
+  --tcg-fs-2xl: clamp(2rem, 3.4vw, 2.75rem);
 }
-._slideActive_n65qd_71 ._slideBg_tcg1{opacity:1}
-._slideBgOverlay_tcg1{position:absolute;inset:0;background:rgba(24,24,24,.22);pointer-events:none}
-._copy_n65qd_79{text-shadow:0 2px 3px #000,0 0 12px #000,0 0 28px rgba(0,0,0,.95)}
-@media (prefers-reduced-motion:reduce){._slideBg_tcg1{transition:none}}
 
-/* Hero 轮播圆点导航（点击切换） */
-._dots_tcg1{position:absolute;z-index:4;bottom:clamp(1.5rem,3vw,2.1rem);left:clamp(2rem,4.5vw,4.5rem);display:flex;align-items:center;gap:.55rem}
-._dot_tcg1{width:.7rem;height:.7rem;padding:0;border:0;border-radius:9999px;background:#f9fafb38;cursor:pointer;transition:background-color .22s cubic-bezier(.22,1,.36,1),transform .22s cubic-bezier(.22,1,.36,1),box-shadow .22s cubic-bezier(.22,1,.36,1)}
-._dot_tcg1:hover{background:#f9fafb73}
-._dot_tcg1:focus-visible{outline:2px solid #34d399;outline-offset:2px}
-._dotActive_tcg1{background:#34d399;box-shadow:0 0 10px #34d39980;transform:scale(1.2)}
-
-/* ===== 可配置轮播：按钮 / 整图链接 / 热门商品角标 ===== */
-/* 注意：幻灯片桌面端依赖构建产物中的 position:absolute + inset:0 叠层布局，
-   不能在此处全局改写为 relative（其 relative 仅允许出现在 ≤768px 媒体查询内） */
-._heroSlideLink_tcg1{position:absolute;inset:0;z-index:1}
-._heroBtnGroup_tcg1{position:absolute;z-index:6;display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;max-width:min(90%,34rem)}
-._heroBtnGroup_tcg1:empty{display:none}
-._heroBtnGroup_top-left{left:clamp(2rem,4.5vw,4.5rem);top:clamp(1.8rem,4vw,3rem)}
-._heroBtnGroup_top-right{right:clamp(2rem,4.5vw,4.5rem);top:clamp(1.8rem,4vw,3rem);justify-content:flex-end}
-._heroBtnGroup_center{left:50%;top:50%;transform:translate(-50%,-50%);justify-content:center}
-._heroBtnGroup_bottom-left{left:clamp(2rem,4.5vw,4.5rem);bottom:clamp(4.6rem,8vw,6rem)}
-._heroBtnGroup_bottom-right{right:clamp(2rem,4.5vw,4.5rem);bottom:clamp(4.6rem,8vw,6rem);justify-content:flex-end}
-._heroBtn_tcg1{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;min-height:2.6rem;padding:.62rem 1.25rem;border:1px solid transparent;border-radius:.75rem;font:700 .9rem/1.2 Rubik,ui-sans-serif,system-ui,sans-serif;text-decoration:none;white-space:nowrap;cursor:pointer;transition:transform .2s ease,background-color .2s ease,box-shadow .2s ease}
-._heroBtn_tcg1:hover{transform:translateY(-2px)}
-._heroBtn_tcg1:focus-visible{outline:2px solid #34d399;outline-offset:3px}
-._heroBtn_primary{background:#34d399;color:#0b1512;box-shadow:0 6px 22px #34d39940}
-._heroBtn_primary:hover{background:#5ce0b0}
-._heroBtn_secondary{background:transparent;color:#f9fafb;border-color:#f9fafb99}
-._heroBtn_secondary:hover{background:#f9fafb1f}
-._heroBtn_ghost{background:#ffffff1f;color:#f9fafb;backdrop-filter:blur(8px)}
-._heroBtn_ghost:hover{background:#ffffff33}
-._heroBtn_light{background:#f9fafb;color:#181818}
-._heroBtn_light:hover{background:#d4d4d8}
-._heroBadge_tcg1{position:absolute;top:.3rem;left:.3rem;z-index:2;padding:.15rem .45rem;border-radius:.35rem;background:#34d399;color:#0b1512;font:700 .62rem/1.4 Rubik,ui-sans-serif,system-ui,sans-serif;letter-spacing:.04em}
-@media (max-width:640px){._heroBtnGroup_tcg1{max-width:88%;gap:.4rem}._heroBtn_tcg1{min-height:2.2rem;padding:.5rem .85rem;font-size:.8rem}}
-@media (prefers-reduced-motion:reduce){._heroBtn_tcg1{transition:none}}
-
-/* ===== 移动端：按钮组回归文档流，单图继续拉伸铺满完整幻灯片区域 ===== */
-@media (max-width:768px){
-  ._heroBtnGroup_tcg1{position:relative;inset:auto;z-index:2;transform:none}
+html[data-theme="light"] {
+  color-scheme: light;
+  --tcg-bg: #f4f6f8;
+  --tcg-surface: #ffffff;
+  --tcg-surface-elevated: #f8fafc;
+  --tcg-surface-soft: rgba(15, 23, 42, 0.05);
+  --tcg-surface-hover: rgba(15, 23, 42, 0.09);
+  --tcg-glass: rgba(255, 255, 255, 0.88);
+  --tcg-border: rgba(15, 23, 42, 0.10);
+  --tcg-border-strong: rgba(15, 23, 42, 0.18);
+  --tcg-text: #0f172a;
+  --tcg-text-secondary: #334155;
+  --tcg-text-muted: #64748b;
+  --tcg-accent: #059669;
+  --tcg-accent-hover: #10b981;
+  --tcg-accent-soft: rgba(5, 150, 105, 0.12);
+  --tcg-accent-fg: #ffffff;
+  --tcg-danger: #dc2626;
+  --tcg-warning: #d97706;
 }
+
+/* 统一全站容器宽度与基础排版阶梯 */
+body {
+  background: var(--tcg-bg);
+  color: var(--tcg-text-secondary);
+  font-size: var(--tcg-fs-base);
+  line-height: 1.65;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+h1, h2, h3, h4, h5, h6 {
+  color: var(--tcg-text);
+  font-family: Rubik, ui-sans-serif, system-ui, sans-serif;
+}
+.container,
+._wide_4xdw3_6,
+._wide_36e53_5,
+._wide_dtm2o_6,
+._wide_1nz9z_7,
+._wide_23f90_6,
+._wide_ido9z_5,
+._wide_qxt27_5,
+._wide_hndqm_5,
+._wide_10apz_5,
+._grid_n65qd_6 {
+  width: var(--tcg-container);
+  margin-inline: auto;
+}
+
+/* 导航栏单一图标黑夜/白天模式切换按钮 */
+.tcg-theme-toggle {
+  cursor: pointer;
+}
+.tcg-theme-toggle .tcg-icon-sun,
+.tcg-theme-toggle .tcg-icon-moon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}
+html:not([data-theme="light"]) .tcg-theme-toggle .tcg-icon-moon {
+  display: none;
+}
+html[data-theme="light"] .tcg-theme-toggle .tcg-icon-sun {
+  display: none;
+}
+
+/* ===== 通用内容页与 Shopify 官方 Policy 页富文本排版 ===== */
+.tcg-page-card,
+.tcg-card-panel {
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  border-radius: var(--tcg-radius-lg);
+  background: var(--tcg-surface);
+  border: 1px solid var(--tcg-border);
+  box-shadow: 0 8px 28px -12px rgba(0, 0, 0, 0.18);
+}
+.tcg-page-card-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--tcg-border);
+}
+.tcg-page-card-header h1 {
+  font-size: var(--tcg-fs-2xl);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.tcg-eyebrow {
+  display: inline-block;
+  margin-bottom: 0.45rem;
+  color: var(--tcg-accent-hover);
+  font-family: Rubik, sans-serif;
+  font-size: var(--tcg-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tcg-subtext,
+.tcg-muted-text {
+  color: var(--tcg-text-muted);
+  font-size: var(--tcg-fs-base);
+  line-height: 1.6;
+}
+.tcg-lead-text {
+  max-width: 58ch;
+  margin-top: 0.85rem;
+  color: var(--tcg-text-secondary);
+  font-size: var(--tcg-fs-md);
+  line-height: 1.65;
+}
+.tcg-rte,
+.shopify-policy__body .rte {
+  color: var(--tcg-text-secondary);
+  font-size: var(--tcg-fs-base);
+  line-height: 1.75;
+}
+.tcg-rte h2, .tcg-rte h3,
+.shopify-policy__body h2, .shopify-policy__body h3 {
+  margin: 1.5rem 0 0.65rem;
+  color: var(--tcg-text);
+  font-family: Rubik, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.tcg-rte h2 { font-size: 1.35rem; }
+.tcg-rte h3 { font-size: 1.125rem; }
+.tcg-rte p, .shopify-policy__body p { margin: 0.7rem 0; }
+.tcg-rte a, .shopify-policy__body a, .tcg-link-accent {
+  color: var(--tcg-accent-hover);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 600;
+}
+.tcg-link-subtle {
+  color: var(--tcg-text-muted);
+  font-family: Rubik, sans-serif;
+  font-size: var(--tcg-fs-sm);
+  font-weight: 600;
+  transition: color 0.18s ease;
+}
+.tcg-link-subtle:hover { color: var(--tcg-text); }
+.tcg-rte ul, .tcg-rte ol,
+.shopify-policy__body ul, .shopify-policy__body ol {
+  margin: 0.7rem 0;
+  padding-left: 1.35rem;
+  list-style: disc;
+}
+.tcg-rte ol, .shopify-policy__body ol { list-style: decimal; }
+.tcg-rte li, .shopify-policy__body li { margin: 0.35rem 0; }
+.tcg-rte img { max-width: 100%; height: auto; border-radius: var(--tcg-radius-md); }
+.tcg-rte strong, .shopify-policy__body strong { color: var(--tcg-text); }
+.shopify-policy__container {
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.shopify-policy__title {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--tcg-border);
+  text-align: left !important;
+}
+.shopify-policy__title h1 {
+  font-size: var(--tcg-fs-2xl);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+._menu_1hxzp_377[hidden],
+[hidden] {
+  display: none !important;
+}
+
+/* ===== Hero 轮播背景：保持氛围模糊光效 + 右侧高清卡牌舞台，避免拉伸变形 ===== */
+._slideBg_tcg1 {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  overflow: hidden;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  filter: blur(22px) brightness(0.42) saturate(1.25);
+  transform: scale(1.08);
+  opacity: 0;
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+._slideActive_n65qd_71 ._slideBg_tcg1 { opacity: 1; }
+._slideBgOverlay_tcg1 {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(17, 18, 20, 0.78) 0%, rgba(17, 18, 20, 0.35) 60%, rgba(17, 18, 20, 0.55) 100%);
+  pointer-events: none;
+}
+._copy_n65qd_79 {
+  position: relative;
+  z-index: 3;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+}
+@media (prefers-reduced-motion: reduce) { ._slideBg_tcg1 { transition: none; } }
+
+/* Hero 轮播圆点导航 */
+._dots_tcg1 {
+  position: absolute;
+  z-index: 6;
+  bottom: clamp(1.5rem, 3vw, 2.1rem);
+  left: clamp(2rem, 4.5vw, 4.5rem);
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+._dot_tcg1 {
+  width: 0.7rem;
+  height: 0.7rem;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: rgba(249, 250, 251, 0.28);
+  cursor: pointer;
+  transition: background-color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+}
+._dot_tcg1:hover { background: rgba(249, 250, 251, 0.55); }
+._dot_tcg1:focus-visible { outline: 2px solid var(--tcg-accent-hover); outline-offset: 2px; }
+._dotActive_tcg1 {
+  background: var(--tcg-accent-hover);
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.5);
+  transform: scale(1.2);
+}
+
+/* 可配置轮播：按钮 / 整图链接 / 热门商品角标 */
+._heroSlideLink_tcg1 { position: absolute; inset: 0; z-index: 1; }
+._heroBtnGroup_tcg1 {
+  position: absolute;
+  z-index: 6;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: min(90%, 34rem);
+}
+._heroBtnGroup_tcg1:empty { display: none; }
+._heroBtnGroup_top-left { left: clamp(2rem, 4.5vw, 4.5rem); top: clamp(1.8rem, 4vw, 3rem); }
+._heroBtnGroup_top-right { right: clamp(2rem, 4.5vw, 4.5rem); top: clamp(1.8rem, 4vw, 3rem); justify-content: flex-end; }
+._heroBtnGroup_center { left: 50%; top: 50%; transform: translate(-50%, -50%); justify-content: center; }
+._heroBtnGroup_bottom-left { left: clamp(2rem, 4.5vw, 4.5rem); bottom: clamp(4.6rem, 8vw, 6rem); }
+._heroBtnGroup_bottom-right { right: clamp(2rem, 4.5vw, 4.5rem); bottom: clamp(4.6rem, 8vw, 6rem); justify-content: flex-end; }
+._heroBtn_tcg1 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.6rem;
+  padding: 0.62rem 1.25rem;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  font: 700 0.9rem/1.2 Rubik, ui-sans-serif, system-ui, sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+._heroBtn_tcg1:hover { transform: translateY(-2px); }
+._heroBtn_tcg1:focus-visible { outline: 2px solid var(--tcg-accent-hover); outline-offset: 3px; }
+._heroBtn_primary { background: #34d399; color: #0b1512; box-shadow: 0 6px 22px rgba(52, 211, 153, 0.25); }
+._heroBtn_primary:hover { background: #5ce0b0; }
+._heroBtn_secondary { background: transparent; color: #f9fafb; border-color: rgba(249, 250, 251, 0.6); }
+._heroBtn_secondary:hover { background: rgba(249, 250, 251, 0.12); }
+._heroBtn_ghost { background: rgba(255, 255, 255, 0.12); color: #f9fafb; backdrop-filter: blur(8px); }
+._heroBtn_ghost:hover { background: rgba(255, 255, 255, 0.2); }
+._heroBtn_light { background: #f9fafb; color: #181818; }
+._heroBtn_light:hover { background: #d4d4d8; }
+._heroBadge_tcg1 {
+  position: absolute;
+  top: 0.3rem;
+  left: 0.3rem;
+  z-index: 2;
+  padding: 0.15rem 0.45rem;
+  border-radius: 0.35rem;
+  background: #34d399;
+  color: #0b1512;
+  font: 700 0.65rem/1.4 Rubik, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.04em;
+}
+@media (max-width: 768px) {
+  ._heroBtnGroup_tcg1 { position: relative; inset: auto; z-index: 2; transform: none; }
+}
+@media (max-width: 640px) {
+  ._addBtn_36e53_338 span { display: none; }
+}
+
+/* ===== 商品页：完整 SKU 选择器、多图缩略图换行、立即购买与动态支付 ===== */
+.tcg-thumbs-wrap {
+  flex-wrap: wrap !important;
+  overflow-x: visible !important;
+}
+.tcg-kicker-sku {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 2.25rem;
+  padding-inline: 0.85rem;
+  border-radius: 9999px;
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+  color: var(--tcg-text-muted);
+  font-family: Rubik, sans-serif;
+  font-size: var(--tcg-fs-xs);
+}
+.tcg-kicker-sku strong { color: var(--tcg-text); }
+
+.tcg-sku-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.1rem;
+  border-radius: var(--tcg-radius-md);
+  background: var(--tcg-surface);
+  border: 1px solid var(--tcg-border);
+}
+.tcg-sku-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.tcg-sku-label {
+  color: var(--tcg-text);
+  font-family: Rubik, sans-serif;
+  font-size: var(--tcg-fs-sm);
+  font-weight: 700;
+}
+.tcg-sku-current-code {
+  color: var(--tcg-text-muted);
+  font-size: var(--tcg-fs-xs);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.tcg-sku-current-code strong { color: var(--tcg-accent-hover); }
+
+.tcg-option-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.tcg-option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.tcg-option-name {
+  color: var(--tcg-text-muted);
+  font-size: var(--tcg-fs-xs);
+}
+.tcg-option-name strong { color: var(--tcg-text); }
+.tcg-option-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.tcg-option-pill {
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+  color: var(--tcg-text-secondary);
+  font-family: Rubik, sans-serif;
+  font-size: var(--tcg-fs-xs);
+  font-weight: 600;
+  white-space: normal;
+  word-break: break-word;
+  text-align: left;
+  transition: all 0.16s ease;
+}
+.tcg-option-pill:hover {
+  border-color: var(--tcg-border-strong);
+  color: var(--tcg-text);
+}
+.tcg-option-pill.is-selected {
+  background: var(--tcg-accent-soft);
+  border-color: var(--tcg-accent);
+  color: var(--tcg-accent-hover);
+}
+
+/* SKU 图文卡片网格：不限最大高度，文字自动换行，彻底杜绝截断或显示不全 */
+.tcg-sku-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr));
+  gap: 0.55rem;
+}
+.tcg-sku-card {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--tcg-radius-sm);
+  background: var(--tcg-surface-soft);
+  border: 1.5px solid var(--tcg-border);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.15s ease;
+}
+.tcg-sku-card:hover {
+  border-color: var(--tcg-border-strong);
+  background: var(--tcg-surface-hover);
+}
+.tcg-sku-card.is-active {
+  border-color: var(--tcg-accent);
+  background: var(--tcg-accent-soft);
+  box-shadow: 0 0 0 1px var(--tcg-accent);
+}
+.tcg-sku-card.is-soldout {
+  opacity: 0.58;
+}
+.tcg-sku-card-thumb {
+  display: grid;
+  width: 3.25rem;
+  height: 3.25rem;
+  place-items: center;
+  padding: 0.2rem;
+  border-radius: 0.5rem;
+  background: var(--tcg-bg);
+  overflow: hidden;
+}
+.tcg-sku-card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.tcg-sku-card-body {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.tcg-sku-card-title {
+  color: var(--tcg-text);
+  font-family: Rubik, sans-serif;
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.tcg-sku-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.5rem;
+  font-size: var(--tcg-fs-xs);
+}
+.tcg-sku-code {
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.3rem;
+  background: var(--tcg-surface-hover);
+  color: var(--tcg-text-secondary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  word-break: break-all;
+}
+.tcg-sku-price {
+  color: var(--tcg-text);
+  font-family: Rubik, sans-serif;
+  font-weight: 700;
+}
+.tcg-sku-stock.is-in { color: var(--tcg-accent-hover); font-weight: 600; }
+.tcg-sku-stock.is-out { color: var(--tcg-danger); font-weight: 600; }
+
+.tcg-sku-select-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.tcg-qty-input,
+.tcg-cart-qty-input {
+  width: 2.6rem;
+  border: 0;
+  background: transparent;
+  color: var(--tcg-text);
+  font-family: Rubik, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: center;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.tcg-qty-input::-webkit-outer-spin-button,
+.tcg-qty-input::-webkit-inner-spin-button,
+.tcg-cart-qty-input::-webkit-outer-spin-button,
+.tcg-cart-qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.tcg-product-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.tcg-buy-actions-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.tcg-buy-now-btn,
+.tcg-btn-secondary,
+.tcg-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3.1rem;
+  padding: 0.7rem 1.4rem;
+  border-radius: 9999px;
+  font-family: Rubik, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.tcg-buy-now-btn {
+  background: var(--tcg-surface-elevated);
+  border: 1.5px solid var(--tcg-accent);
+  color: var(--tcg-accent-hover);
+}
+.tcg-buy-now-btn:hover:not(:disabled) {
+  background: var(--tcg-accent);
+  color: var(--tcg-accent-fg);
+}
+.tcg-buy-now-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.tcg- buy-now-btn svg,
+.tcg-buy-now-btn svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+.tcg-btn-secondary {
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border-strong);
+  color: var(--tcg-text);
+}
+.tcg-btn-secondary:hover {
+  background: var(--tcg-surface-hover);
+}
+.tcg-btn-ghost {
+  min-height: 2.5rem;
+  padding: 0.45rem 1rem;
+  background: transparent;
+  border: 1px solid var(--tcg-border);
+  color: var(--tcg-text-muted);
+  font-size: var(--tcg-fs-sm);
+}
+.tcg-btn-ghost:hover {
+  color: var(--tcg-text);
+  border-color: var(--tcg-border-strong);
+}
+.tcg-shopify-payment-btn .shopify-payment-button__button {
+  border-radius: 9999px !important;
+  min-height: 3.1rem !important;
+  font-family: Rubik, sans-serif !important;
+  font-weight: 700 !important;
+}
+
+/* ===== 购物车、付款、登录、注册、用户中心、About、Contact、Shipping & Policy 通用组件 ===== */
+.tcg-cart-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.65rem;
+  margin-top: 0.15rem;
+}
+.tcg-cart-note-card {
+  margin-top: 0.75rem;
+  padding: 1.25rem;
+  border-radius: var(--tcg-radius-lg);
+  background: var(--tcg-surface);
+  border: 1px solid var(--tcg-border);
+}
+.tcg-field-label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--tcg-text);
+  font-family: Rubik, sans-serif;
+  font-size: var(--tcg-fs-sm);
+  font-weight: 600;
+}
+.tcg-input,
+.tcg-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: var(--tcg-radius-sm);
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border-strong);
+  color: var(--tcg-text);
+  font-family: inherit;
+  font-size: var(--tcg-fs-base);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.tcg-input:focus,
+.tcg-textarea:focus {
+  outline: none;
+  border-color: var(--tcg-accent);
+  box-shadow: 0 0 0 3px var(--tcg-accent-soft);
+}
+.tcg-discount-field {
+  margin: 0.35rem 0;
+}
+.tcg-summary-discount {
+  color: var(--tcg-accent-hover) !important;
+}
+.tcg-line-compare {
+  color: var(--tcg-text-muted);
+  font-size: var(--tcg-fs-xs);
+}
+.tcg-discount-pill,
+.tcg-badge-pill,
+.tcg-status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.22rem 0.65rem;
+  border-radius: 9999px;
+  background: var(--tcg-accent-soft);
+  color: var(--tcg-accent-hover);
+  font-family: Rubik, sans-serif;
+  font-size: var(--tcg-fs-xs);
+  font-weight: 600;
+}
+
+.tcg-auth-shell {
+  width: min(100%, 34rem);
+  margin: 1rem auto;
+}
+.tcg-auth-card {
+  padding: clamp(1.75rem, 3.5vw, 2.5rem);
+  border-radius: var(--tcg-radius-lg);
+  background: var(--tcg-surface);
+  border: 1px solid var(--tcg-border);
+}
+.tcg-auth-header {
+  margin-bottom: 1.5rem;
+}
+.tcg-auth-header h1 {
+  font-size: var(--tcg-fs-xl);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.tcg-auth-header p {
+  margin-top: 0.45rem;
+  color: var(--tcg-text-muted);
+  font-size: var(--tcg-fs-sm);
+}
+.tcg-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.tcg-form-row {
+  display: flex;
+  flex-direction: column;
+}
+.tcg-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+.tcg-label-row .tcg-field-label { margin-bottom: 0; }
+.tcg-form-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+@media (max-width: 640px) {
+  .tcg-form-grid-2 { grid-template-columns: 1fr; }
+}
+.tcg-auth-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+.tcg-auth-footer {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--tcg-border);
+  color: var(--tcg-text-muted);
+  font-size: var(--tcg-fs-sm);
+  text-align: center;
+}
+.tcg-alert {
+  padding: 0.85rem 1rem;
+  border-radius: var(--tcg-radius-sm);
+  font-size: var(--tcg-fs-sm);
+}
+.tcg-alert-error {
+  background: rgba(248, 113, 113, 0.14);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  color: var(--tcg-danger);
+}
+.tcg-alert-success {
+  background: var(--tcg-accent-soft);
+  border: 1px solid var(--tcg-accent);
+  color: var(--tcg-accent-hover);
+}
+
+/* 用户中心、结账、联系我们、配送网格 */
+.tcg-account-top-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+.tcg-account-grid,
+.tcg-contact-grid,
+.tcg-checkout-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(19rem, 0.85fr);
+  align-items: start;
+  gap: 1.25rem;
+}
+@media (max-width: 1024px) {
+  .tcg-account-grid,
+  .tcg-contact-grid,
+  .tcg-checkout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.tcg-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.tcg-panel-head h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.tcg-table-wrap {
+  overflow-x: auto;
+}
+.tcg-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--tcg-fs-sm);
+}
+.tcg-table th,
+.tcg-table td {
+  padding: 0.85rem 0.75rem;
+  border-bottom: 1px solid var(--tcg-border);
+  text-align: left;
+}
+.tcg-table th {
+  color: var(--tcg-text-muted);
+  font-family: Rubik, sans-serif;
+  font-weight: 600;
+}
+.tcg-address-box {
+  padding: 1rem;
+  border-radius: var(--tcg-radius-sm);
+  background: var(--tcg-surface-soft);
+  color: var(--tcg-text-secondary);
+  line-height: 1.65;
+}
+.tcg-address-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+.tcg-address-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 1rem;
+  border-radius: var(--tcg-radius-md);
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+}
+.tcg-account-quicklinks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+.tcg-account-quicklinks h3 {
+  margin-bottom: 0.25rem;
+  font-size: 1rem;
+}
+.tcg-account-quicklinks a {
+  color: var(--tcg-text-muted);
+  font-size: var(--tcg-fs-sm);
+  transition: color 0.16s ease;
+}
+.tcg-account-quicklinks a:hover { color: var(--tcg-accent-hover); }
+
+/* About / Shipping / Policy / Contact 专用布局 */
+.tcg-hero-banner-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  align-items: center;
+  gap: 2rem;
+  padding: clamp(2rem, 4vw, 3.5rem);
+  border-radius: var(--tcg-radius-lg);
+  background: radial-gradient(ellipse 55% 70% at 82% 50%, var(--tcg-accent-soft), transparent 70%), var(--tcg-surface);
+  border: 1px solid var(--tcg-border);
+}
+.tcg-hero-banner-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+.tcg-hero-banner-art img {
+  width: clamp(7.5rem, 13vw, 11rem);
+  border-radius: 0.65rem;
+  filter: drop-shadow(0 16px 24px rgba(0, 0, 0, 0.4));
+}
+.tcg-hero-banner-art img:first-child { transform: rotate(-6deg); }
+.tcg-hero-banner-art img:last-child { transform: rotate(6deg); }
+@media (max-width: 768px) {
+  .tcg-hero-banner-card { grid-template-columns: 1fr; }
+}
+.tcg-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.tcg-stat-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1.35rem 1.5rem;
+  border-radius: var(--tcg-radius-md);
+  background: var(--tcg-surface);
+  border: 1px solid var(--tcg-border);
+}
+.tcg-stat-box strong {
+  color: var(--tcg-accent-hover);
+  font-family: Rubik, sans-serif;
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  font-weight: 800;
+}
+.tcg-stat-box span {
+  color: var(--tcg-text-muted);
+  font-size: var(--tcg-fs-sm);
+}
+.tcg-pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+@media (max-width: 900px) {
+  .tcg-stats-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tcg-pillars-grid { grid-template-columns: 1fr; }
+}
+
+.tcg-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-top: 0.85rem;
+}
+.tcg-info-list dt {
+  color: var(--tcg-text-muted);
+  font-size: var(--tcg-fs-xs);
+}
+.tcg-info-list dd {
+  color: var(--tcg-text);
+  font-weight: 600;
+}
+.tcg-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+}
+.tcg-faq-item {
+  padding: 0.85rem 1rem;
+  border-radius: var(--tcg-radius-sm);
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+}
+.tcg-faq-item summary {
+  color: var(--tcg-text);
+  font-family: Rubik, sans-serif;
+  font-size: var(--tcg-fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.tcg-faq-item p {
+  margin-top: 0.5rem;
+  color: var(--tcg-text-muted);
+  font-size: var(--tcg-fs-sm);
+}
+
+.tcg-policy-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 1.25rem;
+  padding: 0.35rem;
+  border-radius: 9999px;
+  background: var(--tcg-surface);
+  border: 1px solid var(--tcg-border);
+  width: fit-content;
+}
+.tcg-policy-tab {
+  padding: 0.5rem 1.1rem;
+  border-radius: 9999px;
+  color: var(--tcg-text-muted);
+  font-family: Rubik, sans-serif;
+  font-size: var(--tcg-fs-sm);
+  font-weight: 600;
+  transition: all 0.18s ease;
+}
+.tcg-policy-tab:hover { color: var(--tcg-text); }
+.tcg-policy-tab.is-active {
+  background: var(--tcg-accent);
+  color: var(--tcg-accent-fg);
+}
+
+.tcg-checkout-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.tcg-payment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+}
+.tcg-payment-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.9rem 1rem;
+  border-radius: var(--tcg-radius-sm);
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+}
+.tcg-payment-item strong {
+  color: var(--tcg-text);
+  font-size: var(--tcg-fs-sm);
+}
+.tcg-payment-item span {
+  color: var(--tcg-text-muted);
+  font-size: var(--tcg-fs-xs);
+}
+.tcg-checkout-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--tcg-border);
+}
+.tcg-checkout-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: var(--tcg-fs-sm);
+  color: var(--tcg-text-secondary);
+}
+
+.tcg-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 2.25rem;
+}
+.tcg-page-btn {
+  padding: 0.55rem 1.15rem;
+  border-radius: 9999px;
+  background: var(--tcg-surface);
+  border: 1px solid var(--tcg-border-strong);
+  color: var(--tcg-text);
+  font-family: Rubik, sans-serif;
+  font-size: var(--tcg-fs-sm);
+  font-weight: 600;
+}
+.tcg-page-btn:hover {
+  border-color: var(--tcg-accent);
+  color: var(--tcg-accent-hover);
+}
+.tcg-page-status {
+  padding: 0.55rem 1rem;
+  color: var(--tcg-text-muted);
+  font-family: Rubik, sans-serif;
+  font-size: var(--tcg-fs-sm);
+}
+.tcg-col-desc {
+  color: var(--tcg-text-muted);
+  font-size: var(--tcg-fs-xs);
+  line-height: 1.45;
+}
+.tcg-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--tcg-text-secondary);
+  font-size: var(--tcg-fs-sm);
+  cursor: pointer;
+}
+
+/* ===== 白天模式 (Light Mode) 全站适配覆盖 ===== */
+html[data-theme="light"] body,
+html[data-theme="light"] ._footer_23f90_1 {
+  background: var(--tcg-bg);
+  color: var(--tcg-text-secondary);
+}
+html[data-theme="light"] ._inner_1hxzp_10,
+html[data-theme="light"] ._scrolled_1hxzp_27,
+html[data-theme="light"] ._menu_1hxzp_377,
+html[data-theme="light"] ._searchOpen_1hxzp_45 {
+  background: var(--tcg-glass);
+  box-shadow: inset 0 0 0 1px var(--tcg-border), 0 10px 28px -12px rgba(15, 23, 42, 0.14);
+}
+html[data-theme="light"] ._shelf_n65qd_394,
+html[data-theme="light"] ._feature_hndqm_87,
+html[data-theme="light"] ._tile_hndqm_88,
+html[data-theme="light"] ._collection_qxt27_87,
+html[data-theme="light"] ._path_10apz_40,
+html[data-theme="light"] ._band_ido9z_36,
+html[data-theme="light"] ._layout_3nsi1_5,
+html[data-theme="light"] ._panel_23f90_11,
+html[data-theme="light"] ._breadcrumb_4xdw3_11,
+html[data-theme="light"] ._productMedia_4xdw3_145,
+html[data-theme="light"] ._thumb_4xdw3_201,
+html[data-theme="light"] ._detailsIntro_4xdw3_1148,
+html[data-theme="light"] ._specifications_4xdw3_1149,
+html[data-theme="light"] ._serviceBand_4xdw3_1240,
+html[data-theme="light"] ._row_1z0wo_52,
+html[data-theme="light"] ._summary_1z0wo_183,
+html[data-theme="light"] ._empty_1z0wo_298,
+html[data-theme="light"] ._tabs_1fncu_73,
+html[data-theme="light"] ._hero_dtm2o_17,
+html[data-theme="light"] ._destinations_dtm2o_310 a,
+html[data-theme="light"] ._searchField_1nz9z_51,
+html[data-theme="light"] ._rail_1nz9z_318,
+html[data-theme="light"] ._page_5xn5p_1 {
+  background-color: var(--tcg-surface) !important;
+  box-shadow: inset 0 0 0 1px var(--tcg-border), 0 8px 24px -14px rgba(15, 23, 42, 0.10);
+}
+html[data-theme="light"] ._payments_23f90_190,
+html[data-theme="light"] ._thumb_n65qd_476,
+html[data-theme="light"] ._cardMedia_36e53_85,
+html[data-theme="light"] ._thumb_1z0wo_62,
+html[data-theme="light"] ._specifications_4xdw3_1149 > div,
+html[data-theme="light"] ._summaryTotal_1z0wo_221,
+html[data-theme="light"] ._variantSummary_4xdw3_598 {
+  background-color: var(--tcg-surface-elevated) !important;
+  box-shadow: inset 0 0 0 1px var(--tcg-border);
+}
+html[data-theme="light"] h1,
+html[data-theme="light"] h2,
+html[data-theme="light"] h3,
+html[data-theme="light"] ._navLinkActive_1hxzp_163,
+html[data-theme="light"] ._navLink_1hxzp_145:hover,
+html[data-theme="light"] ._itemName_n65qd_500,
+html[data-theme="light"] ._featureName_hndqm_155,
+html[data-theme="light"] ._tileName_hndqm_251,
+html[data-theme="light"] ._cardName_36e53_275,
+html[data-theme="light"] ._cardPrice_36e53_317,
+html[data-theme="light"] ._copy_ido9z_84 strong,
+html[data-theme="light"] ._facts_3nsi1_119 dt,
+html[data-theme="light"] ._price_4xdw3_473,
+html[data-theme="light"] ._purchaseFoot_4xdw3_936 strong,
+html[data-theme="light"] ._specifications_4xdw3_1149 dd,
+html[data-theme="light"] ._rowName_1z0wo_86,
+html[data-theme="light"] ._lineTotal_1z0wo_152,
+html[data-theme="light"] ._qtyValue_1z0wo_135,
+html[data-theme="light"] ._summaryTotal_1z0wo_221,
+html[data-theme="light"] ._destinations_dtm2o_310 strong,
+html[data-theme="light"] ._showcaseCaption_dtm2o_271 strong,
+html[data-theme="light"] ._searchField_1nz9z_51 input,
+html[data-theme="light"] ._sortField_1nz9z_151 select,
+html[data-theme="light"] ._searchInput_1hxzp_52,
+html[data-theme="light"] ._stepCurrent_16l9l_96 ._stepLink_16l9l_54,
+html[data-theme="light"] ._errorCode_5xn5p_53 {
+  color: var(--tcg-text) !important;
+}
+html[data-theme="light"] ._navLink_1hxzp_145,
+html[data-theme="light"] ._iconBtn_1hxzp_244,
+html[data-theme="light"] ._trigger_laq6k_1,
+html[data-theme="light"] ._blurb_23f90_88,
+html[data-theme="light"] ._linkCol_23f90_160 a,
+html[data-theme="light"] ._tagline_hndqm_164,
+html[data-theme="light"] ._copy_10apz_101 p,
+html[data-theme="light"] ._copy_ido9z_84 span,
+html[data-theme="light"] ._description_4xdw3_536,
+html[data-theme="light"] ._summaryRow_1z0wo_208,
+html[data-theme="light"] ._blurb_dtm2o_93 {
+  color: var(--tcg-text-secondary) !important;
+}
+html[data-theme="light"] ._cartBtn_1hxzp_281,
+html[data-theme="light"] ._addBtn_n65qd_530,
+html[data-theme="light"] ._productKicker_4xdw3_286 a,
+html[data-theme="light"] ._saveButton_4xdw3_395,
+html[data-theme="light"] ._quantity_4xdw3_629,
+html[data-theme="light"] ._qtyControl_1z0wo_100,
+html[data-theme="light"] ._cta_10apz_129,
+html[data-theme="light"] ._foot_ido9z_135 span,
+html[data-theme="light"] ._stats_dtm2o_202 span,
+html[data-theme="light"] ._nav_1hxzp_1,
+html[data-theme="light"] ._searchInput_1hxzp_52,
+html[data-theme="light"] ._steps_16l9l_44,
+html[data-theme="light"] ._socials_23f90_95 a {
+  background: var(--tcg-surface-soft) !important;
+  color: var(--tcg-text) !important;
+  box-shadow: inset 0 0 0 1px var(--tcg-border-strong) !important;
+}
+html[data-theme="light"] ._quantity_4xdw3_629 button,
+html[data-theme="light"] ._qtyBtn_1z0wo_110,
+html[data-theme="light"] ._quantity_4xdw3_629 span {
+  color: var(--tcg-text) !important;
+}
+html[data-theme="light"] ._tabActive_1fncu_108 {
+  background: var(--tcg-accent) !important;
+  color: #ffffff !important;
+}
+/* Hero 舞台保持深色艺术聚焦，确保轮播卡牌和发光特效在白天模式下同样惊艳 */
+html[data-theme="light"] ._stage_n65qd_20 h2,
+html[data-theme="light"] ._stage_n65qd_20 ._game_n65qd_96 {
+  color: #f9fafb !important;
+}
+

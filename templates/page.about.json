@@ -1,0 +1,51 @@
+{
+  "sections": {
+    "main": {
+      "type": "tcg-about",
+      "settings": {
+        "eyebrow": "About TCGHaven",
+        "heading": "Built by Collectors, for Collectors.",
+        "intro": "We specialize in authentic singles, factory-sealed booster boxes, and precision-graded collector slabs across Pokémon, Yu-Gi-Oh!, Magic: The Gathering, Disney Lorcana, and more.",
+        "stat_1_value": "100%",
+        "stat_1_label": "Authentic & Verified Cards",
+        "stat_2_value": "24h",
+        "stat_2_label": "Tracked Warehouse Dispatch",
+        "stat_3_value": "4-Layer",
+        "stat_3_label": "Sleeve + Toploader + Rigid Armor",
+        "stat_4_value": "14-Day",
+        "stat_4_label": "Collector Return Guarantee"
+      },
+      "blocks": {
+        "p1": {
+          "type": "pillar",
+          "settings": {
+            "title": "Strict Grading & Condition Checks",
+            "text": "Every single card is inspected under studio lighting for surface, centering, corners, and edges before entering our climate-controlled vault."
+          }
+        },
+        "p2": {
+          "type": "pillar",
+          "settings": {
+            "title": "Factory-Sealed Provenance",
+            "text": "Our booster boxes, Elite Trainer Boxes, and collector gift sets come directly from authorized distribution channels with intact factory wrap."
+          }
+        },
+        "p3": {
+          "type": "pillar",
+          "settings": {
+            "title": "Collector-Grade Packaging",
+            "text": "Singles ship in a penny sleeve, rigid toploader, team bag, and bubble mailer. Graded slabs and sealed boxes ship double-boxed with corner protection."
+          }
+        }
+      },
+      "block_order": [
+        "p1",
+        "p2",
+        "p3"
+      ]
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

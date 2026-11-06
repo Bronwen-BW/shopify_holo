@@ -1,1 +1,11 @@
-{"current":{"content_for_index":[]},"platform_customizations":{"custom_css":[]}}
+{
+  "current": {
+    "default_theme_mode": "dark",
+    "enable_theme_toggle": true,
+    "tcg_accent_color": "#10b981",
+    "content_for_index": []
+  },
+  "platform_customizations": {
+    "custom_css": []
+  }
+}

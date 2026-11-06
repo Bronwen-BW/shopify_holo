@@ -1,0 +1,17 @@
+{
+  "sections": {
+    "main": {
+      "type": "tcg-login",
+      "settings": {
+        "heading": "Sign in to your account",
+        "subheading": "Track your orders, manage saved addresses, and access your collector history.",
+        "submit_label": "Sign in",
+        "recover_heading": "Reset your password",
+        "recover_subtext": "Enter your email address and we will send you an official link to reset your password."
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

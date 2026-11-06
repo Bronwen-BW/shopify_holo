@@ -5,7 +5,7 @@
     - slide        : 一张轮播项（图片 / 眉标 / 标题 / 文案 / 整图链接 / 主题色）
     - hero_button  : 轮播项上的按钮，用 settings.slide_id 关联到某个 slide 的 block id
                      （文字 / 链接 / 位置 / 样式 / 跳转行为 / 加购变体）
-    - hot_product  : 右侧热门商品项（商品 handle，可覆盖标题 / 图片 / 副标题 / 链接 / 角标）
+    - hot_product  : 右侧热门商品项（商品 handle，可覆盖标题 / 图片 / 副标题 / 价格 / 链接 / 角标）
   未配置任何 slide 时，自动回退到「按集合取前 N 个产品」的旧逻辑。
 {%- endcomment -%}
 
@@ -25,9 +25,6 @@
 {%- assign themes = '#72522b,#216b4d,#216b4d,#7a3828,#7a3828,#4c1d95,#155e75,#713f12,#3f6212,#831843' | split: ',' -%}
 {%- assign bg_links = section.settings.background_images | default: '' | split: ',' -%}
 {%- assign positions = 'top-left,top-right,center,bottom-left,bottom-right' | split: ',' -%}
-
-{%- comment -%} 把「图片路径或外链」统一解析成可用 URL {%- endcomment -%}
-{%- comment -%} image_picker 的值交给 image_url；纯文件名交给 asset_url；完整 URL 原样使用 {%- endcomment -%}
 
 <section class="_showcase_n65qd_1">
   <div class="_grid_n65qd_6">
@@ -53,11 +50,19 @@
             {%- if raw_img != blank -%}{%- assign slide_img = raw_img | asset_url -%}{%- endif -%}
           {%- endunless -%}
 
+          {%- assign has_slide_buttons = false -%}
+          {%- for btn in section.blocks -%}
+            {%- if btn.type == 'hero_button' and btn.settings.slide_id == block.id -%}
+              {%- assign has_slide_buttons = true -%}
+            {%- endif -%}
+          {%- endfor -%}
+
           <article
             class="_slide_n65qd_49 {% if slide_index == 0 %}_slideActive_n65qd_71{% endif %}"
             data-slide
             {% if slide_index != 0 %}inert aria-hidden="true"{% else %}aria-hidden="false"{% endif %}
             style="--theme: {{ theme_color }};"
+            {{ block.shopify_attributes }}
           >
             {%- if slide_img != blank -%}
               <div class="_slideBg_tcg1" aria-hidden="true" style="background-image: url('{{ slide_img }}');">
@@ -75,7 +80,20 @@
               {%- if block.settings.text != blank -%}
                 <p class="_blurb_n65qd_124">{{ block.settings.text }}</p>
               {%- endif -%}
+
+              {%- if has_slide_buttons == false and block.settings.link != blank -%}
+                <div class="_actions_n65qd_137" style="position:relative;z-index:5;">
+                  <a href="{{ block.settings.link | escape }}" class="_primaryCta_n65qd_145">Shop collection</a>
+                </div>
+              {%- endif -%}
             </div>
+
+            {%- if slide_img != blank -%}
+              <div data-motion-art class="_art_n65qd_269">
+                <img class="_artImage_n65qd_278" src="{{ slide_img }}" alt="{{ block.settings.title | escape }}" draggable="false">
+                <span aria-hidden="true" class="_floor_n65qd_290"></span>
+              </div>
+            {%- endif -%}
 
             {%- comment %} 按位置分组渲染按钮，同一位置的按钮自动横排且互不重叠 {% endcomment -%}
             {%- for pos in positions -%}
@@ -150,14 +168,19 @@
               </p>
               <h2 class="_title_n65qd_113">{{ product.title }}</h2>
               <p class="_blurb_n65qd_124">{{ product.description | strip_html | truncate: 320 }}</p>
+              <div class="_actions_n65qd_137">
+                <a href="{{ product.url }}" class="_primaryCta_n65qd_145">View product</a>
+              </div>
             </div>
 
-            {%- unless product.featured_image -%}
-              <div data-motion-art class="_art_n65qd_269">
+            <div data-motion-art class="_art_n65qd_269">
+              {%- if product.featured_image -%}
+                <img class="_artImage_n65qd_278" src="{{ product.featured_image | image_url: width: 900 }}" alt="{{ product.title | escape }}">
+              {%- else -%}
                 <img class="_artImage_n65qd_278" src="{{ 'logo-mark.png' | asset_url }}" alt="{{ product.title | escape }}">
-                <span aria-hidden="true" class="_floor_n65qd_290"></span>
-              </div>
-            {%- endunless -%}
+              {%- endif -%}
+              <span aria-hidden="true" class="_floor_n65qd_290"></span>
+            </div>
           </article>
         {%- endfor -%}
       {%- endif -%}
@@ -193,12 +216,17 @@
       <ul class="_shelfList_n65qd_442">
         {%- if hot_count > 0 -%}
           {%- comment %} ---------- 自定义热门商品（按 block_order 排序） ---------- {% endcomment -%}
+          {%- assign hot_idx = 0 -%}
           {%- for block in section.blocks -%}
             {%- if block.type != 'hot_product' -%}{%- continue -%}{%- endif -%}
             {%- assign p = all_products[block.settings.product] -%}
+            {%- if p == blank and shelf_products[hot_idx] != blank -%}
+              {%- assign p = shelf_products[hot_idx] -%}
+            {%- endif -%}
+            {%- assign hot_idx = hot_idx | plus: 1 -%}
             {%- assign item_title = block.settings.title | default: p.title | default: '商品' -%}
             {%- assign item_sub = block.settings.subtitle | default: p.type -%}
-            {%- assign item_link = block.settings.link | default: p.url | default: '#' -%}
+            {%- assign item_link = p.url | default: block.settings.link | default: routes.all_products_collection_url -%}
 
             {%- assign raw_img = block.settings.image | default: '' | strip -%}
             {%- assign item_img = raw_img -%}
@@ -211,7 +239,7 @@
             {%- if item_img == blank -%}{%- assign item_img = 'logo-mark.png' | asset_url -%}{%- endif -%}
 
             {%- assign variant = p.selected_or_first_available_variant -%}
-            <li class="_shelfItem_n65qd_449" data-motion-card="10">
+            <li class="_shelfItem_n65qd_449" data-motion-card="10" {{ block.shopify_attributes }}>
               <a href="{{ item_link }}" class="_shelfLink_n65qd_462">
                 <span class="_thumb_n65qd_476">
                   <img data-motion-art src="{{ item_img }}" alt="{{ item_title | escape }}" draggable="false" loading="eager" decoding="async">
@@ -230,6 +258,10 @@
                   aria-label="Add {{ item_title | escape }} to cart">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
                 </button>
+              {%- else -%}
+                <a href="{{ item_link }}" class="_addBtn_n65qd_530" aria-label="View {{ item_title | escape }}">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+                </a>
               {%- endif -%}
             </li>
           {%- endfor -%}

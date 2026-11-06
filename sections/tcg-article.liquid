@@ -1,0 +1,37 @@
+{%- comment -%}
+  TCG 博客文章详情页（使用 Shopify 官方 article 对象）
+{%- endcomment -%}
+
+<div class="_page_4xdw3_1">
+  <div class="_wide_4xdw3_6">
+    <article class="tcg-page-card">
+      <header class="tcg-page-card-header">
+        <a href="{{ blog.url | default: routes.root_url }}" class="_back_1fncu_49" style="margin-bottom:.75rem;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>Back to {{ blog.title | default: 'Blog' }}
+        </a>
+        <span class="tcg-eyebrow">{{ article.published_at | date: '%B %d, %Y' }}{% if article.author != blank %} · {{ article.author }}{% endif %}</span>
+        <h1>{{ article.title }}</h1>
+      </header>
+
+      {%- if article.image -%}
+        <div style="margin-bottom:1.5rem;border-radius:1rem;overflow:hidden;">
+          <img src="{{ article.image | image_url: width: 1200 }}" alt="{{ article.title | escape }}">
+        </div>
+      {%- endif -%}
+
+      <div class="tcg-rte">
+        {{ article.content }}
+      </div>
+    </article>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "TCG 博客文章",
+  "settings": [],
+  "presets": [
+    { "name": "TCG 博客文章" }
+  ]
+}
+{% endschema %}

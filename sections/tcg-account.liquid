@@ -1,0 +1,139 @@
+{%- comment -%}
+  TCG 用户中心页（对接 Shopify 官方 customer、customer.orders、customer.default_address、routes.account_* 接口）
+{%- endcomment -%}
+
+<div class="_page_4xdw3_1" data-tcg-account-section>
+  <div class="_wide_4xdw3_6">
+
+    {%- if customer -%}
+      <header class="_header_1z0wo_6">
+        <div>
+          <span class="tcg-eyebrow">Collector Account</span>
+          <h1 class="_heading_1z0wo_14">{{ section.settings.heading | default: 'Welcome back,' }} {{ customer.first_name | default: customer.name }}</h1>
+          <p class="tcg-subtext">{{ customer.email }}</p>
+        </div>
+        <div class="tcg-account-top-actions">
+          <a href="{{ routes.account_addresses_url }}" class="tcg-btn-secondary">Manage addresses ({{ customer.addresses_count }})</a>
+          <a href="{{ routes.account_logout_url }}" class="tcg-btn-ghost">Sign out</a>
+        </div>
+      </header>
+
+      <div class="tcg-account-grid">
+        {%- comment %} 左侧：订单历史列表 {% endcomment -%}
+        <section class="tcg-card-panel">
+          <div class="tcg-panel-head">
+            <h2>Order History</h2>
+            <span class="tcg-badge-pill">{{ customer.orders_count }} orders</span>
+          </div>
+
+          {%- paginate customer.orders by 10 -%}
+            {%- if customer.orders.size > 0 -%}
+              <div class="tcg-table-wrap">
+                <table class="tcg-table" role="table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Order</th>
+                      <th scope="col">Date</th>
+                      <th scope="col">Payment</th>
+                      <th scope="col">Fulfillment</th>
+                      <th scope="col">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {%- for order in customer.orders -%}
+                      <tr>
+                        <td><a href="{{ order.customer_url }}" class="tcg-link-accent"><strong>{{ order.name }}</strong></a></td>
+                        <td>{{ order.created_at | date: '%b %d, %Y' }}</td>
+                        <td><span class="tcg-status-chip">{{ order.financial_status_label }}</span></td>
+                        <td><span class="tcg-status-chip">{{ order.fulfillment_status_label }}</span></td>
+                        <td><strong>{{ order.total_net_amount | money }}</strong></td>
+                      </tr>
+                    {%- endfor -%}
+                  </tbody>
+                </table>
+              </div>
+
+              {%- if paginate.pages > 1 -%}
+                <nav class="tcg-pagination" aria-label="Order pagination">
+                  {%- if paginate.previous -%}<a href="{{ paginate.previous.url }}" class="tcg-page-btn">← Previous</a>{%- endif -%}
+                  <span class="tcg-page-status">Page {{ paginate.current_page }} of {{ paginate.pages }}</span>
+                  {%- if paginate.next -%}<a href="{{ paginate.next.url }}" class="tcg-page-btn">Next →</a>{%- endif -%}
+                </nav>
+              {%- endif -%}
+            {%- else -%}
+              <div class="tcg-empty-inline">
+                <p>You haven't placed any orders yet.</p>
+                <a href="{{ routes.all_products_collection_url }}" class="_primaryButton_4xdw3_673" style="margin-top:.75rem;display:inline-flex;flex:none;">Browse products</a>
+              </div>
+            {%- endif -%}
+          {%- endpaginate -%}
+        </section>
+
+        {%- comment %} 右侧：默认收货地址与账户信息 {% endcomment -%}
+        <aside class="tcg-card-panel">
+          <div class="tcg-panel-head">
+            <h2>Default Address</h2>
+            <a href="{{ routes.account_addresses_url }}" class="tcg-link-accent">Edit →</a>
+          </div>
+          {%- if customer.default_address -%}
+            <div class="tcg-address-box">
+              {{ customer.default_address | format_address }}
+            </div>
+          {%- else -%}
+            <p class="tcg-muted-text">No default shipping address saved yet.</p>
+          {%- endif -%}
+
+          <div class="tcg-account-quicklinks" style="margin-top:1.5rem;">
+            <h3>Quick Links</h3>
+            <a href="{{ routes.cart_url }}">View shopping cart ({{ cart.item_count }})</a>
+            <a href="{{ routes.all_products_collection_url }}">Shop all singles &amp; sealed</a>
+            <a href="/pages/shipping-returns">Shipping &amp; returns policy</a>
+            <a href="/pages/contact">Contact collector support</a>
+          </div>
+        </aside>
+      </div>
+
+    {%- else -%}
+      {%- comment %} 未登录状态访问用户页时：展示账户门户与快捷登录/注册入口 {% endcomment -%}
+      <div class="tcg-auth-shell">
+        <section class="tcg-auth-card">
+          <header class="tcg-auth-header">
+            <span class="tcg-eyebrow">Collector Account Center</span>
+            <h1>{{ section.settings.heading | default: 'Your Collector Account' }}</h1>
+            <p>{{ section.settings.subheading | default: 'Sign in with your Shopify customer account to view orders, track shipments, and manage addresses.' }}</p>
+          </header>
+          <div class="tcg-auth-actions">
+            <a href="{{ routes.account_login_url }}" class="_primaryButton_4xdw3_673" style="width:100%;text-align:center;">Sign in to your account</a>
+            <a href="{{ routes.account_register_url }}" class="tcg-btn-secondary" style="width:100%;text-align:center;">Create a new account</a>
+          </div>
+        </section>
+      </div>
+    {%- endif -%}
+
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "TCG 用户中心",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "欢迎标题",
+      "default": "Welcome back,"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "说明文字",
+      "default": "Manage your orders, shipping addresses, and collector preferences."
+    }
+  ],
+  "presets": [
+    {
+      "name": "TCG 用户中心"
+    }
+  ]
+}
+{% endschema %}

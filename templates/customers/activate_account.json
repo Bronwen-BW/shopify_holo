@@ -1,0 +1,11 @@
+{
+  "sections": {
+    "main": {
+      "type": "tcg-activate-account",
+      "settings": {}
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

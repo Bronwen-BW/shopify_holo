@@ -8,6 +8,47 @@
     "theme_support_url": "https://support.shopify.com/"
   },
   {
+    "name": "TCG 外观与昼夜模式",
+    "settings": [
+      {
+        "type": "header",
+        "content": "黑夜 / 白天模式设置"
+      },
+      {
+        "type": "select",
+        "id": "default_theme_mode",
+        "label": "默认主题模式",
+        "default": "dark",
+        "options": [
+          {
+            "value": "dark",
+            "label": "黑夜模式 (Dark)"
+          },
+          {
+            "value": "light",
+            "label": "白天模式 (Light)"
+          }
+        ]
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_theme_toggle",
+        "label": "在顶部导航栏显示黑夜/白天切换图标按钮",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "全局品牌与配色微调"
+      },
+      {
+        "type": "color",
+        "id": "tcg_accent_color",
+        "label": "TCG 品牌强调色",
+        "default": "#10b981"
+      }
+    ]
+  },
+  {
     "name": "t:names.logo_and_favicon",
     "settings": [
       {

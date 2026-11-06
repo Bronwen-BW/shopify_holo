@@ -2,7 +2,15 @@
   "sections": {
     "main": {
       "type": "tcg-product",
-      "settings": {}
+      "settings": {
+        "show_sku_grid": true,
+        "show_buy_now": true,
+        "show_dynamic_checkout": true,
+        "show_related_products": true,
+        "default_condition": "",
+        "default_language": "English / Japanese",
+        "dispatch_time": "Within 1 business day"
+      }
     }
   },
   "order": [

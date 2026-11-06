@@ -1,0 +1,14 @@
+{
+  "sections": {
+    "main": {
+      "type": "tcg-account",
+      "settings": {
+        "heading": "Welcome back,",
+        "subheading": "Manage your orders, shipping addresses, and collector preferences."
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

@@ -1,16 +1,23 @@
 {%- comment -%}
   TCG 风格顶部导航（浮动胶囊）
-  结构与 class 完全对齐参考站，链接替换为 Shopify 路由
+  含导航链接、Shopify 官方搜索、单一图标黑夜/白天模式切换按钮、账户/登录、购物车
 {%- endcomment -%}
-<header class="_navbar_1hxzp_1" data-tcg-header>
+{%- assign brand_prefix = section.settings.brand_prefix | default: 'TCG' -%}
+{%- assign brand_accent = section.settings.brand_accent | default: 'Haven' -%}
+{%- assign show_theme_toggle = true -%}
+{%- if section.settings.enable_theme_toggle == false -%}
+  {%- assign show_theme_toggle = false -%}
+{%- endif -%}
+
+<header class="_navbar_1hxzp_1" data-tcg-header data-default-theme="{{ section.settings.default_theme_mode | default: settings.default_theme_mode | default: 'dark' }}">
   <div class="_inner_1hxzp_10">
 
     {%- comment %} 品牌 Logo {% endcomment -%}
-    <a href="{{ routes.root_url }}" class="_logo_1hxzp_32" aria-label="TCGHaven">
+    <a href="{{ routes.root_url }}" class="_logo_1hxzp_32" aria-label="{{ brand_prefix }}{{ brand_accent }}">
       <span class="_logoMark_1hxzp_80">
-        <img src="{{ 'logo-mark.png' | asset_url }}" alt="" width="409" height="379">
+        <img src="{{ 'logo-mark.png' | asset_url }}" alt="" width="34" height="34">
       </span>
-      <span class="_logoText_1hxzp_32">TCG<span class="_logoAccent_1hxzp_103">Haven</span></span>
+      <span class="_logoText_1hxzp_32">{{ brand_prefix }}<span class="_logoAccent_1hxzp_103">{{ brand_accent }}</span></span>
     </a>
 
     {%- comment %} 桌面主导航：由 section.blocks 驱动，支持编辑器增删改与排序 {% endcomment -%}
@@ -31,7 +38,7 @@
     {%- comment %} 右侧操作区 {% endcomment -%}
     <div class="_actions_1hxzp_167">
 
-      {%- comment %} 可展开搜索框（提交到 Shopify 搜索页） {% endcomment -%}
+      {%- comment %} 可展开搜索框（提交到 Shopify 官方搜索页 routes.search_url） {% endcomment -%}
       <form class="_searchWrap_1hxzp_52" role="search" action="{{ routes.search_url }}" method="get" data-shopify-search>
         <input type="hidden" name="type" value="product">
         <input
@@ -47,24 +54,45 @@
         </button>
       </form>
 
+      {%- comment %} 黑夜/白天模式切换：导航栏单一图标按钮 {% endcomment -%}
+      {%- if show_theme_toggle -%}
+        <button
+          type="button"
+          class="_iconBtn_1hxzp_244 tcg-theme-toggle"
+          data-theme-toggle
+          aria-label="切换白天/黑夜模式"
+          title="切换白天/黑夜模式"
+        >
+          {%- comment %} 太阳图标（在黑夜模式下显示，点击切换到白天） {% endcomment -%}
+          <svg class="tcg-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.5"></circle>
+            <path d="M12 2.5v2.2M12 19.3v2.2M4.93 4.93l1.56 1.56M17.51 17.51l1.56 1.56M2.5 12h2.2M19.3 12h2.2M4.93 19.07l1.56-1.56M17.51 6.49l1.56-1.56"></path>
+          </svg>
+          {%- comment %} 月亮图标（在白天模式下显示，点击切换到黑夜） {% endcomment -%}
+          <svg class="tcg-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
+          </svg>
+        </button>
+      {%- endif -%}
+
       {%- comment %} 拍照搜卡（保留 UI，触发隐藏文件选择） {% endcomment -%}
       <button type="button" class="_trigger_laq6k_1" aria-label="Search by photo of a card" data-photo-trigger title="Search by photo of a card">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"></path><rect x="8.5" y="7.5" width="7" height="9" rx="1"></rect></svg>
       </button>
       <input type="file" tabindex="-1" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" class="_file_laq6k_30" data-photo-file>
 
-      {%- comment %} 心愿单（指向账户页） {% endcomment -%}
-      <a aria-label="Wishlist" href="{{ routes.account_url }}" class="_iconBtn_1hxzp_244 _wishlistBtn_1hxzp_540">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7.5-4.6-10-9.3C.4 7.1 2 3.5 5.6 3a5 5 0 0 1 6.4 2.2A5 5 0 0 1 18.4 3c3.6.5 5.2 4.1 3.6 7.7C19.5 15.4 12 20 12 20Z"></path></svg>
-      </a>
-
-      {%- comment %} 账户 {% endcomment -%}
-      <a aria-label="Customer account" href="{{ routes.account_url }}" class="_iconBtn_1hxzp_244 _accountBtn_1hxzp_552">
+      {%- comment %} 账户/登录（使用 Shopify 官方账户入口） {% endcomment -%}
+      <a
+        aria-label="{% if customer %}Customer account{% else %}Sign in{% endif %}"
+        href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}"
+        class="_iconBtn_1hxzp_244 _accountBtn_1hxzp_552"
+        title="{% if customer %}{{ customer.name | default: 'My Account' }}{% else %}Sign in{% endif %}"
+      >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M5 20a7 7 0 0 1 14 0"></path></svg>
       </a>
 
-      {%- comment %} 购物车（带数量气泡） {% endcomment -%}
-      <a class="_cartBtn_1hxzp_281 {% if cart.item_count > 0 %}_cartFilled_1hxzp_341{% endif %}" href="{{ routes.cart_url }}" aria-label="Cart, {{ cart.item_count }} item" data-cart-link>
+      {%- comment %} 购物车（带数量气泡，指向 Shopify 官方 routes.cart_url） {% endcomment -%}
+      <a class="_cartBtn_1hxzp_281 {% if cart.item_count > 0 %}_cartFilled_1hxzp_341{% endif %}" href="{{ routes.cart_url }}" aria-label="Cart, {{ cart.item_count }} items" data-cart-link>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
         {%- if cart.item_count > 0 -%}
           <span class="_cartCount_1hxzp_345" data-cart-count>{{ cart.item_count }}</span>
@@ -73,7 +101,7 @@
 
       {%- comment %} 移动端菜单按钮 {% endcomment -%}
       <button type="button" class="_iconBtn_1hxzp_244 _menuBtn_1hxzp_377" aria-label="Open menu" aria-expanded="false" data-menu-trigger>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 8h16M4 16h16"></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 8h16M4 16h16"></path></svg>
       </button>
     </div>
   </div>
@@ -86,8 +114,11 @@
       {%- endfor -%}
     </nav>
     <div class="_menuSecondary_1hxzp_425">
-      <a href="{{ routes.account_url }}">Account</a>
-      <a href="{{ routes.cart_url }}">Cart</a>
+      <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}">{% if customer %}Account{% else %}Sign in{% endif %}</a>
+      <a href="{{ routes.cart_url }}">Cart ({{ cart.item_count }})</a>
+      <a href="/pages/about">About us</a>
+      <a href="/pages/contact">Contact</a>
+      <a href="/pages/shipping-returns">Shipping &amp; returns</a>
     </div>
   </div>
 </header>

@@ -1,0 +1,118 @@
+{%- comment -%}
+  TCG Policy 政策中心页面
+  完整对接 Shopify 官方 shop.policies（privacy_policy / terms_of_service / refund_policy / shipping_policy / legal_notice）
+{%- endcomment -%}
+
+<div class="_page_4xdw3_1" data-tcg-policy-section>
+  <div class="_wide_4xdw3_6">
+
+    <header class="_header_1z0wo_6">
+      <div>
+        <span class="tcg-eyebrow">{{ section.settings.eyebrow | default: 'Legal & Compliance' }}</span>
+        <h1 class="_heading_1z0wo_14">{{ section.settings.heading | default: 'Store Policies & Terms' }}</h1>
+        <p class="tcg-subtext">{{ section.settings.subheading | default: 'Official privacy, terms of service, shipping, and refund policies for our store.' }}</p>
+      </div>
+    </header>
+
+    {%- comment %} 政策页签导航（支持页内锚点与 Shopify 官方 /policies/* 路由） {% endcomment -%}
+    <nav class="tcg-policy-nav" aria-label="Policy sections" data-policy-tabs>
+      <a href="#policy-privacy" class="tcg-policy-tab is-active" data-policy-tab="policy-privacy">Privacy Policy</a>
+      <a href="#policy-terms" class="tcg-policy-tab" data-policy-tab="policy-terms">Terms of Service</a>
+      <a href="#policy-refund" class="tcg-policy-tab" data-policy-tab="policy-refund">Refund Policy</a>
+      <a href="#policy-shipping" class="tcg-policy-tab" data-policy-tab="policy-shipping">Shipping Policy</a>
+      {%- if shop.legal_notice != blank and shop.legal_notice.body != blank -%}
+        <a href="#policy-legal" class="tcg-policy-tab" data-policy-tab="policy-legal">Legal Notice</a>
+      {%- endif -%}
+    </nav>
+
+    <div class="tcg-policy-panels">
+      {%- comment %} 1. Privacy Policy {% endcomment -%}
+      <article id="policy-privacy" class="tcg-card-panel tcg-rte" data-policy-panel>
+        <div class="tcg-panel-head">
+          <h2>{{ shop.privacy_policy.title | default: 'Privacy Policy' }}</h2>
+          {%- if shop.privacy_policy.url != blank -%}
+            <a href="{{ shop.privacy_policy.url }}" class="tcg-link-accent">Official Shopify Policy URL →</a>
+          {%- endif -%}
+        </div>
+        {%- if shop.privacy_policy != blank and shop.privacy_policy.body != blank -%}
+          {{ shop.privacy_policy.body }}
+        {%- else -%}
+          <p>{{ section.settings.privacy_fallback | default: 'We respect your privacy and protect your personal data in accordance with GDPR and Shopify data protection standards. Information collected during checkout (name, shipping address, email, and payment confirmation) is used strictly to fulfill your orders and provide customer support.' }}</p>
+          <h3>Data Collection &amp; Shopify Security</h3>
+          <p>Our store is hosted on Shopify Inc. Your data is stored through Shopify's secure data storage, databases, and the general Shopify application behind a firewall. Payment credentials are encrypted through the Payment Card Industry Data Security Standard (PCI-DSS).</p>
+        {%- endif -%}
+      </article>
+
+      {%- comment %} 2. Terms of Service {% endcomment -%}
+      <article id="policy-terms" class="tcg-card-panel tcg-rte" data-policy-panel style="margin-top:1.25rem;">
+        <div class="tcg-panel-head">
+          <h2>{{ shop.terms_of_service.title | default: 'Terms of Service' }}</h2>
+          {%- if shop.terms_of_service.url != blank -%}
+            <a href="{{ shop.terms_of_service.url }}" class="tcg-link-accent">Official Shopify Policy URL →</a>
+          {%- endif -%}
+        </div>
+        {%- if shop.terms_of_service != blank and shop.terms_of_service.body != blank -%}
+          {{ shop.terms_of_service.body }}
+        {%- else -%}
+          <p>{{ section.settings.terms_fallback | default: 'By visiting our store and purchasing collector trading cards, graded slabs, or sealed products, you engage in our Service and agree to be bound by these Terms of Service.' }}</p>
+          <h3>Product Authenticity &amp; Pricing</h3>
+          <p>All cards and sealed items listed are guaranteed authentic. Prices for collectible items are subject to market updates, but confirmed orders are locked at the checkout price.</p>
+        {%- endif -%}
+      </article>
+
+      {%- comment %} 3. Refund Policy {% endcomment -%}
+      <article id="policy-refund" class="tcg-card-panel tcg-rte" data-policy-panel style="margin-top:1.25rem;">
+        <div class="tcg-panel-head">
+          <h2>{{ shop.refund_policy.title | default: 'Refund & Return Policy' }}</h2>
+          {%- if shop.refund_policy.url != blank -%}
+            <a href="{{ shop.refund_policy.url }}" class="tcg-link-accent">Official Shopify Policy URL →</a>
+          {%- endif -%}
+        </div>
+        {%- if shop.refund_policy != blank and shop.refund_policy.body != blank -%}
+          {{ shop.refund_policy.body }}
+        {%- else -%}
+          <p>You have 14 days after receiving your item to request a return. To be eligible for a return, sealed products must be unopened with original factory shrink-wrap intact, and single cards or slabs must be in the same condition that you received them.</p>
+        {%- endif -%}
+      </article>
+
+      {%- comment %} 4. Shipping Policy {% endcomment -%}
+      <article id="policy-shipping" class="tcg-card-panel tcg-rte" data-policy-panel style="margin-top:1.25rem;">
+        <div class="tcg-panel-head">
+          <h2>{{ shop.shipping_policy.title | default: 'Shipping Policy' }}</h2>
+          {%- if shop.shipping_policy.url != blank -%}
+            <a href="{{ shop.shipping_policy.url }}" class="tcg-link-accent">Official Shopify Policy URL →</a>
+          {%- endif -%}
+        </div>
+        {%- if shop.shipping_policy != blank and shop.shipping_policy.body != blank -%}
+          {{ shop.shipping_policy.body }}
+        {%- else -%}
+          <p>All orders are processed within 1 business day (excluding weekends and holidays) after receiving your order confirmation email. You will receive another notification with your tracking link when your order has shipped.</p>
+        {%- endif -%}
+      </article>
+
+      {%- if shop.legal_notice != blank and shop.legal_notice.body != blank -%}
+        <article id="policy-legal" class="tcg-card-panel tcg-rte" data-policy-panel style="margin-top:1.25rem;">
+          <h2>{{ shop.legal_notice.title | default: 'Legal Notice' }}</h2>
+          {{ shop.legal_notice.body }}
+        </article>
+      {%- endif -%}
+    </div>
+
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "TCG Policy 政策中心",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "眉标", "default": "Legal & Compliance" },
+    { "type": "text", "id": "heading", "label": "标题", "default": "Store Policies & Terms" },
+    { "type": "textarea", "id": "subheading", "label": "副标题", "default": "Official privacy, terms of service, shipping, and refund policies for our store." },
+    { "type": "textarea", "id": "privacy_fallback", "label": "隐私政策默认说明（当 Shopify 后台未填写时显示）", "default": "We respect your privacy and protect your personal data in accordance with GDPR and Shopify data protection standards." },
+    { "type": "textarea", "id": "terms_fallback", "label": "服务条款默认说明（当 Shopify 后台未填写时显示）", "default": "By visiting our store and purchasing collector trading cards, graded slabs, or sealed products, you agree to be bound by these Terms of Service." }
+  ],
+  "presets": [
+    { "name": "TCG Policy 政策中心" }
+  ]
+}
+{% endschema %}

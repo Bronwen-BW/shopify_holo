@@ -1,0 +1,15 @@
+{
+  "sections": {
+    "main": {
+      "type": "tcg-register",
+      "settings": {
+        "heading": "Create your collector account",
+        "subheading": "Save your delivery addresses, track graded & sealed shipments, and check out faster.",
+        "submit_label": "Create account"
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

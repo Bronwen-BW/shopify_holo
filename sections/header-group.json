@@ -10,7 +10,7 @@
           "settings": {
             "label": "Home",
             "url": "/",
-            "active": true
+            "active": false
           }
         },
         "nav_shop": {
@@ -24,16 +24,24 @@
         "nav_games": {
           "type": "nav_item",
           "settings": {
-            "label": "Games",
-            "url": "/collections/all",
+            "label": "Collections",
+            "url": "/collections",
             "active": false
           }
         },
-        "nav_accessories": {
+        "nav_about": {
           "type": "nav_item",
           "settings": {
-            "label": "Accessories",
-            "url": "/collections/all",
+            "label": "About us",
+            "url": "/pages/about",
+            "active": false
+          }
+        },
+        "nav_contact": {
+          "type": "nav_item",
+          "settings": {
+            "label": "Contact",
+            "url": "/pages/contact",
             "active": false
           }
         }
@@ -42,10 +50,15 @@
         "nav_home",
         "nav_shop",
         "nav_games",
-        "nav_accessories"
+        "nav_about",
+        "nav_contact"
       ],
       "settings": {
-        "search_placeholder": "Search cards, sets, sealed…"
+        "brand_prefix": "TCG",
+        "brand_accent": "Haven",
+        "search_placeholder": "Search cards, sets, sealed…",
+        "enable_theme_toggle": true,
+        "default_theme_mode": "dark"
       }
     }
   },

@@ -6,10 +6,10 @@
   <div class="_wide_hndqm_5">
     <header class="_header_hndqm_10">
       <div>
-        <h2>Trading card games</h2>
-        <p>Each game has its own storefront with current stock, set releases, singles and sealed products.</p>
+        <h2>{{ section.settings.heading | default: 'Trading card games' }}</h2>
+        <p>{{ section.settings.subheading | default: 'Each game has its own storefront with current stock, set releases, singles and sealed products.' }}</p>
       </div>
-      <a href="{{ routes.all_products_collection_url }}" class="_allGames_hndqm_33">Browse all games</a>
+      <a href="{{ routes.collections_url }}" class="_allGames_hndqm_33">Browse all games</a>
     </header>
 
     <div class="_directory_hndqm_81">
@@ -22,11 +22,11 @@
             href="{{ game_col.url | default: routes.all_products_collection_url }}"
             class="_feature_hndqm_87"
             data-reveal
-            style="--frame: {{ block.settings.frame_color }};"
+            style="--frame: {{ block.settings.frame_color | default: '#2ed39a' }};"
             {{ block.shopify_attributes }}
           >
             <div class="_featureBody_hndqm_146">
-              <h3 class="_featureName_hndqm_155">{{ block.settings.name | default: game_col.title }}</h3>
+              <h3 class="_featureName_hndqm_155">{{ block.settings.name | default: game_col.title | default: 'Pokémon' }}</h3>
               <p class="_tagline_hndqm_164">{{ block.settings.tagline }}</p>
               <span class="_featureCta_hndqm_171">Shop</span>
             </div>
@@ -34,6 +34,8 @@
               <img class="_featureArt_hndqm_220" data-motion-art src="{{ block.settings.image | image_url: width: 500 }}" alt="" draggable="false">
             {%- elsif game_col.featured_image != blank -%}
               <img class="_featureArt_hndqm_220" data-motion-art src="{{ game_col.featured_image | image_url: width: 500 }}" alt="" draggable="false">
+            {%- else -%}
+              <img class="_featureArt_hndqm_220" data-motion-art src="{{ 'card-charizard.png' | asset_url }}" alt="" draggable="false">
             {%- endif -%}
           </a>
         {%- endif -%}
@@ -47,7 +49,7 @@
               <a
                 href="{{ game_col.url | default: routes.all_products_collection_url }}"
                 class="_tile_hndqm_88"
-                style="--frame: {{ block.settings.frame_color }};"
+                style="--frame: {{ block.settings.frame_color | default: '#2ed39a' }};"
               >
                 <strong class="_tileName_hndqm_251">{{ block.settings.name | default: game_col.title }}</strong>
                 <span class="_tagline_hndqm_164">{{ block.settings.tagline }}</span>
@@ -64,6 +66,10 @@
 {
   "name": "TCG 游戏目录",
   "max_blocks": 8,
+  "settings": [
+    { "type": "text", "id": "heading", "label": "标题", "default": "Trading card games" },
+    { "type": "text", "id": "subheading", "label": "副标题", "default": "Each game has its own storefront with current stock, set releases, singles and sealed products." }
+  ],
   "blocks": [
     {
       "type": "game",

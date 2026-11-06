@@ -1,0 +1,52 @@
+{%- comment -%}
+  TCG 账户激活页（使用 Shopify 官方 {% form 'activate_customer_password' %} 接口）
+{%- endcomment -%}
+
+<div class="_page_4xdw3_1">
+  <div class="_wide_4xdw3_6">
+    <div class="tcg-auth-shell">
+      <section class="tcg-auth-card">
+        <header class="tcg-auth-header">
+          <span class="tcg-eyebrow">Account Activation</span>
+          <h1>Activate Your Account</h1>
+          <p>Create your password to activate your collector account.</p>
+        </header>
+
+        {%- form 'activate_customer_password', class: 'tcg-auth-form' -%}
+          {%- if form.errors -%}
+            <div class="tcg-alert tcg-alert-error" role="alert">
+              {{ form.errors | default_errors }}
+            </div>
+          {%- endif -%}
+
+          <div class="tcg-form-row">
+            <label for="ActivatePassword" class="tcg-field-label">Password</label>
+            <input type="password" name="customer[password]" id="ActivatePassword" class="tcg-input" autocomplete="new-password" required>
+          </div>
+
+          <div class="tcg-form-row">
+            <label for="ActivatePasswordConfirm" class="tcg-field-label">Confirm password</label>
+            <input type="password" name="customer[password_confirmation]" id="ActivatePasswordConfirm" class="tcg-input" autocomplete="new-password" required>
+          </div>
+
+          <div class="tcg-auth-actions">
+            <button type="submit" class="_primaryButton_4xdw3_673" style="width:100%;">Activate account</button>
+            <button type="submit" name="decline" class="tcg-btn-secondary" style="width:100%;">Decline invitation</button>
+          </div>
+        {%- endform -%}
+      </section>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "TCG 激活账户",
+  "settings": [],
+  "presets": [
+    {
+      "name": "TCG 激活账户"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,88 @@
+{%- comment -%}
+  TCG 订单详情页（使用 Shopify 官方 order 对象）
+{%- endcomment -%}
+
+<div class="_page_4xdw3_1" data-tcg-order-section>
+  <div class="_wide_4xdw3_6">
+    <header class="_header_1z0wo_6">
+      <div>
+        <a href="{{ routes.account_url }}" class="_back_1fncu_49">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>Back to account
+        </a>
+        <h1 class="_heading_1z0wo_14" style="margin-top:.4rem;">Order {{ order.name }}</h1>
+        <p class="tcg-subtext">Placed on {{ order.created_at | date: '%B %d, %Y at %I:%M %p' }}</p>
+      </div>
+      <div class="tcg-account-top-actions">
+        <span class="tcg-status-chip">{{ order.financial_status_label }}</span>
+        <span class="tcg-status-chip">{{ order.fulfillment_status_label }}</span>
+      </div>
+    </header>
+
+    <div class="tcg-account-grid">
+      <section class="tcg-card-panel">
+        <h2>Order Items</h2>
+        <div class="tcg-table-wrap">
+          <table class="tcg-table" role="table">
+            <thead>
+              <tr>
+                <th scope="col">Product</th>
+                <th scope="col">SKU</th>
+                <th scope="col">Price</th>
+                <th scope="col">Qty</th>
+                <th scope="col">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {%- for line_item in order.line_items -%}
+                <tr>
+                  <td>
+                    <a href="{{ line_item.product.url }}" class="tcg-link-accent"><strong>{{ line_item.title }}</strong></a>
+                  </td>
+                  <td><code>{{ line_item.sku | default: '—' }}</code></td>
+                  <td>{{ line_item.final_price | money }}</td>
+                  <td>{{ line_item.quantity }}</td>
+                  <td><strong>{{ line_item.final_line_price | money }}</strong></td>
+                </tr>
+              {%- endfor -%}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4">Subtotal</td>
+                <td>{{ order.line_items_subtotal_price | money }}</td>
+              </tr>
+              {%- for shipping_method in order.shipping_methods -%}
+                <tr>
+                  <td colspan="4">Shipping ({{ shipping_method.title }})</td>
+                  <td>{{ shipping_method.price | money }}</td>
+                </tr>
+              {%- endfor -%}
+              <tr>
+                <td colspan="4"><strong>Total</strong></td>
+                <td><strong>{{ order.total_net_amount | money }} {{ order.currency }}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+      <aside class="tcg-card-panel">
+        <h2>Shipping Address</h2>
+        <div class="tcg-address-box">{{ order.shipping_address | format_address }}</div>
+        <h2 style="margin-top:1.5rem;">Billing Address</h2>
+        <div class="tcg-address-box">{{ order.billing_address | format_address }}</div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "TCG 订单详情",
+  "settings": [],
+  "presets": [
+    {
+      "name": "TCG 订单详情"
+    }
+  ]
+}
+{% endschema %}

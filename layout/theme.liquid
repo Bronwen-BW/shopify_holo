@@ -1,13 +1,24 @@
 <!doctype html>
-<html lang="{{ request.locale.iso_code }}">
+<html lang="{{ request.locale.iso_code }}" data-theme="{{ settings.default_theme_mode | default: 'dark' }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('tcg-theme');
+          var def = {{ settings.default_theme_mode | default: 'dark' | json }};
+          var mode = (saved === 'light' || saved === 'dark') ? saved : (def === 'light' ? 'light' : 'dark');
+          document.documentElement.setAttribute('data-theme', mode);
+        } catch (e) {}
+      })();
+    </script>
+
     {%- if settings.favicon != blank -%}
       <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
     {%- else -%}
-      <link rel="icon" type="image/svg+xml" href="{{ 'logo-mark.png' | asset_url }}">
+      <link rel="icon" type="image/png" href="{{ 'logo-mark.png' | asset_url }}">
     {%- endif -%}
 
     {%- comment %} SEO 元信息（保留 Shopify 原生 meta 渲染） {% endcomment -%}
@@ -22,7 +33,7 @@
       href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Rubik:wght@500;600;700;800;900&display=swap"
     >
 
-    {%- comment %} TCG 风格主样式（由参考站构建产物合并，自包含全部组件与动画） {% endcomment -%}
+    {%- comment %} TCG 风格主样式（自包含全部组件、规范排版变量与昼夜模式） {% endcomment -%}
     {{ 'tcg.css' | asset_url | stylesheet_tag }}
 
     {%- if request.design_mode -%}
@@ -33,26 +44,42 @@
     {% # theme-check-enable RemoteAsset %}
   </head>
 
-  <body>
-    {%- comment %} 整体复刻参考站 #app 骨架 {% endcomment -%}
+  <body class="tcg-body template-{{ request.page_type | handle }}">
     <div id="app">
       {%- comment %} 顶部路由加载进度条 {% endcomment -%}
       <div class="route-progress" aria-hidden="true"></div>
 
-      {%- comment %} 可编辑的浮动胶囊导航（导航项在主题编辑器中增删改） {% endcomment -%}
+      {%- comment %} 可编辑的浮动胶囊导航（导航项与昼夜切换在主题编辑器中配置） {% endcomment -%}
       {% sections 'header-group' %}
 
       <div class="route-motion route-enter">
         <main id="MainContent" role="main">
-          {{ content_for_layout }}
+          {%- if request.page_type == 'policy' -%}
+            <div class="_page_4xdw3_1">
+              <div class="_wide_4xdw3_6">
+                <nav class="tcg-policy-nav" aria-label="Store policies">
+                  {%- for p in shop.policies -%}
+                    {%- if p != blank -%}
+                      <a href="{{ p.url }}" class="tcg-policy-tab {% if p.url == request.path %}is-active{% endif %}">{{ p.title }}</a>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </nav>
+                <article class="tcg-page-card tcg-policy-wrapper">
+                  {{ content_for_layout }}
+                </article>
+              </div>
+            </div>
+          {%- else -%}
+            {{ content_for_layout }}
+          {%- endif -%}
         </main>
       </div>
 
-      {%- comment %} 浮动面板页脚 {% endcomment -%}
-      {% render 'tcg-footer' %}
+      {%- comment %} 全局页脚分区组 {% endcomment -%}
+      {% sections 'footer-group' %}
     </div>
 
-    {%- comment %} 全部交互逻辑（轮播/搜索/移动菜单/滚动揭示/加购/倒计时） {% endcomment -%}
+    {%- comment %} 全部交互逻辑（昼夜模式/轮播/搜索/移动菜单/SKU切换/加购/立即购买/倒计时） {% endcomment -%}
     <script src="{{ 'tcg.js' | asset_url }}" defer></script>
   </body>
 </html>

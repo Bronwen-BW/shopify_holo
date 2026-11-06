@@ -2,7 +2,13 @@
   "sections": {
     "main": {
       "type": "tcg-cart",
-      "settings": {}
+      "settings": {
+        "heading": "Your cart",
+        "show_cart_note": true,
+        "show_discount_box": true,
+        "checkout_label": "Go to checkout",
+        "security_note": "Secure payment via Shopify Checkout. Taxes and shipping calculated before payment."
+      }
     }
   },
   "order": [

@@ -1,23 +1,85 @@
 {%- comment -%}
-  TCG 通用内容页（about / terms / contact 等）
-  深色卡片风格，标题 + 富文本内容，与其他 TCG 页面保持统一
+  TCG 通用内容页（templates/page.json）
+  支持按页面 handle 智能适配 About us / Contact / Shipping & returns / Policy 布局，同时兼容任意自定义富文本页面
 {%- endcomment -%}
+{%- assign h = page.handle | downcase -%}
 
-<main class="_page_4xdw3_1">
+<div class="_page_4xdw3_1">
   <div class="_wide_4xdw3_6">
-    <article class="tcg-page-card" style="padding:clamp(1.75rem,3.5vw,2.75rem);border-radius:1.25rem;background:#181818">
-      <h1 style="margin-bottom:1.25rem;color:#f9fafb;font-family:Rubik,sans-serif;font-size:clamp(1.8rem,2.6vw,2.4rem);font-weight:800;letter-spacing:-.03em">{{ page.title }}</h1>
+    <article class="tcg-page-card">
+      <header class="tcg-page-card-header">
+        <span class="tcg-eyebrow">{{ shop.name | default: 'TCGHaven' }}</span>
+        <h1>{{ page.title | default: section.settings.default_title | default: 'Information' }}</h1>
+      </header>
 
-      <div class="tcg-rte" style="color:#d4d4d8;font-size:.975rem;line-height:1.8">
-        {{ page.content }}
+      <div class="tcg-rte">
+        {%- if page.content != blank -%}
+          {{ page.content }}
+        {%- elsif h contains 'about' -%}
+          <p>We specialize in authentic singles, factory-sealed booster boxes, and precision-graded collector slabs across Pokémon, Yu-Gi-Oh!, Magic: The Gathering, Disney Lorcana, and more. Every item is condition-checked under studio lighting and packed with collector-grade protection.</p>
+        {%- elsif h contains 'shipping' or h contains 'return' -%}
+          <p>In-stock orders dispatch within 1 business day with full tracking. Singles ship in a penny sleeve, rigid toploader, team bag, and bubble mailer. You have 14 days from delivery to request a return under EU consumer protection rules.</p>
+          {%- if shop.shipping_policy.body != blank -%}{{ shop.shipping_policy.body }}{%- endif -%}
+          {%- if shop.refund_policy.body != blank -%}{{ shop.refund_policy.body }}{%- endif -%}
+        {%- elsif h contains 'policy' or h contains 'privacy' or h contains 'terms' -%}
+          {%- if shop.privacy_policy.body != blank -%}{{ shop.privacy_policy.body }}{%- endif -%}
+          {%- if shop.terms_of_service.body != blank -%}{{ shop.terms_of_service.body }}{%- endif -%}
+        {%- else -%}
+          <p>{{ section.settings.empty_text | default: 'This page content can be edited in Shopify Admin → Online Store → Pages.' }}</p>
+        {%- endif -%}
       </div>
+
+      {%- if h contains 'contact' -%}
+        <div style="margin-top:2rem;">
+          {%- form 'contact', id: 'PageContactForm', class: 'tcg-auth-form' -%}
+            {%- if form.posted_successfully? -%}
+              <div class="tcg-alert tcg-alert-success" role="status">Thank you for your message! We will get back to you shortly.</div>
+            {%- elsif form.errors -%}
+              <div class="tcg-alert tcg-alert-error" role="alert">{{ form.errors | default_errors }}</div>
+            {%- endif -%}
+            <div class="tcg-form-grid-2">
+              <div class="tcg-form-row">
+                <label class="tcg-field-label" for="PageContact-name">Name</label>
+                <input type="text" id="PageContact-name" name="contact[name]" class="tcg-input" value="{{ form.name }}">
+              </div>
+              <div class="tcg-form-row">
+                <label class="tcg-field-label" for="PageContact-email">Email *</label>
+                <input type="email" id="PageContact-email" name="contact[email]" class="tcg-input" value="{{ form.email }}" required>
+              </div>
+            </div>
+            <div class="tcg-form-row">
+              <label class="tcg-field-label" for="PageContact-body">Message *</label>
+              <textarea id="PageContact-body" name="contact[body]" rows="5" class="tcg-textarea" required>{{ form.body }}</textarea>
+            </div>
+            <button type="submit" class="_primaryButton_4xdw3_673">Send message</button>
+          {%- endform -%}
+        </div>
+      {%- endif -%}
     </article>
   </div>
-</main>
+</div>
 
 {% schema %}
 {
   "name": "TCG 内容页",
-  "settings": []
+  "settings": [
+    {
+      "type": "text",
+      "id": "default_title",
+      "label": "默认标题（无页面标题时使用）",
+      "default": "Information"
+    },
+    {
+      "type": "textarea",
+      "id": "empty_text",
+      "label": "页面内容为空时的默认说明",
+      "default": "This page content can be edited in Shopify Admin → Online Store → Pages."
+    }
+  ],
+  "presets": [
+    {
+      "name": "TCG 内容页"
+    }
+  ]
 }
 {% endschema %}

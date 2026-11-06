@@ -1,0 +1,21 @@
+{
+  "sections": {
+    "main": {
+      "type": "tcg-shipping-returns",
+      "settings": {
+        "eyebrow": "Fulfillment & Guarantees",
+        "heading": "Shipping & Returns",
+        "subheading": "Collector-grade protective packaging, fast tracked dispatch, and transparent 14-day return rules.",
+        "card_1_title": "Dispatched Within 1 Business Day",
+        "card_1_text": "In-stock orders placed before 16:00 CET ship the same or next business day with full parcel tracking.",
+        "card_2_title": "Sleeve + Toploader + Rigid Box",
+        "card_2_text": "Every single card is double-sleeved, placed in a rigid toploader, sealed in a team bag, and packed in a water-resistant rigid mailer.",
+        "card_3_title": "14-Day Return Guarantee",
+        "card_3_text": "Unopened sealed products and unaltered singles/slabs can be returned within 14 days of delivery for a full refund."
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

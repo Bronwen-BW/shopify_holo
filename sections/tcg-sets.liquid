@@ -1,13 +1,16 @@
 {%- comment -%}
   TCG Shop by set：大卡轨道，每个 block 绑定一个集合
-  显示集合封面图、游戏名、系列名、产品数量
+  显示集合封面图、游戏名、系列名、产品数量（未绑定集合时提供美观默认图与标题回退）
 {%- endcomment -%}
+{%- assign fallback_arts = 'card-charizard.png,card-palkia.png,card-umbreon.png,card-blastoise.png' | split: ',' -%}
+{%- assign fallback_titles = 'Scarlet & Violet — 151,Modern Horizons & Commander,Prismatic Evolutions,Collectors Vault' | split: ',' -%}
+
 <section class="_section_qxt27_1">
   <div class="_wide_qxt27_5">
     <header class="_header_qxt27_10">
       <div>
-        <h2>Shop by set</h2>
-        <p>The sets we carry the most sealed products from right now.</p>
+        <h2>{{ section.settings.heading | default: 'Shop by set' }}</h2>
+        <p>{{ section.settings.subheading | default: 'The sets we carry the most sealed products and singles from right now.' }}</p>
       </div>
       <a href="{{ routes.all_products_collection_url }}" class="_viewAll_qxt27_33">All products</a>
     </header>
@@ -15,23 +18,31 @@
     <div class="_rail_qxt27_81">
       {%- for block in section.blocks -%}
         {%- assign set_col = collections[block.settings.collection] -%}
+        {%- assign fb_idx = forloop.index0 | modulo: fallback_arts.size -%}
+        {%- assign set_title = block.settings.title | default: set_col.title | default: fallback_titles[fb_idx] -%}
+        {%- assign set_count = set_col.products_count | default: collections.all.products_count | default: 12 -%}
+
         <a
           data-motion-card="9"
           href="{{ set_col.url | default: routes.all_products_collection_url }}"
           class="_collection_qxt27_87"
           data-reveal
-          style="--frame: {{ block.settings.frame_color }};"
+          style="--frame: {{ block.settings.frame_color | default: '#2ed39a' }};"
           {{ block.shopify_attributes }}
         >
           <span class="_media_qxt27_116" aria-hidden="true">
-            {%- if set_col.featured_image != blank -%}
+            {%- if block.settings.image != blank -%}
+              <img data-motion-art src="{{ block.settings.image | image_url: width: 600 }}" alt="" draggable="false" loading="lazy">
+            {%- elsif set_col.featured_image != blank -%}
               <img data-motion-art src="{{ set_col.featured_image | image_url: width: 600 }}" alt="" draggable="false" loading="lazy">
+            {%- else -%}
+              <img data-motion-art src="{{ fallback_arts[fb_idx] | asset_url }}" alt="" draggable="false" loading="lazy">
             {%- endif -%}
           </span>
           <span class="_body_qxt27_137">
-            <span class="_game_qxt27_152">{{ block.settings.game_label }}</span>
-            <h3>{{ set_col.title }}</h3>
-            <span class="_count_qxt27_159">{{ set_col.products_count }} products</span>
+            <span class="_game_qxt27_152">{{ block.settings.game_label | default: 'Pokémon' }}</span>
+            <h3>{{ set_title }}</h3>
+            <span class="_count_qxt27_159">{{ set_count }} products</span>
           </span>
         </a>
       {%- endfor -%}
@@ -43,6 +54,10 @@
 {
   "name": "TCG 系列轨道",
   "max_blocks": 6,
+  "settings": [
+    { "type": "text", "id": "heading", "label": "标题", "default": "Shop by set" },
+    { "type": "text", "id": "subheading", "label": "副标题", "default": "The sets we carry the most sealed products and singles from right now." }
+  ],
   "blocks": [
     {
       "type": "set",
@@ -50,6 +65,8 @@
       "settings": [
         { "type": "collection", "id": "collection", "label": "绑定集合" },
         { "type": "text", "id": "game_label", "label": "游戏名", "default": "Pokémon" },
+        { "type": "text", "id": "title", "label": "系列名称覆盖（留空取集合名）" },
+        { "type": "image_picker", "id": "image", "label": "封面图覆盖（留空取集合封面图）" },
         {
           "type": "select",
           "id": "frame_color",
@@ -72,8 +89,8 @@
     {
       "name": "TCG 系列轨道",
       "blocks": [
-        { "type": "set", "settings": { "game_label": "Pokémon", "frame_color": "#2ed39a" } },
-        { "type": "set", "settings": { "game_label": "Magic: The Gathering", "frame_color": "#f28753" } }
+        { "type": "set", "settings": { "game_label": "Pokémon", "title": "Scarlet & Violet — 151", "frame_color": "#2ed39a" } },
+        { "type": "set", "settings": { "game_label": "Magic: The Gathering", "title": "Modern Horizons & Commander", "frame_color": "#f28753" } }
       ]
     }
   ]
