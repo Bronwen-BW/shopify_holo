@@ -61,10 +61,12 @@
           >
             {%- if slide_img != blank -%}
               <div class="_slideBg_tcg1" aria-hidden="true">
-                <img src="{{ slide_img }}" alt="" draggable="false"
+                <img class="_slideBgBlur_tcg1" src="{{ slide_img }}" alt="" draggable="false"
                   {% if slide_index == 0 %}fetchpriority="high"{% else %}loading="lazy"{% endif %} decoding="async">
                 <span class="_slideBgOverlay_tcg1"></span>
               </div>
+              <img class="_slideBgArt_tcg1" src="{{ slide_img }}" alt="" draggable="false"
+                {% if slide_index == 0 %}fetchpriority="high"{% else %}loading="lazy"{% endif %} decoding="async">
             {%- endif -%}
 
             <div class="_copy_n65qd_79">
@@ -136,11 +138,17 @@
             style="--theme: {{ themes[theme_index] }};"
           >
             {%- if bg_link != blank or product.featured_image -%}
+              {%- assign fallback_img = bg_link | default: '' | strip -%}
+              {%- if fallback_img == blank and product.featured_image -%}
+                {%- assign fallback_img = product.featured_image | image_url: width: 1800 -%}
+              {%- endif -%}
               <div class="_slideBg_tcg1" aria-hidden="true">
-                <img src="{% if bg_link != blank %}{{ bg_link }}{% else %}{{ product.featured_image | image_url: width: 1800 }}{% endif %}"
+                <img class="_slideBgBlur_tcg1" src="{{ fallback_img }}"
                   alt="" draggable="false" {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %} decoding="async">
                 <span class="_slideBgOverlay_tcg1"></span>
               </div>
+              <img class="_slideBgArt_tcg1" src="{{ fallback_img }}"
+                alt="" draggable="false" {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %} decoding="async">
             {%- endif -%}
 
             <div class="_copy_n65qd_79">

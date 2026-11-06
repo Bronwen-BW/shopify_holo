@@ -34,12 +34,15 @@
 .tcg-rte strong{color:#f9fafb}
 ._menu_1hxzp_377[hidden]{display:none!important}
 
-/* Hero 轮播页背景图（最多 10 页，每页全幅底图 + 渐变遮罩） */
+/* Hero 轮播页背景图（最多 10 页）：底层虚化铺满（无留白）+ 上层完整原图（保持宽高比，不裁切不变形） */
 ._slideBg_tcg1{position:absolute;z-index:-2;inset:0;overflow:hidden}
-._slideBg_tcg1 img{width:100%;height:100%;object-fit:cover;object-position:center;transform:scale(1.08);opacity:0;transition:opacity .7s cubic-bezier(.22,1,.36,1),transform 6.5s cubic-bezier(.22,1,.36,1);user-select:none;pointer-events:none}
-._slideActive_n65qd_71 ._slideBg_tcg1 img{opacity:1;transform:scale(1)}
+._slideBg_tcg1 img,._slideBgArt_tcg1{display:block;max-width:100%;user-select:none;pointer-events:none}
+._slideBgBlur_tcg1{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;filter:blur(26px) saturate(1.2) brightness(.5);transform:scale(1.18);opacity:0;transition:opacity .7s cubic-bezier(.22,1,.36,1),transform 6.5s cubic-bezier(.22,1,.36,1)}
+._slideBgArt_tcg1{position:absolute;top:0;left:47%;width:50%;height:100%;object-fit:contain;object-position:center;filter:drop-shadow(0 1.5rem 1.75rem rgba(0,0,0,.45));opacity:0;transition:opacity .7s cubic-bezier(.22,1,.36,1)}
+._slideActive_n65qd_71 ._slideBgBlur_tcg1{opacity:1;transform:scale(1.08)}
+._slideActive_n65qd_71 ._slideBgArt_tcg1{opacity:1}
 ._slideBgOverlay_tcg1{position:absolute;inset:0;background:linear-gradient(90deg,rgba(24,24,24,.93) 0%,rgba(24,24,24,.78) 34%,rgba(24,24,24,.34) 68%,rgba(24,24,24,.18) 100%),linear-gradient(0deg,rgba(24,24,24,.55),transparent 45%)}
-@media (prefers-reduced-motion:reduce){._slideBg_tcg1 img{transform:scale(1);transition:none}}
+@media (prefers-reduced-motion:reduce){._slideBgBlur_tcg1{transform:scale(1.08)}._slideBgBlur_tcg1,._slideBgArt_tcg1{transition:none}}
 
 /* Hero 轮播圆点导航（点击切换） */
 ._dots_tcg1{position:absolute;z-index:4;bottom:clamp(1.5rem,3vw,2.1rem);left:clamp(2rem,4.5vw,4.5rem);display:flex;align-items:center;gap:.55rem}
@@ -49,7 +52,8 @@
 ._dotActive_tcg1{background:#34d399;box-shadow:0 0 10px #34d39980;transform:scale(1.2)}
 
 /* ===== 可配置轮播：按钮 / 整图链接 / 热门商品角标 ===== */
-._slide_n65qd_49{position:relative}
+/* 注意：幻灯片桌面端依赖构建产物中的 position:absolute + inset:0 叠层布局，
+   不能在此处全局改写为 relative（其 relative 仅允许出现在 ≤768px 媒体查询内） */
 ._heroSlideLink_tcg1{position:absolute;inset:0;z-index:1}
 ._heroBtnGroup_tcg1{position:absolute;z-index:6;display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;max-width:min(90%,34rem)}
 ._heroBtnGroup_tcg1:empty{display:none}
@@ -72,3 +76,9 @@
 ._heroBadge_tcg1{position:absolute;top:.3rem;left:.3rem;z-index:2;padding:.15rem .45rem;border-radius:.35rem;background:#34d399;color:#0b1512;font:700 .62rem/1.4 Rubik,ui-sans-serif,system-ui,sans-serif;letter-spacing:.04em}
 @media (max-width:640px){._heroBtnGroup_tcg1{max-width:88%;gap:.4rem}._heroBtn_tcg1{min-height:2.2rem;padding:.5rem .85rem;font-size:.8rem}}
 @media (prefers-reduced-motion:reduce){._heroBtn_tcg1{transition:none}}
+
+/* ===== 移动端：完整原图层回归文档流，置于文案上方（与回退模式 _art 设计一致） ===== */
+@media (max-width:768px){
+  ._slideBgArt_tcg1{position:static;width:100%;height:14rem;object-position:center bottom}
+  ._heroBtnGroup_tcg1{position:relative;inset:auto;z-index:2;transform:none}
+}
