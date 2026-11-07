@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>&#127968; 首页 (index.json) — TCGHaven</title>
+  <title>&#128722; 购物车页 (cart.json) — TCGHaven</title>
   <link rel="icon" type="image/png" href="https://horizon.local/assets/logo-mark.png">
   <script>
     window.TCG_ROUTES = { root: '/', cart_url: '/cart', cart_add_url: '/cart/add', cart_change_url: '/cart/change', cart_update_url: '/cart/update', cart_clear_url: '/cart/clear', cart_checkout_url: '/checkout', all_products_collection_url: '/collections/all', search_url: '/search' };
@@ -129,10 +129,10 @@
     }
   </style>
 </head>
-<body class="tcg-body template-index">
+<body class="tcg-body template-cart">
   <div id="app">
     <div class="route-progress" aria-hidden="true"></div>
-<div class="he-section-wrap he-selected" data-he-scope="header" data-he-section="tcg_navigation" data-he-type="tcg-nav" data-he-label="TCG 导航 [tcg_navigation]">
+<div class="he-section-wrap" data-he-scope="header" data-he-section="tcg_navigation" data-he-type="tcg-nav" data-he-label="TCG 导航 [tcg_navigation]">
 <header class="_navbar_1hxzp_1" data-tcg-header data-default-theme="dark">
   <div class="_inner_1hxzp_10">
     <a href="/" class="_logo_1hxzp_32" aria-label="TCGHaven">
@@ -143,7 +143,7 @@
       <ul class="_nav_1hxzp_1" data-tcg-nav-list>
         <li class="_indicator_1hxzp_122" aria-hidden="true" data-tcg-nav-indicator></li>
         <li data-nav-item data-sort-order="1" data-dom-index="1" data-he-scope="header" data-he-section="tcg_navigation" data-he-block="nav_home" data-he-label="导航标签 #1: Home">
-          <a class="_navLink_1hxzp_145 _navLinkActive_1hxzp_163" href="/" aria-current="page">Home</a>
+          <a class="_navLink_1hxzp_145 " href="/">Home</a>
         </li>
         <li data-nav-item data-sort-order="2" data-dom-index="2" data-he-scope="header" data-he-section="tcg_navigation" data-he-block="nav_shop" data-he-label="导航标签 #2: Shop">
           <a class="_navLink_1hxzp_145 " href="/collections/all">Shop</a>
@@ -157,7 +157,10 @@
         <li data-nav-item data-sort-order="5" data-dom-index="5" data-he-scope="header" data-he-section="tcg_navigation" data-he-block="nav_contact" data-he-label="导航标签 #5: Contact">
           <a class="_navLink_1hxzp_145 " href="/pages/contact">Contact</a>
         </li>
-        <li data-nav-item data-sort-order="6" data-dom-index="6" data-he-scope="header" data-he-section="tcg_navigation" data-he-block="nav_custom_6" data-he-label="导航标签 #6: 宝可梦">
+        <li data-nav-item data-sort-order="6" data-dom-index="6" data-he-scope="header" data-he-section="tcg_navigation" data-he-block="nav_blog" data-he-label="导航标签 #6: Articles">
+          <a class="_navLink_1hxzp_145 " href="/blogs/news">Articles</a>
+        </li>
+        <li data-nav-item data-sort-order="7" data-dom-index="7" data-he-scope="header" data-he-section="tcg_navigation" data-he-block="nav_custom_6" data-he-label="导航标签 #7: 宝可梦">
           <a class="_navLink_1hxzp_145 " href="/collections/all1">宝可梦</a>
         </li>
       </ul>
@@ -187,12 +190,13 @@
   </div>
   <div class="_menu_1hxzp_377" data-mobile-menu hidden>
     <nav data-tcg-mobile-nav-list>
-      <a href="/" class="_menuLink_1hxzp_409 _menuLinkActive_1hxzp_415" data-mobile-nav-item data-sort-order="1" data-dom-index="1" data-he-scope="header" data-he-section="tcg_navigation" data-he-block="nav_home" data-he-label="导航标签 #1: Home">Home</a>
+      <a href="/" class="_menuLink_1hxzp_409 " data-mobile-nav-item data-sort-order="1" data-dom-index="1" data-he-scope="header" data-he-section="tcg_navigation" data-he-block="nav_home" data-he-label="导航标签 #1: Home">Home</a>
       <a href="/collections/all" class="_menuLink_1hxzp_409 " data-mobile-nav-item data-sort-order="2" data-dom-index="2" data-he-scope="header" data-he-section="tcg_navigation" data-he-block="nav_shop" data-he-label="导航标签 #2: Shop">Shop</a>
       <a href="/collections" class="_menuLink_1hxzp_409 " data-mobile-nav-item data-sort-order="3" data-dom-index="3" data-he-scope="header" data-he-section="tcg_navigation" data-he-block="nav_games" data-he-label="导航标签 #3: Collections">Collections</a>
       <a href="/pages/about" class="_menuLink_1hxzp_409 " data-mobile-nav-item data-sort-order="4" data-dom-index="4" data-he-scope="header" data-he-section="tcg_navigation" data-he-block="nav_about" data-he-label="导航标签 #4: About us">About us</a>
       <a href="/pages/contact" class="_menuLink_1hxzp_409 " data-mobile-nav-item data-sort-order="5" data-dom-index="5" data-he-scope="header" data-he-section="tcg_navigation" data-he-block="nav_contact" data-he-label="导航标签 #5: Contact">Contact</a>
-      <a href="/collections/all1" class="_menuLink_1hxzp_409 " data-mobile-nav-item data-sort-order="6" data-dom-index="6" data-he-scope="header" data-he-section="tcg_navigation" data-he-block="nav_custom_6" data-he-label="导航标签 #6: 宝可梦">宝可梦</a>
+      <a href="/blogs/news" class="_menuLink_1hxzp_409 " data-mobile-nav-item data-sort-order="6" data-dom-index="6" data-he-scope="header" data-he-section="tcg_navigation" data-he-block="nav_blog" data-he-label="导航标签 #6: Articles">Articles</a>
+      <a href="/collections/all1" class="_menuLink_1hxzp_409 " data-mobile-nav-item data-sort-order="7" data-dom-index="7" data-he-scope="header" data-he-section="tcg_navigation" data-he-block="nav_custom_6" data-he-label="导航标签 #7: 宝可梦">宝可梦</a>
     </nav>
     <div class="_menuSecondary_1hxzp_425">
       <a href="/account">Account</a>
@@ -206,589 +210,75 @@
 </div>
     <div class="route-motion route-enter">
       <main id="MainContent" role="main">
-<div class="he-section-wrap" data-he-scope="template" data-he-section="hero" data-he-type="tcg-hero" data-he-label="TCG 主展示轮播 [hero]">
-<section class="_showcase_n65qd_1">
-  <div class="_grid_n65qd_6">
-    <div class="_stage_n65qd_20" data-hero data-motion-card="5">
-      <div class="_spotlight_n65qd_40" aria-hidden="true"></div>
-      <article class="_slide_n65qd_49 _slideActive_n65qd_71" data-slide aria-hidden="false" style="--theme: #7a3828;" data-he-scope="template" data-he-section="hero" data-he-block="slide_1" data-he-label="轮播项 #1: Scarlet &amp; Violet 151">
-        <div class="_slideBg_tcg1" aria-hidden="true" style="background-image: url('https://horizon.local/assets/card-charizard.png');"><span class="_slideBgOverlay_tcg1"></span></div>
-        <div class="_copy_n65qd_79">
-          <p class="_meta_n65qd_86"><span class="_game_n65qd_96">Pok&#233;mon TCG</span></p>
-          <h2 class="_title_n65qd_113">Scarlet &amp; Violet 151</h2>
-          <p class="_blurb_n65qd_124">经典初代回归，单卡、整盒与评级卡同步上架。</p>
-          <div class="_actions_n65qd_137" style="position:relative;z-index:5;"><a href="/collections/pokemon" class="_primaryCta_n65qd_145">Shop collection</a></div>
-        </div>
-        <div data-motion-art class="_art_n65qd_269"><img class="_artImage_n65qd_278" src="https://horizon.local/assets/card-charizard.png" alt="Scarlet &amp; Violet 151" draggable="false"><span aria-hidden="true" class="_floor_n65qd_290"></span></div>
-        <div class="_heroBtnGroup_tcg1 _heroBtnGroup_top-left">
-        </div>
-        <div class="_heroBtnGroup_tcg1 _heroBtnGroup_top-right">
-        </div>
-        <div class="_heroBtnGroup_tcg1 _heroBtnGroup_center">
-        </div>
-        <div class="_heroBtnGroup_tcg1 _heroBtnGroup_bottom-left">
-        </div>
-        <div class="_heroBtnGroup_tcg1 _heroBtnGroup_bottom-right">
-        </div>
-        <a class="_heroSlideLink_tcg1" href="/collections/pokemon" aria-label="Scarlet &amp; Violet 151"></a>
-      </article>
-      <article class="_slide_n65qd_49 " data-slide inert aria-hidden="true" style="--theme: #4c1d95;" data-he-scope="template" data-he-section="hero" data-he-block="slide_2" data-he-label="轮播项 #2: Moonlit rarities">
-        <div class="_slideBg_tcg1" aria-hidden="true" style="background-image: url('https://horizon.local/assets/card-umbreon.png');"><span class="_slideBgOverlay_tcg1"></span></div>
-        <div class="_copy_n65qd_79">
-          <p class="_meta_n65qd_86"><span class="_game_n65qd_96">Yu-Gi-Oh!</span></p>
-          <h2 class="_title_n65qd_113">Moonlit rarities</h2>
-          <p class="_blurb_n65qd_124">高罕贵卡与复古补充包，数量有限。</p>
-        </div>
-        <div data-motion-art class="_art_n65qd_269"><img class="_artImage_n65qd_278" src="https://horizon.local/assets/card-umbreon.png" alt="Moonlit rarities" draggable="false"><span aria-hidden="true" class="_floor_n65qd_290"></span></div>
-        <div class="_heroBtnGroup_tcg1 _heroBtnGroup_top-left">
-        </div>
-        <div class="_heroBtnGroup_tcg1 _heroBtnGroup_top-right">
-        </div>
-        <div class="_heroBtnGroup_tcg1 _heroBtnGroup_center">
-        </div>
-        <div class="_heroBtnGroup_tcg1 _heroBtnGroup_bottom-left">
-        </div>
-        <div class="_heroBtnGroup_tcg1 _heroBtnGroup_bottom-right">
-        </div>
-      </article>
-      <article class="_slide_n65qd_49 " data-slide inert aria-hidden="true" style="--theme: #155e75;" data-he-scope="template" data-he-section="hero" data-he-block="slide_3" data-he-label="轮播项 #3: 下一弹现已开放预购">
-        <div class="_slideBg_tcg1" aria-hidden="true" style="background-image: url('https://horizon.local/assets/card-palkia.png');"><span class="_slideBgOverlay_tcg1"></span></div>
-        <div class="_copy_n65qd_79">
-          <p class="_meta_n65qd_86"><span class="_game_n65qd_96">Pre-order</span></p>
-          <h2 class="_title_n65qd_113">下一弹现已开放预购</h2>
-          <p class="_blurb_n65qd_124">提前锁定首发批次，发售日优先发货。</p>
-          <div class="_actions_n65qd_137" style="position:relative;z-index:5;"><a href="/collections/preorder" class="_primaryCta_n65qd_145">Shop collection</a></div>
-        </div>
-        <div data-motion-art class="_art_n65qd_269"><img class="_artImage_n65qd_278" src="https://horizon.local/assets/card-palkia.png" alt="下一弹现已开放预购" draggable="false"><span aria-hidden="true" class="_floor_n65qd_290"></span></div>
-        <div class="_heroBtnGroup_tcg1 _heroBtnGroup_top-left">
-        </div>
-        <div class="_heroBtnGroup_tcg1 _heroBtnGroup_top-right">
-        </div>
-        <div class="_heroBtnGroup_tcg1 _heroBtnGroup_center">
-        </div>
-        <div class="_heroBtnGroup_tcg1 _heroBtnGroup_bottom-left">
-        </div>
-        <div class="_heroBtnGroup_tcg1 _heroBtnGroup_bottom-right">
-        </div>
-        <a class="_heroSlideLink_tcg1" href="/collections/preorder" aria-label="下一弹现已开放预购"></a>
-      </article>
-      <div class="_dots_tcg1" role="tablist" aria-label="Featured products">
-        <button type="button" role="tab" class="_dot_tcg1 _dotActive_tcg1" data-segment aria-selected="true" aria-label="Show Scarlet &amp; Violet 151"></button>
-        <button type="button" role="tab" class="_dot_tcg1" data-segment aria-selected="false" aria-label="Show Moonlit rarities"></button>
-        <button type="button" role="tab" class="_dot_tcg1" data-segment aria-selected="false" aria-label="Show 下一弹现已开放预购"></button>
-      </div>
-    </div>
-    <aside class="_shelf_n65qd_394" aria-labelledby="ready-to-ship-title">
-      <header class="_shelfHeader_n65qd_403">
-        <h2 id="ready-to-ship-title">Ready to ship</h2>
-        <a href="/collections/all" class="_viewAll_n65qd_419">View all</a>
-      </header>
-      <ul class="_shelfList_n65qd_442">
-        <li class="_shelfItem_n65qd_449" data-motion-card="10" data-he-scope="template" data-he-section="hero" data-he-block="hot_1" data-he-label="热门商品: Charizard ex 特别收藏盒">
-          <a href="/collections/pokemon" class="_shelfLink_n65qd_462">
-            <span class="_thumb_n65qd_476">
-              <img data-motion-art src="https://horizon.local/assets/card-charizard.png" alt="Charizard ex 特别收藏盒" draggable="false" loading="eager" decoding="async">
-              <span class="_heroBadge_tcg1">HOT</span>
-            </span>
-            <span class="_itemInfo_n65qd_493">
-              <span class="_itemName_n65qd_500">Charizard ex 特别收藏盒</span>
-              <span class="_itemSet_n65qd_513">Pok&#233;mon &#183; Sealed</span>
-              <span class="_itemPrice_n65qd_521">€89.95</span>
-            </span>
-          </a>
-          <button type="button" class="_addBtn_n65qd_530" data-add data-variant="4900101" data-product-title="Charizard ex 特别收藏盒" data-product-image="https://horizon.local/assets/card-charizard.png" aria-label="Add Charizard ex 特别收藏盒 to cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
-        </li>
-        <li class="_shelfItem_n65qd_449" data-motion-card="10" data-he-scope="template" data-he-section="hero" data-he-block="hot_2" data-he-label="热门商品: Umbreon VMAX 高罕单卡">
-          <a href="/collections/singles" class="_shelfLink_n65qd_462">
-            <span class="_thumb_n65qd_476">
-              <img data-motion-art src="https://horizon.local/assets/card-umbreon.png" alt="Umbreon VMAX 高罕单卡" draggable="false" loading="eager" decoding="async">
-              <span class="_heroBadge_tcg1">RARE</span>
-            </span>
-            <span class="_itemInfo_n65qd_493">
-              <span class="_itemName_n65qd_500">Umbreon VMAX 高罕单卡</span>
-              <span class="_itemSet_n65qd_513">Pok&#233;mon &#183; Singles</span>
-              <span class="_itemPrice_n65qd_521">€649.00</span>
-            </span>
-          </a>
-          <button type="button" class="_addBtn_n65qd_530" data-add data-variant="4900201" data-product-title="Umbreon VMAX 高罕单卡" data-product-image="https://horizon.local/assets/card-umbreon.png" aria-label="Add Umbreon VMAX 高罕单卡 to cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
-        </li>
-        <li class="_shelfItem_n65qd_449" data-motion-card="10" data-he-scope="template" data-he-section="hero" data-he-block="hot_3" data-he-label="热门商品: Blastoise 经典复刻">
-          <a href="/collections/graded" class="_shelfLink_n65qd_462">
-            <span class="_thumb_n65qd_476">
-              <img data-motion-art src="https://horizon.local/assets/card-blastoise.png" alt="Blastoise 经典复刻" draggable="false" loading="eager" decoding="async">
-            </span>
-            <span class="_itemInfo_n65qd_493">
-              <span class="_itemName_n65qd_500">Blastoise 经典复刻</span>
-              <span class="_itemSet_n65qd_513">Pok&#233;mon &#183; Graded</span>
-              <span class="_itemPrice_n65qd_521">€18.50</span>
-            </span>
-          </a>
-          <button type="button" class="_addBtn_n65qd_530" data-add data-variant="4900301" data-product-title="Blastoise 经典复刻" data-product-image="https://horizon.local/assets/card-blastoise.png" aria-label="Add Blastoise 经典复刻 to cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
-        </li>
-        <li class="_shelfItem_n65qd_449" data-motion-card="10" data-he-scope="template" data-he-section="hero" data-he-block="hot_4" data-he-label="热门商品: Venusaur 礼盒">
-          <a href="/collections/gifts" class="_shelfLink_n65qd_462">
-            <span class="_thumb_n65qd_476">
-              <img data-motion-art src="https://horizon.local/assets/card-venusaur.png" alt="Venusaur 礼盒" draggable="false" loading="eager" decoding="async">
-            </span>
-            <span class="_itemInfo_n65qd_493">
-              <span class="_itemName_n65qd_500">Venusaur 礼盒</span>
-              <span class="_itemSet_n65qd_513">Pok&#233;mon &#183; Gift box</span>
-              <span class="_itemPrice_n65qd_521">€49.95</span>
-            </span>
-          </a>
-          <button type="button" class="_addBtn_n65qd_530" data-add data-variant="4900401" data-product-title="Venusaur 礼盒" data-product-image="https://horizon.local/assets/card-venusaur.png" aria-label="Add Venusaur 礼盒 to cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
-        </li>
-        <li class="_shelfItem_n65qd_449" data-motion-card="10" data-he-scope="template" data-he-section="hero" data-he-block="hot_5" data-he-label="热门商品: Palkia 主题套装">
-          <a href="/collections/bundles" class="_shelfLink_n65qd_462">
-            <span class="_thumb_n65qd_476">
-              <img data-motion-art src="https://horizon.local/assets/card-palkia.png" alt="Palkia 主题套装" draggable="false" loading="eager" decoding="async">
-            </span>
-            <span class="_itemInfo_n65qd_493">
-              <span class="_itemName_n65qd_500">Palkia 主题套装</span>
-              <span class="_itemSet_n65qd_513">Pok&#233;mon &#183; Bundle</span>
-              <span class="_itemPrice_n65qd_521">€24.95</span>
-            </span>
-          </a>
-          <button type="button" class="_addBtn_n65qd_530" data-add data-variant="4900501" data-product-title="Palkia 主题套装" data-product-image="https://horizon.local/assets/card-palkia.png" aria-label="Add Palkia 主题套装 to cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
-        </li>
-      </ul>
-    </aside>
-  </div>
-</section>
-</div>
-<div class="he-section-wrap" data-he-scope="template" data-he-section="games" data-he-type="tcg-games" data-he-label="TCG 游戏目录 [games]">
-<section class="_section_hndqm_1">
-  <div class="_wide_hndqm_5">
-    <header class="_header_hndqm_10">
-      <div><h2>Trading card games</h2><p>Each game has its own storefront with current stock, set releases, singles and sealed products.</p></div>
-      <a href="/collections" class="_allGames_hndqm_33">Browse all games</a>
-    </header>
-    <div class="_directory_hndqm_81">
-      <a data-motion-card="10" href="/collections/pokemon" class="_feature_hndqm_87" data-reveal style="--frame: #2ed39a;" data-he-scope="template" data-he-section="games" data-he-block="g1" data-he-label="主推游戏: Pok&#233;mon">
-        <div class="_featureBody_hndqm_146"><h3 class="_featureName_hndqm_155">Pok&#233;mon</h3><p class="_tagline_hndqm_164">Singles, sealed, and graded rares</p><span class="_featureCta_hndqm_171">Shop</span></div>
-        <img class="_featureArt_hndqm_220" data-motion-art src="https://horizon.local/assets/card-charizard.png" alt="" draggable="false">
-      </a>
-      <ul class="_list_hndqm_232">
-        <li data-reveal data-he-scope="template" data-he-section="games" data-he-block="g2" data-he-label="游戏卡片: Yu-Gi-Oh!">
-          <a href="/collections/all" class="_tile_hndqm_88" style="--frame: #a78bfa;">
-            <strong class="_tileName_hndqm_251">Yu-Gi-Oh!</strong>
-            <span class="_tagline_hndqm_164">Old favourites and the newest sets</span>
-          </a>
-        </li>
-        <li data-reveal data-he-scope="template" data-he-section="games" data-he-block="g3" data-he-label="游戏卡片: Magic: The Gathering">
-          <a href="/collections/all" class="_tile_hndqm_88" style="--frame: #f28753;">
-            <strong class="_tileName_hndqm_251">Magic: The Gathering</strong>
-            <span class="_tagline_hndqm_164">Commander, Standard, and more</span>
-          </a>
-        </li>
-        <li data-reveal data-he-scope="template" data-he-section="games" data-he-block="g4" data-he-label="游戏卡片: Disney Lorcana">
-          <a href="/collections/all" class="_tile_hndqm_88" style="--frame: #c084fc;">
-            <strong class="_tileName_hndqm_251">Disney Lorcana</strong>
-            <span class="_tagline_hndqm_164">Enchanted cards and new Disney sets</span>
-          </a>
-        </li>
-        <li data-reveal data-he-scope="template" data-he-section="games" data-he-block="g5" data-he-label="游戏卡片: Riftbound">
-          <a href="/collections/all" class="_tile_hndqm_88" style="--frame: #7dd3fc;">
-            <strong class="_tileName_hndqm_251">Riftbound</strong>
-            <span class="_tagline_hndqm_164">League of Legends comes to the tabletop</span>
-          </a>
-        </li>
-        <li data-reveal data-he-scope="template" data-he-section="games" data-he-block="g6" data-he-label="游戏卡片: Digimon">
-          <a href="/collections/all" class="_tile_hndqm_88" style="--frame: #60a5fa;">
-            <strong class="_tileName_hndqm_251">Digimon</strong>
-            <span class="_tagline_hndqm_164">Tamers, alternate arts, and sealed sets</span>
-          </a>
-        </li>
-        <li data-reveal data-he-scope="template" data-he-section="games" data-he-block="g7" data-he-label="游戏卡片: Cyberpunk">
-          <a href="/collections/all" class="_tile_hndqm_88" style="--frame: #facc15;">
-            <strong class="_tileName_hndqm_251">Cyberpunk</strong>
-            <span class="_tagline_hndqm_164">Cards and releases from Night City</span>
-          </a>
-        </li>
-      </ul>
-    </div>
-  </div>
-</section>
-</div>
-<div class="he-section-wrap" data-he-scope="template" data-he-section="sets" data-he-type="tcg-sets" data-he-label="TCG 系列轨道 [sets]">
-<section class="_section_qxt27_1">
-  <div class="_wide_qxt27_5">
-    <header class="_header_qxt27_10">
-      <div><h2>Shop by set</h2><p>The sets we carry the most sealed products and singles from right now.</p></div>
-      <a href="/collections/all" class="_viewAll_qxt27_33">All products</a>
-    </header>
-    <div class="_rail_qxt27_81" style="--tcg-sets-cols: 4;">
-      <a data-motion-card="9" href="/collections/all" class="_collection_qxt27_87" data-reveal style="--frame: #2ed39a;" data-he-scope="template" data-he-section="sets" data-he-block="s1" data-he-label="系列: Scarlet &amp; Violet — 151">
-        <span class="_media_qxt27_116" aria-hidden="true"><img data-motion-art src="https://horizon.local/assets/card-charizard.png" alt="" draggable="false" loading="lazy"></span>
-        <span class="_body_qxt27_137">
-          <span class="_game_qxt27_152">Pok&#233;mon</span>
-          <h3>Scarlet &amp; Violet — 151</h3>
-          <span class="_count_qxt27_159">8 products</span>
-        </span>
-      </a>
-      <a data-motion-card="9" href="/collections/all" class="_collection_qxt27_87" data-reveal style="--frame: #f28753;" data-he-scope="template" data-he-section="sets" data-he-block="s2" data-he-label="系列: Modern Horizons &amp; Commander">
-        <span class="_media_qxt27_116" aria-hidden="true"><img data-motion-art src="https://horizon.local/assets/card-palkia.png" alt="" draggable="false" loading="lazy"></span>
-        <span class="_body_qxt27_137">
-          <span class="_game_qxt27_152">Magic: The Gathering</span>
-          <h3>Modern Horizons &amp; Commander</h3>
-          <span class="_count_qxt27_159">8 products</span>
-        </span>
-      </a>
-      <a data-motion-card="9" href="/collections/all" class="_collection_qxt27_87" data-reveal style="--frame: #a78bfa;" data-he-scope="template" data-he-section="sets" data-he-block="s3" data-he-label="系列: Prismatic Evolutions">
-        <span class="_media_qxt27_116" aria-hidden="true"><img data-motion-art src="https://horizon.local/assets/card-umbreon.png" alt="" draggable="false" loading="lazy"></span>
-        <span class="_body_qxt27_137">
-          <span class="_game_qxt27_152">Pok&#233;mon</span>
-          <h3>Prismatic Evolutions</h3>
-          <span class="_count_qxt27_159">8 products</span>
-        </span>
-      </a>
-      <a data-motion-card="9" href="/collections/all" class="_collection_qxt27_87" data-reveal style="--frame: #60a5fa;" data-he-scope="template" data-he-section="sets" data-he-block="s4" data-he-label="系列: Collectors Vault">
-        <span class="_media_qxt27_116" aria-hidden="true"><img data-motion-art src="https://horizon.local/assets/card-blastoise.png" alt="" draggable="false" loading="lazy"></span>
-        <span class="_body_qxt27_137">
-          <span class="_game_qxt27_152">Collectors</span>
-          <h3>Collectors Vault</h3>
-          <span class="_count_qxt27_159">8 products</span>
-        </span>
-      </a>
-    </div>
-  </div>
-</section>
-</div>
-<div class="he-section-wrap" data-he-scope="template" data-he-section="upcoming" data-he-type="tcg-product-grid" data-he-label="TCG 产品网格 [upcoming]">
-<section class="_section_36e53_1">
-  <div class="_wide_36e53_5">
-    <header class="_header_36e53_10">
-      <div><h2>Upcoming releases</h2><p>Announced sets and products available to pre-order.</p></div>
-      <a href="/collections/all" class="_viewAll_36e53_33">View all</a>
-    </header>
-    <div class="_grid_36e53_53">
-      <article data-motion-card="8" class="_card_36e53_65 _cardFill_36e53_74" data-reveal>
-        <a href="/products/charizard-ex-special-collection" class="_cardMedia_36e53_85" aria-label="Charizard ex 特别收藏盒 (Scarlet &amp; Violet 151)">
-          <span class="_cardArtwork_36e53_122"><img data-motion-art src="https://horizon.local/assets/card-charizard.png" alt="Charizard ex 特别收藏盒 (Scarlet &amp; Violet 151)" draggable="false"></span>
-          <span class="_badge_36e53_217 ">3 SKUs</span>
-        </a>
-        <div class="_cardBody_36e53_256">
-          <a href="/products/charizard-ex-special-collection" class="_cardInfo_36e53_264">
-            <span class="_cardName_36e53_275">Charizard ex 特别收藏盒 (Scarlet &amp; Violet 151)</span>
-            <span class="_cardSet_36e53_289">Sealed · PKM-SV151-CHAR-EN</span>
-          </a>
-          <div class="_cardFooter_36e53_309">
-            <span class="_cardPricing_36e53_326">
-              <del>€109.95</del>
-              <span class="_cardPrice_36e53_317">€89.95</span>
-            </span>
-            <button type="button" class="_addBtn_36e53_338" data-add data-variant="4900101"><span>Add</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+<div class="he-section-wrap he-selected" data-he-scope="template" data-he-section="main" data-he-type="tcg-cart" data-he-label="TCG 购物车 [main]">
+<div class="_page_1z0wo_1" data-tcg-cart-section data-currency-sample="€10.00" data-cart-url="/cart" data-checkout-url="/checkout" data-shop-url="/collections/all">
+  <div class="_wide_4xdw3_6">
+    <ol class="_steps_16l9l_44" aria-label="Checkout progress" style="margin-bottom:clamp(1.5rem,4vh,2.5rem);width:fit-content;">
+      <li class="_stepCurrent_16l9l_96" data-step-indicator="cart" aria-current="step"><a href="/cart" class="_stepLink_16l9l_54" data-step-nav="cart"><span class="_stepDot_16l9l_76" data-step-dot="cart" aria-hidden="true">1</span><span class="_stepLabel_16l9l_225">Cart</span></a></li>
+      <li data-step-indicator="checkout"><a href="/cart?step=checkout" class="_stepLink_16l9l_54" data-step-nav="checkout"><span class="_stepDot_16l9l_76" data-step-dot="checkout" aria-hidden="true">2</span><span class="_stepLabel_16l9l_225">Checkout &amp; Payment</span></a></li>
+      <li data-step-indicator="confirmation"><span class="_stepLink_16l9l_54"><span class="_stepDot_16l9l_76" data-step-dot="confirmation" aria-hidden="true">3</span><span class="_stepLabel_16l9l_225">Confirmation</span></span></li>
+    </ol>
+    <div data-cart-step-panel="cart">
+      <div data-cart-filled-view>
+        <header class="_header_1z0wo_6">
+          <h1 class="_heading_1z0wo_14">Your cart <span class="_count_1z0wo_27" data-cart-header-count>(3 items)</span></h1>
+          <a href="/collections/all" class="tcg-link-subtle">← Continue shopping</a>
+        </header>
+        <form action="/cart" method="post" id="tcg-cart-form" class="_layout_1z0wo_34" novalidate>
+          <div class="_list_1z0wo_46">
+            <div data-shopify-cart-items class="tcg-cart-items-group">
+              <div class="_row_1z0wo_52" data-cart-row data-cart-source="shopify" data-line="1" data-variant-id="4900101" data-unit-price="8995" data-line-price="8995" data-quantity="1" data-item-title="Charizard ex 特别收藏盒 (Scarlet &amp; Violet 151)" data-variant-title="Factory Sealed &#183; English Box" data-item-sku="PKM-SV151-CHAR-EN" data-item-image="https://horizon.local/assets/card-charizard.png" data-item-url="/products/charizard-ex-special-collection">
+                <a href="/products/charizard-ex-special-collection" class="_thumb_1z0wo_62"><img src="https://horizon.local/assets/card-charizard.png" alt="Charizard ex 特别收藏盒 (Scarlet &amp; Violet 151)" draggable="false" loading="lazy"></a>
+                <div class="_rowInfo_1z0wo_78">
+                  <a href="/products/charizard-ex-special-collection" class="_rowName_1z0wo_86">Charizard ex 特别收藏盒 (Scarlet &amp; Violet 151)</a>
+                  <div class="tcg-cart-meta"><span class="_rowUnitPrice_1z0wo_94">Factory Sealed &#183; English Box</span><code class="tcg-sku-code">SKU: PKM-SV151-CHAR-EN</code><span class="_rowUnitPrice_1z0wo_94">€89.95 each</span></div>
+                  <div class="_qtyControl_1z0wo_100" data-cart-qty>
+                    <button type="button" class="_qtyBtn_1z0wo_110" data-cart-minus aria-label="Decrease quantity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+                    <input type="number" name="updates[]" value="1" min="0" class="tcg-cart-qty-input" data-cart-qty-input data-line="1">
+                    <span class="_qtyValue_1z0wo_135" hidden>1</span>
+                    <button type="button" class="_qtyBtn_1z0wo_110" data-cart-plus aria-label="Increase quantity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+                  </div>
+                </div>
+                <div class="_rowEnd_1z0wo_145">
+                  <span class="_lineTotal_1z0wo_152" data-row-line-total>€89.95</span>
+                  <button type="button" class="_removeBtn_1z0wo_160" data-cart-remove data-line="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>Remove</button>
+                </div>
+              </div>
+              <div class="_row_1z0wo_52" data-cart-row data-cart-source="shopify" data-line="2" data-variant-id="4900301" data-unit-price="1850" data-line-price="3700" data-quantity="2" data-item-title="Blastoise 经典初代闪卡复刻 &amp; 评级卡 (2/102)" data-variant-title="Celebrations Classic &#183; Near Mint" data-item-sku="PKM-CEL25-002-NM" data-item-image="https://horizon.local/assets/card-blastoise.png" data-item-url="/products/blastoise-base-set-holo-graded">
+                <a href="/products/blastoise-base-set-holo-graded" class="_thumb_1z0wo_62"><img src="https://horizon.local/assets/card-blastoise.png" alt="Blastoise 经典初代闪卡复刻 &amp; 评级卡 (2/102)" draggable="false" loading="lazy"></a>
+                <div class="_rowInfo_1z0wo_78">
+                  <a href="/products/blastoise-base-set-holo-graded" class="_rowName_1z0wo_86">Blastoise 经典初代闪卡复刻 &amp; 评级卡 (2/102)</a>
+                  <div class="tcg-cart-meta"><span class="_rowUnitPrice_1z0wo_94">Celebrations Classic &#183; Near Mint</span><code class="tcg-sku-code">SKU: PKM-CEL25-002-NM</code><span class="_rowUnitPrice_1z0wo_94">€18.50 each</span></div>
+                  <div class="_qtyControl_1z0wo_100" data-cart-qty>
+                    <button type="button" class="_qtyBtn_1z0wo_110" data-cart-minus aria-label="Decrease quantity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+                    <input type="number" name="updates[]" value="2" min="0" class="tcg-cart-qty-input" data-cart-qty-input data-line="2">
+                    <span class="_qtyValue_1z0wo_135" hidden>2</span>
+                    <button type="button" class="_qtyBtn_1z0wo_110" data-cart-plus aria-label="Increase quantity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+                  </div>
+                </div>
+                <div class="_rowEnd_1z0wo_145">
+                  <span class="_lineTotal_1z0wo_152" data-row-line-total>€37.00</span>
+                  <button type="button" class="_removeBtn_1z0wo_160" data-cart-remove data-line="2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>Remove</button>
+                </div>
+              </div>
+            </div>
+            <div data-local-cart-items class="tcg-cart-items-group"></div>
+            <div class="tcg-cart-note-card"><label class="tcg-field-label">Order note / Packing instructions</label><textarea class="tcg-textarea" rows="3" placeholder="Add special packing or delivery notes for our warehouse…" data-cart-note>Please pack holographic singles in rigid toploaders.</textarea></div>
           </div>
-        </div>
-      </article>
-      <article data-motion-card="8" class="_card_36e53_65 _cardFill_36e53_74" data-reveal>
-        <a href="/products/umbreon-vmax-alt-art-single" class="_cardMedia_36e53_85" aria-label="Umbreon VMAX 高罕异画单卡 (Moonbreon Evolving Skies)">
-          <span class="_cardArtwork_36e53_122"><img data-motion-art src="https://horizon.local/assets/card-umbreon.png" alt="Umbreon VMAX 高罕异画单卡 (Moonbreon Evolving Skies)" draggable="false"></span>
-          <span class="_badge_36e53_217 ">3 SKUs</span>
-        </a>
-        <div class="_cardBody_36e53_256">
-          <a href="/products/umbreon-vmax-alt-art-single" class="_cardInfo_36e53_264">
-            <span class="_cardName_36e53_275">Umbreon VMAX 高罕异画单卡 (Moonbreon Evolving Skies)</span>
-            <span class="_cardSet_36e53_289">Single Card · PKM-SWSH7-215-NM</span>
-          </a>
-          <div class="_cardFooter_36e53_309">
-            <span class="_cardPricing_36e53_326">
-              <del>€699.00</del>
-              <span class="_cardPrice_36e53_317">€649.00</span>
-            </span>
-            <button type="button" class="_addBtn_36e53_338" data-add data-variant="4900201"><span>Add</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
-          </div>
-        </div>
-      </article>
-      <article data-motion-card="8" class="_card_36e53_65 _cardFill_36e53_74" data-reveal>
-        <a href="/products/blastoise-base-set-holo-graded" class="_cardMedia_36e53_85" aria-label="Blastoise 经典初代闪卡复刻 &amp; 评级卡 (2/102)">
-          <span class="_cardArtwork_36e53_122"><img data-motion-art src="https://horizon.local/assets/card-blastoise.png" alt="Blastoise 经典初代闪卡复刻 &amp; 评级卡 (2/102)" draggable="false"></span>
-          <span class="_badge_36e53_217 ">2 SKUs</span>
-        </a>
-        <div class="_cardBody_36e53_256">
-          <a href="/products/blastoise-base-set-holo-graded" class="_cardInfo_36e53_264">
-            <span class="_cardName_36e53_275">Blastoise 经典初代闪卡复刻 &amp; 评级卡 (2/102)</span>
-            <span class="_cardSet_36e53_289">Single Card · PKM-CEL25-002-NM</span>
-          </a>
-          <div class="_cardFooter_36e53_309">
-            <span class="_cardPricing_36e53_326">
-              <del>€24.00</del>
-              <span class="_cardPrice_36e53_317">€18.50</span>
-            </span>
-            <button type="button" class="_addBtn_36e53_338" data-add data-variant="4900301"><span>Add</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
-          </div>
-        </div>
-      </article>
-      <article data-motion-card="8" class="_card_36e53_65 _cardFill_36e53_74" data-reveal>
-        <a href="/products/venusaur-collector-gift-box" class="_cardMedia_36e53_85" aria-label="Venusaur 妙蛙花收藏礼盒套装">
-          <span class="_cardArtwork_36e53_122"><img data-motion-art src="https://horizon.local/assets/card-venusaur.png" alt="Venusaur 妙蛙花收藏礼盒套装" draggable="false"></span>
-          <span class="_badge_36e53_217 ">2 SKUs</span>
-        </a>
-        <div class="_cardBody_36e53_256">
-          <a href="/products/venusaur-collector-gift-box" class="_cardInfo_36e53_264">
-            <span class="_cardName_36e53_275">Venusaur 妙蛙花收藏礼盒套装</span>
-            <span class="_cardSet_36e53_289">Sealed · PKM-GIFT-VENU-STD</span>
-          </a>
-          <div class="_cardFooter_36e53_309">
-            <span class="_cardPricing_36e53_326">
-              <del>€59.95</del>
-              <span class="_cardPrice_36e53_317">€49.95</span>
-            </span>
-            <button type="button" class="_addBtn_36e53_338" data-add data-variant="4900401"><span>Add</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
-          </div>
-        </div>
-      </article>
-    </div>
-  </div>
-</section>
-</div>
-<div class="he-section-wrap" data-he-scope="template" data-he-section="new_arrivals" data-he-type="tcg-product-grid" data-he-label="TCG 产品网格 [new_arrivals]">
-<section class="_section_36e53_1">
-  <div class="_wide_36e53_5">
-    <header class="_header_36e53_10">
-      <div><h2>New arrivals and best sellers</h2><p>Fresh stock and the products collectors keep coming back for.</p></div>
-      <a href="/collections/all" class="_viewAll_36e53_33">View all</a>
-    </header>
-    <div class="_grid_36e53_53">
-      <article data-motion-card="8" class="_card_36e53_65 _cardFill_36e53_74" data-reveal>
-        <a href="/products/charizard-ex-special-collection" class="_cardMedia_36e53_85" aria-label="Charizard ex 特别收藏盒 (Scarlet &amp; Violet 151)">
-          <span class="_cardArtwork_36e53_122"><img data-motion-art src="https://horizon.local/assets/card-charizard.png" alt="Charizard ex 特别收藏盒 (Scarlet &amp; Violet 151)" draggable="false"></span>
-          <span class="_badge_36e53_217 ">3 SKUs</span>
-        </a>
-        <div class="_cardBody_36e53_256">
-          <a href="/products/charizard-ex-special-collection" class="_cardInfo_36e53_264">
-            <span class="_cardName_36e53_275">Charizard ex 特别收藏盒 (Scarlet &amp; Violet 151)</span>
-            <span class="_cardSet_36e53_289">Sealed · PKM-SV151-CHAR-EN</span>
-          </a>
-          <div class="_cardFooter_36e53_309">
-            <span class="_cardPricing_36e53_326">
-              <del>€109.95</del>
-              <span class="_cardPrice_36e53_317">€89.95</span>
-            </span>
-            <button type="button" class="_addBtn_36e53_338" data-add data-variant="4900101"><span>Add</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
-          </div>
-        </div>
-      </article>
-      <article data-motion-card="8" class="_card_36e53_65 _cardFill_36e53_74" data-reveal>
-        <a href="/products/umbreon-vmax-alt-art-single" class="_cardMedia_36e53_85" aria-label="Umbreon VMAX 高罕异画单卡 (Moonbreon Evolving Skies)">
-          <span class="_cardArtwork_36e53_122"><img data-motion-art src="https://horizon.local/assets/card-umbreon.png" alt="Umbreon VMAX 高罕异画单卡 (Moonbreon Evolving Skies)" draggable="false"></span>
-          <span class="_badge_36e53_217 ">3 SKUs</span>
-        </a>
-        <div class="_cardBody_36e53_256">
-          <a href="/products/umbreon-vmax-alt-art-single" class="_cardInfo_36e53_264">
-            <span class="_cardName_36e53_275">Umbreon VMAX 高罕异画单卡 (Moonbreon Evolving Skies)</span>
-            <span class="_cardSet_36e53_289">Single Card · PKM-SWSH7-215-NM</span>
-          </a>
-          <div class="_cardFooter_36e53_309">
-            <span class="_cardPricing_36e53_326">
-              <del>€699.00</del>
-              <span class="_cardPrice_36e53_317">€649.00</span>
-            </span>
-            <button type="button" class="_addBtn_36e53_338" data-add data-variant="4900201"><span>Add</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
-          </div>
-        </div>
-      </article>
-      <article data-motion-card="8" class="_card_36e53_65 _cardFill_36e53_74" data-reveal>
-        <a href="/products/blastoise-base-set-holo-graded" class="_cardMedia_36e53_85" aria-label="Blastoise 经典初代闪卡复刻 &amp; 评级卡 (2/102)">
-          <span class="_cardArtwork_36e53_122"><img data-motion-art src="https://horizon.local/assets/card-blastoise.png" alt="Blastoise 经典初代闪卡复刻 &amp; 评级卡 (2/102)" draggable="false"></span>
-          <span class="_badge_36e53_217 ">2 SKUs</span>
-        </a>
-        <div class="_cardBody_36e53_256">
-          <a href="/products/blastoise-base-set-holo-graded" class="_cardInfo_36e53_264">
-            <span class="_cardName_36e53_275">Blastoise 经典初代闪卡复刻 &amp; 评级卡 (2/102)</span>
-            <span class="_cardSet_36e53_289">Single Card · PKM-CEL25-002-NM</span>
-          </a>
-          <div class="_cardFooter_36e53_309">
-            <span class="_cardPricing_36e53_326">
-              <del>€24.00</del>
-              <span class="_cardPrice_36e53_317">€18.50</span>
-            </span>
-            <button type="button" class="_addBtn_36e53_338" data-add data-variant="4900301"><span>Add</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
-          </div>
-        </div>
-      </article>
-      <article data-motion-card="8" class="_card_36e53_65 _cardFill_36e53_74" data-reveal>
-        <a href="/products/venusaur-collector-gift-box" class="_cardMedia_36e53_85" aria-label="Venusaur 妙蛙花收藏礼盒套装">
-          <span class="_cardArtwork_36e53_122"><img data-motion-art src="https://horizon.local/assets/card-venusaur.png" alt="Venusaur 妙蛙花收藏礼盒套装" draggable="false"></span>
-          <span class="_badge_36e53_217 ">2 SKUs</span>
-        </a>
-        <div class="_cardBody_36e53_256">
-          <a href="/products/venusaur-collector-gift-box" class="_cardInfo_36e53_264">
-            <span class="_cardName_36e53_275">Venusaur 妙蛙花收藏礼盒套装</span>
-            <span class="_cardSet_36e53_289">Sealed · PKM-GIFT-VENU-STD</span>
-          </a>
-          <div class="_cardFooter_36e53_309">
-            <span class="_cardPricing_36e53_326">
-              <del>€59.95</del>
-              <span class="_cardPrice_36e53_317">€49.95</span>
-            </span>
-            <button type="button" class="_addBtn_36e53_338" data-add data-variant="4900401"><span>Add</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
-          </div>
-        </div>
-      </article>
-      <article data-motion-card="8" class="_card_36e53_65 _cardFill_36e53_74" data-reveal>
-        <a href="/products/origin-forme-palkia-vstar-bundle" class="_cardMedia_36e53_85" aria-label="Palkia 起源形态 VSTAR 主题套装 (Pre-order)">
-          <span class="_cardArtwork_36e53_122"><img data-motion-art src="https://horizon.local/assets/card-palkia.png" alt="Palkia 起源形态 VSTAR 主题套装 (Pre-order)" draggable="false"></span>
-          <span class="_badge_36e53_217 _badgePreorder_36e53_232">Pre-order</span>
-          <span class="_preorderCountdown_36e53_237" data-countdown="2026-12-15T09:00:00">Releases in <strong>Soon</strong></span>
-        </a>
-        <div class="_cardBody_36e53_256">
-          <a href="/products/origin-forme-palkia-vstar-bundle" class="_cardInfo_36e53_264">
-            <span class="_cardName_36e53_275">Palkia 起源形态 VSTAR 主题套装 (Pre-order)</span>
-            <span class="_cardSet_36e53_289">Sealed · PKM-PRE-PALKIA-6P</span>
-          </a>
-          <div class="_cardFooter_36e53_309">
-            <span class="_cardPricing_36e53_326">
-              <span class="_cardPrice_36e53_317">€24.95</span>
-            </span>
-            <button type="button" class="_addBtn_36e53_338" data-add data-variant="4900501"><span>Pre-order</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
-          </div>
-        </div>
-      </article>
-      <article data-motion-card="8" class="_card_36e53_65 _cardFill_36e53_74" data-reveal>
-        <a href="/products/prismatic-evolutions-elite-trainer-box" class="_cardMedia_36e53_85" aria-label="Pok&#233;mon Prismatic Evolutions Elite Trainer Box (ETB)">
-          <span class="_cardArtwork_36e53_122"><img data-motion-art src="https://horizon.local/assets/card-umbreon.png" alt="Pok&#233;mon Prismatic Evolutions Elite Trainer Box (ETB)" draggable="false"></span>
-          <span class="_badge_36e53_217 _badgePreorder_36e53_232">Pre-order</span>
-          <span class="_preorderCountdown_36e53_237" data-countdown="2026-11-30T10:00:00">Releases in <strong>Soon</strong></span>
-        </a>
-        <div class="_cardBody_36e53_256">
-          <a href="/products/prismatic-evolutions-elite-trainer-box" class="_cardInfo_36e53_264">
-            <span class="_cardName_36e53_275">Pok&#233;mon Prismatic Evolutions Elite Trainer Box (ETB)</span>
-            <span class="_cardSet_36e53_289">Sealed · PKM-PRE-PRISM-ETB</span>
-          </a>
-          <div class="_cardFooter_36e53_309">
-            <span class="_cardPricing_36e53_326">
-              <del>€59.95</del>
-              <span class="_cardPrice_36e53_317">€54.95</span>
-            </span>
-            <button type="button" class="_addBtn_36e53_338" data-add data-variant="4900601"><span>Pre-order</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
-          </div>
-        </div>
-      </article>
-      <article data-motion-card="8" class="_card_36e53_65 _cardFill_36e53_74" data-reveal>
-        <a href="/products/yugioh-quarter-century-bonanza-box" class="_cardMedia_36e53_85" aria-label="Yu-Gi-Oh! 25th Quarter Century Bonanza Booster Box">
-          <span class="_cardArtwork_36e53_122"><img data-motion-art src="https://horizon.local/assets/card-palkia.png" alt="Yu-Gi-Oh! 25th Quarter Century Bonanza Booster Box" draggable="false"></span>
-          <span class="_badge_36e53_217 ">2 SKUs</span>
-        </a>
-        <div class="_cardBody_36e53_256">
-          <a href="/products/yugioh-quarter-century-bonanza-box" class="_cardInfo_36e53_264">
-            <span class="_cardName_36e53_275">Yu-Gi-Oh! 25th Quarter Century Bonanza Booster Box</span>
-            <span class="_cardSet_36e53_289">Sealed · YGO-RA03-BOX-EN</span>
-          </a>
-          <div class="_cardFooter_36e53_309">
-            <span class="_cardPricing_36e53_326">
-              <del>€95.00</del>
-              <span class="_cardPrice_36e53_317">€84.95</span>
-            </span>
-            <button type="button" class="_addBtn_36e53_338" data-add data-variant="4900701"><span>Add</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
-          </div>
-        </div>
-      </article>
-      <article data-motion-card="8" class="_card_36e53_65 _cardFill_36e53_74" data-reveal>
-        <a href="/products/mtg-modern-horizons-3-collector-box" class="_cardMedia_36e53_85" aria-label="Magic: The Gathering — Modern Horizons 3 Collector Booster">
-          <span class="_cardArtwork_36e53_122"><img data-motion-art src="https://horizon.local/assets/card-charizard.png" alt="Magic: The Gathering — Modern Horizons 3 Collector Booster" draggable="false"></span>
-          <span class="_badge_36e53_217 ">2 SKUs</span>
-        </a>
-        <div class="_cardBody_36e53_256">
-          <a href="/products/mtg-modern-horizons-3-collector-box" class="_cardInfo_36e53_264">
-            <span class="_cardName_36e53_275">Magic: The Gathering — Modern Horizons 3 Collector Booster</span>
-            <span class="_cardSet_36e53_289">Sealed · MTG-MH3-COLL-PACK</span>
-          </a>
-          <div class="_cardFooter_36e53_309">
-            <span class="_cardPricing_36e53_326">
-              <del>€27.95</del>
-              <span class="_cardPrice_36e53_317">€23.95</span>
-            </span>
-            <button type="button" class="_addBtn_36e53_338" data-add data-variant="4900801"><span>Add</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
-          </div>
-        </div>
-      </article>
-    </div>
-  </div>
-</section>
-</div>
-<div class="he-section-wrap" data-he-scope="template" data-he-section="bento" data-he-type="tcg-catalog-bento" data-he-label="TCG 分类 Bento [bento]">
-<section class="_section_10apz_1">
-  <div class="_wide_10apz_5">
-    <header class="_header_10apz_10"><div><h2>Shop the catalogue your way</h2><p>Go straight to the product type you collect, or see what is arriving next.</p></div></header>
-    <div class="_layout_10apz_33">
-      <a data-motion-card="6" href="/collections/singles" class="_path_10apz_40 _singles_10apz_82" data-reveal>
-        <div class="_cardFan_10apz_194" data-motion-art aria-hidden="true"><img src="https://horizon.local/assets/card-venusaur.png" alt=""><img src="https://horizon.local/assets/card-charizard.png" alt=""><img src="https://horizon.local/assets/card-blastoise.png" alt=""></div>
-        <div class="_copy_10apz_101"><h3>Single cards</h3><p>Raw and graded singles, with condition, language, finish and stock shown before checkout.</p><span class="_cta_10apz_129">Shop single cards</span></div>
-      </a>
-      <a href="/collections/sealed" class="_path_10apz_40 _sealed_10apz_88" data-reveal>
-        <div class="_copy_10apz_101"><h3>Sealed products</h3><p>Booster boxes, packs and decks.</p><span class="_cta_10apz_129">Shop sealed</span></div>
-      </a>
-      <a data-motion-card="12" href="/collections/graded" class="_path_10apz_40 _graded_10apz_92" data-reveal>
-        <span class="_slab_10apz_234" data-motion-art aria-hidden="true"><span class="_slabLabel_10apz_253"><i></i><b>10</b></span><img src="https://horizon.local/assets/card-umbreon.png" alt=""></span>
-        <div class="_copy_10apz_101"><h3>Graded cards</h3><p>Slabs with the grade clearly shown.</p><span class="_cta_10apz_129">Shop graded</span></div>
-      </a>
-      <a href="/collections/preorder" class="_path_10apz_40 _releases_10apz_96" data-reveal>
-        <div class="_copy_10apz_101"><h3>Upcoming releases</h3><p>Pre-order announced sets before release day, sorted by game.</p><span class="_cta_10apz_129">See upcoming releases</span></div>
-      </a>
-    </div>
-  </div>
-</section>
-</div>
-<div class="he-section-wrap" data-he-scope="template" data-he-section="budget" data-he-type="tcg-budget" data-he-label="TCG 按预算选购 [budget]">
-<section class="_section_ido9z_1">
-  <div class="_wide_ido9z_5">
-    <header class="_header_ido9z_10"><div><h2>Shop by budget</h2><p>Pick what you'd like to spend and we'll show you everything in stock.</p></div></header>
-    <div class="_bands_ido9z_36">
-      <a data-tier="0" href="/search?q=&amp;filter.v.price.lte=25" class="_band_ido9z_36">
-        <span class="_copy_ido9z_84"><strong>Under €25</strong><span>Singles, packs and small gifts</span></span>
-        <span aria-hidden="true" class="_stack_ido9z_102">
-          <img src="https://horizon.local/assets/card-charizard.png" alt="" loading="lazy" draggable="false" style="--i: 0;">
-          <img src="https://horizon.local/assets/card-umbreon.png" alt="" loading="lazy" draggable="false" style="--i: 1;">
-          <img src="https://horizon.local/assets/card-blastoise.png" alt="" loading="lazy" draggable="false" style="--i: 2;">
-        </span>
-        <span class="_foot_ido9z_135"><span>Browse selection →</span></span>
-      </a>
-      <a data-tier="1" href="/search?q=&amp;filter.v.price.gte=25&amp;filter.v.price.lte=100" class="_band_ido9z_36">
-        <span class="_copy_ido9z_84"><strong>€25 to €100</strong><span>Decks, bundles and chase cards</span></span>
-        <span aria-hidden="true" class="_stack_ido9z_102">
-          <img src="https://horizon.local/assets/card-charizard.png" alt="" loading="lazy" draggable="false" style="--i: 0;">
-          <img src="https://horizon.local/assets/card-umbreon.png" alt="" loading="lazy" draggable="false" style="--i: 1;">
-          <img src="https://horizon.local/assets/card-blastoise.png" alt="" loading="lazy" draggable="false" style="--i: 2;">
-        </span>
-        <span class="_foot_ido9z_135"><span>Browse selection →</span></span>
-      </a>
-      <a data-tier="2" href="/search?q=&amp;filter.v.price.gte=100" class="_band_ido9z_36">
-        <span class="_copy_ido9z_84"><strong>€100 and up</strong><span>Booster boxes and collector pieces</span></span>
-        <span aria-hidden="true" class="_stack_ido9z_102">
-          <img src="https://horizon.local/assets/card-charizard.png" alt="" loading="lazy" draggable="false" style="--i: 0;">
-          <img src="https://horizon.local/assets/card-umbreon.png" alt="" loading="lazy" draggable="false" style="--i: 1;">
-          <img src="https://horizon.local/assets/card-blastoise.png" alt="" loading="lazy" draggable="false" style="--i: 2;">
-        </span>
-        <span class="_foot_ido9z_135"><span>Browse selection →</span></span>
-      </a>
-    </div>
-  </div>
-</section>
-</div>
-<div class="he-section-wrap" data-he-scope="template" data-he-section="feature" data-he-type="tcg-feature" data-he-label="TCG 收藏信心特性卡 [feature]">
-<section class="_section_3nsi1_1">
-  <div class="_layout_3nsi1_5">
-    <div class="_cardStage_3nsi1_16" aria-hidden="true">
-      <div class="_card_3nsi1_16 _cardBack_3nsi1_43"><img src="https://horizon.local/assets/card-charizard.png" alt="" loading="lazy"></div>
-      <div class="_card_3nsi1_16 _cardMiddle_3nsi1_49"><img src="https://horizon.local/assets/card-palkia.png" alt="" loading="lazy"></div>
-      <div class="_card_3nsi1_16 _cardFront_3nsi1_55"><img src="https://horizon.local/assets/card-umbreon.png" alt="" loading="lazy"></div>
-      <div class="_cardNote_3nsi1_60"><span>Exact card shown</span><strong>Photo, printing and condition stay together.</strong></div>
-    </div>
-    <div class="_content_3nsi1_91">
-      <div class="_intro_3nsi1_98"><h2>Know exactly which card is arriving</h2><p>The option you choose stays connected to its image, finish, language, condition and live stock.</p></div>
-      <dl class="_facts_3nsi1_119">
-        <div><dt>Choose precisely</dt><dd>The product image changes with the selected printing.</dd></div>
-        <div><dt>Trust the stock</dt><dd>Unavailable variants remain visible, but cannot be bought.</dd></div>
-        <div><dt>Follow the order</dt><dd>Use delivery or local pickup and track it from your account.</dd></div>
-      </dl>
-      <div class="_actions_3nsi1_141">
-        <a href="/collections/all" class="_primaryAction_3nsi1_149">Browse single cards</a>
-        <a href="/account" class="_accountAction_3nsi1_195">Create an account</a>
+          <aside class="_summary_1z0wo_183">
+            <h2 class="_summaryTitle_1z0wo_199">Order summary</h2>
+            <div class="_summaryRow_1z0wo_208"><span>Items (<span data-summary-item-count>3</span>)</span><span data-summary-subtotal data-server-subtotal="12695">€126.95</span></div>
+            <div class="_summaryRow_1z0wo_208"><span>Shipping</span><span>Calculated at checkout</span></div>
+            <div class="tcg-discount-field"><label class="tcg-field-label">Discount / Promo code</label><input type="text" name="discount" class="tcg-input" placeholder="Enter promo code (applied at checkout)" data-cart-discount></div>
+            <div class="_summaryTotal_1z0wo_221"><span>Estimated total</span><span data-summary-total data-server-total="12695">€126.95</span></div>
+            <button type="button" name="checkout" class="_checkoutBtn_1z0wo_241" data-proceed-checkout>Go to checkout</button>
+            <p class="_summaryNote_1z0wo_291">Secure payment via Shopify Checkout. Taxes and shipping calculated before payment.</p>
+          </aside>
+        </form>
       </div>
     </div>
   </div>
-</section>
+</div>
 </div>
       </main>
     </div>

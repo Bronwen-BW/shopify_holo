@@ -173,7 +173,10 @@
 
           {%- if section.settings.show_cart_note != false -%}
             <div class="tcg-cart-note-card">
-              <label for="cart-note" class="tcg-field-label">Order note / Packing instructions</label>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
+                <label for="cart-note" class="tcg-field-label">Order note / Packing instructions</label>
+                <span class="tcg-note-status" data-cart-note-status hidden style="font-size:0.75rem;color:#34d399;font-weight:600;">✓ Saved to order</span>
+              </div>
               <textarea
                 form="cart-form"
                 name="note"
@@ -196,12 +199,10 @@
             <span data-summary-subtotal data-testid="cart-subtotal-value">{{ cart.original_total_price | money }}</span>
           </div>
 
-          {%- if cart.cart_level_discount_applications.size > 0 or cart.total_discount > 0 -%}
-            <div class="_summaryRow_1z0wo_208 tcg-summary-discount" data-summary-discount-row>
-              <span>Discounts</span>
-              <span data-summary-discount>-{{ cart.total_discount | money }}</span>
-            </div>
-          {%- endif -%}
+          <div class="_summaryRow_1z0wo_208 tcg-summary-discount" data-summary-discount-row {% unless cart.cart_level_discount_applications.size > 0 or cart.total_discount > 0 %}hidden{% endunless %}>
+            <span>Discounts</span>
+            <span data-summary-discount>-{{ cart.total_discount | money }}</span>
+          </div>
 
           <div class="_summaryRow_1z0wo_208">
             <span>Shipping</span>

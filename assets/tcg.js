@@ -317,6 +317,66 @@
     return apiUrl(fallbackPath);
   }
 
+  var SF_CART_STORAGE_KEY = 'tcg-sf-cart-v1';
+  var LOCAL_NOTE_KEY = 'tcg-order-note-v1';
+  var LOCAL_DISCOUNTS_KEY = 'tcg-discount-codes-v1';
+  var DEFAULT_SF_ACCESS_TOKEN = '62beeb8383e9513ae4ae60d687c2ac8b';
+
+  function loadSavedOrderNote() {
+    try { return localStorage.getItem(LOCAL_NOTE_KEY) || ''; } catch (e) { return ''; }
+  }
+
+  function saveOrderNoteLocal(noteStr) {
+    try { localStorage.setItem(LOCAL_NOTE_KEY, String(noteStr == null ? '' : noteStr)); } catch (e) {}
+  }
+
+  function loadSavedDiscountCodes() {
+    try {
+      var raw = localStorage.getItem(LOCAL_DISCOUNTS_KEY);
+      if (!raw) return [];
+      var arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr.filter(Boolean) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveDiscountCodesLocal(codes) {
+    try {
+      var clean = Array.isArray(codes) ? codes.map(function (c) { return String(c || '').trim(); }).filter(Boolean) : [];
+      localStorage.setItem(LOCAL_DISCOUNTS_KEY, JSON.stringify(clean));
+    } catch (e) {}
+  }
+
+  function buildCheckoutUrlWithNoteAndDiscount(baseUrl, noteVal, discountCodes) {
+    var resultUrl = baseUrl || getThemeRoute('cart_checkout_url', 'checkout');
+    var codes = Array.isArray(discountCodes)
+      ? discountCodes.map(function (c) { return String(c && typeof c === 'object' ? c.code : c || '').trim(); }).filter(Boolean)
+      : [];
+    var cleanNote = String(noteVal == null ? '' : noteVal).trim();
+    if (!codes.length && !cleanNote) return resultUrl;
+
+    var hashIdx = resultUrl.indexOf('#');
+    var hashPart = hashIdx >= 0 ? resultUrl.slice(hashIdx) : '';
+    var withoutHash = hashIdx >= 0 ? resultUrl.slice(0, hashIdx) : resultUrl;
+    var qIdx = withoutHash.indexOf('?');
+    var pathPart = qIdx >= 0 ? withoutHash.slice(0, qIdx) : withoutHash;
+    var queryStr = qIdx >= 0 ? withoutHash.slice(qIdx + 1) : '';
+
+    var pairs = queryStr ? queryStr.split('&').filter(Boolean) : [];
+    var filtered = pairs.filter(function (p) {
+      var k = p.split('=')[0];
+      return k !== 'discount' && k !== 'note';
+    });
+    if (codes.length > 0) {
+      filtered.push('discount=' + encodeURIComponent(codes.join(',')));
+    }
+    if (cleanNote) {
+      filtered.push('note=' + encodeURIComponent(cleanNote));
+    }
+    return pathPart + (filtered.length ? '?' + filtered.join('&') : '') + hashPart;
+  }
+
   function getStorefrontAccessToken() {
     if (window.TCG_ROUTES && window.TCG_ROUTES.storefront_access_token) {
       return window.TCG_ROUTES.storefront_access_token;
@@ -374,7 +434,11 @@
     '  checkoutUrl',
     '  totalQuantity',
     '  note',
+    '  attributes { key value }',
     '  discountCodes { code applicable }',
+    '  discountAllocations {',
+    '    discountedAmount { amount currencyCode }',
+    '  }',
     '  cost {',
     '    subtotalAmount { amount currencyCode }',
     '    totalAmount { amount currencyCode }',
@@ -383,8 +447,13 @@
     '    nodes {',
     '      id',
     '      quantity',
+    '      attributes { key value }',
+    '      discountAllocations {',
+    '        discountedAmount { amount currencyCode }',
+    '      }',
     '      cost {',
     '        amountPerQuantity { amount currencyCode }',
+    '        subtotalAmount { amount currencyCode }',
     '        totalAmount { amount currencyCode }',
     '      }',
     '      merchandise {',
@@ -421,28 +490,46 @@
   function normalizeStorefrontCart(sfCart) {
     if (!sfCart || !sfCart.id) return null;
     var lines = (sfCart.lines && Array.isArray(sfCart.lines.nodes)) ? sfCart.lines.nodes : [];
+    var rawSubtotalCents = 0;
+    var totalLineDiscountCents = 0;
+
     var items = lines.map(function (node) {
       var merch = node.merchandise || {};
       var prod = merch.product || {};
+      var qtyNum = Number(node.quantity) || 1;
       var unitAmt = (node.cost && node.cost.amountPerQuantity && node.cost.amountPerQuantity.amount)
         ? parseFloat(node.cost.amountPerQuantity.amount)
         : (merch.price && merch.price.amount ? parseFloat(merch.price.amount) : 0);
-      var lineAmt = (node.cost && node.cost.totalAmount && node.cost.totalAmount.amount)
+      var lineSubAmt = (node.cost && node.cost.subtotalAmount && node.cost.subtotalAmount.amount)
+        ? parseFloat(node.cost.subtotalAmount.amount)
+        : (unitAmt * qtyNum);
+      var lineTotAmt = (node.cost && node.cost.totalAmount && node.cost.totalAmount.amount)
         ? parseFloat(node.cost.totalAmount.amount)
-        : (unitAmt * (Number(node.quantity) || 1));
+        : lineSubAmt;
+
       var unitCents = Math.round((isNaN(unitAmt) ? 0 : unitAmt) * 100);
-      var lineCents = Math.round((isNaN(lineAmt) ? 0 : lineAmt) * 100);
+      var origLineCents = Math.round((isNaN(lineSubAmt) ? 0 : lineSubAmt) * 100);
+      var finalLineCents = Math.round((isNaN(lineTotAmt) ? 0 : lineTotAmt) * 100);
+      var lineDiscCents = Math.max(0, origLineCents - finalLineCents);
+
+      rawSubtotalCents += origLineCents;
+      totalLineDiscountCents += lineDiscCents;
+
       var vidNum = extractNumericId(merch.id || '');
       return {
         line_id: node.id,
         variant_id: vidNum,
         variant_gid: merch.id || toVariantGid(vidNum),
-        quantity: Number(node.quantity) || 1,
+        quantity: qtyNum,
         product_title: prod.title || 'Product',
         variant_title: (merch.title && merch.title !== 'Default Title') ? merch.title : '',
         sku: merch.sku || '',
-        final_price: unitCents,
-        final_line_price: lineCents,
+        original_price: unitCents,
+        final_price: qtyNum > 0 ? Math.round(finalLineCents / qtyNum) : unitCents,
+        original_line_price: origLineCents,
+        final_line_price: finalLineCents,
+        line_discount: lineDiscCents,
+        attributes: Array.isArray(node.attributes) ? node.attributes : [],
         image: (merch.image && merch.image.url) ? merch.image.url : '',
         url: prod.handle ? apiUrl('products/' + prod.handle) : apiUrl('collections/all')
       };
@@ -450,19 +537,50 @@
 
     var subAmt = (sfCart.cost && sfCart.cost.subtotalAmount && sfCart.cost.subtotalAmount.amount)
       ? parseFloat(sfCart.cost.subtotalAmount.amount)
-      : 0;
+      : (rawSubtotalCents / 100);
     var totAmt = (sfCart.cost && sfCart.cost.totalAmount && sfCart.cost.totalAmount.amount)
       ? parseFloat(sfCart.cost.totalAmount.amount)
       : subAmt;
 
+    var cartLevelDiscCents = 0;
+    if (Array.isArray(sfCart.discountAllocations)) {
+      sfCart.discountAllocations.forEach(function (da) {
+        var dAmt = da && da.discountedAmount && da.discountedAmount.amount ? parseFloat(da.discountedAmount.amount) : 0;
+        if (!isNaN(dAmt) && dAmt > 0) cartLevelDiscCents += Math.round(dAmt * 100);
+      });
+    }
+
+    var finalTotalCents = Math.round((isNaN(totAmt) ? 0 : totAmt) * 100);
+    var origSubtotalCents = rawSubtotalCents > 0 ? rawSubtotalCents : Math.round((isNaN(subAmt) ? 0 : subAmt) * 100);
+    var totalDiscountCents = Math.max(totalLineDiscountCents + cartLevelDiscCents, Math.max(0, origSubtotalCents - finalTotalCents));
+
+    var noteStr = sfCart.note || loadSavedOrderNote() || '';
+    if (sfCart.note !== undefined && sfCart.note !== null) {
+      saveOrderNoteLocal(sfCart.note);
+    }
+
+    var discCodes = Array.isArray(sfCart.discountCodes) ? sfCart.discountCodes : [];
+    var applicableCodes = discCodes.filter(function (d) { return d && d.code && d.applicable !== false; }).map(function (d) { return d.code; });
+    if (applicableCodes.length > 0) {
+      saveDiscountCodesLocal(applicableCodes);
+    }
+
+    var enrichedCheckoutUrl = buildCheckoutUrlWithNoteAndDiscount(
+      sfCart.checkoutUrl || getThemeRoute('cart_checkout_url', 'checkout'),
+      noteStr,
+      applicableCodes.length > 0 ? applicableCodes : loadSavedDiscountCodes()
+    );
+
     var normalized = {
       id: sfCart.id,
-      checkoutUrl: sfCart.checkoutUrl || getThemeRoute('cart_checkout_url', 'checkout'),
+      rawCheckoutUrl: sfCart.checkoutUrl || getThemeRoute('cart_checkout_url', 'checkout'),
+      checkoutUrl: enrichedCheckoutUrl,
       item_count: Number(sfCart.totalQuantity) || 0,
-      note: sfCart.note || '',
-      discount_codes: Array.isArray(sfCart.discountCodes) ? sfCart.discountCodes : [],
-      original_total_price: Math.round((isNaN(subAmt) ? 0 : subAmt) * 100),
-      total_price: Math.round((isNaN(totAmt) ? 0 : totAmt) * 100),
+      note: noteStr,
+      discount_codes: discCodes,
+      original_total_price: origSubtotalCents,
+      total_discount: totalDiscountCents,
+      total_price: finalTotalCents,
       items: items
     };
     saveStorefrontCart(normalized);
@@ -475,11 +593,25 @@
     var saved = loadSavedStorefrontCart();
 
     function createNewSfCart() {
+      var savedNote = loadSavedOrderNote();
+      var savedDiscounts = loadSavedDiscountCodes();
+      var lineItemInput = { merchandiseId: merchGid, quantity: qty };
+      if (savedNote) {
+        lineItemInput.attributes = [{ key: 'Order Note', value: savedNote }];
+      }
+      var cartInput = {
+        lines: [lineItemInput]
+      };
+      if (savedNote) {
+        cartInput.note = savedNote;
+        cartInput.attributes = [{ key: 'Order Note', value: savedNote }];
+      }
+      if (savedDiscounts.length > 0) {
+        cartInput.discountCodes = savedDiscounts;
+      }
       var createMut = SF_CART_FRAGMENT + '\nmutation CartCreate($input: CartInput!) {\n  cartCreate(input: $input) {\n    cart { ...CartFields }\n    userErrors { field message code }\n  }\n}';
       return executeStorefrontGraphql(createMut, {
-        input: {
-          lines: [{ merchandiseId: merchGid, quantity: qty }]
-        }
+        input: cartInput
       }).then(function (res) {
         var payload = res && res.data && res.data.cartCreate;
         if (payload && payload.cart) {
@@ -499,10 +631,15 @@
     }
 
     if (saved && saved.id) {
+      var savedNoteForLine = saved.note || loadSavedOrderNote();
+      var addLineItem = { merchandiseId: merchGid, quantity: qty };
+      if (savedNoteForLine) {
+        addLineItem.attributes = [{ key: 'Order Note', value: savedNoteForLine }];
+      }
       var addLinesMut = SF_CART_FRAGMENT + '\nmutation CartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) {\n  cartLinesAdd(cartId: $cartId, lines: $lines) {\n    cart { ...CartFields }\n    userErrors { field message code }\n  }\n}';
       return executeStorefrontGraphql(addLinesMut, {
         cartId: saved.id,
-        lines: [{ merchandiseId: merchGid, quantity: qty }]
+        lines: [addLineItem]
       }).then(function (res) {
         var payload = res && res.data && res.data.cartLinesAdd;
         if (payload && payload.cart) {
@@ -704,12 +841,12 @@
     });
 
     var reqPromise;
-    if (typeof window.FormData === 'function') {
+    if (formEl && typeof window.FormData === 'function') {
       var formData;
       try {
-        formData = formEl ? new window.FormData(formEl) : new window.FormData();
+        formData = new window.FormData(formEl);
       } catch (e) {
-        formData = new window.FormData();
+        formData = null;
       }
       if (formData && typeof formData.set === 'function') {
         formData.set('id', String(variantId));
@@ -734,9 +871,14 @@
 
     return reqPromise
       .then(function (response) {
-        return response.json().then(function (data) {
+        return response.text().then(function (txt) {
+          var data = {};
+          try { data = JSON.parse(txt); } catch (e) { data = { message: txt || 'Unable to add item to cart.' }; }
           return { httpOk: response.ok, status: response.status, data: data };
         });
+      })
+      .catch(function () {
+        return { httpOk: false, status: 500, data: { status: 500, message: 'Network error' } };
       })
       .then(function (resObj) {
         var data = resObj.data || {};
@@ -773,37 +915,47 @@
           };
         }
 
-        return fetch(apiUrl('cart.js'))
-          .then(function (cr) { return cr.json(); })
-          .then(function (cart) {
-            if (cart && typeof cart.item_count === 'number') {
-              updateCartCount(getCombinedCartItemCount(cart, null), true);
-              var qtyInput = document.querySelector('[data-qty-input]');
-              if (qtyInput && Array.isArray(cart.items)) {
-                var matched = null;
-                for (var i = 0; i < cart.items.length; i++) {
-                  if (String(cart.items[i].variant_id) === String(variantId)) {
-                    matched = cart.items[i];
-                    break;
+        return addVariantViaStorefrontCartApi(variantId, qty)
+          .catch(function () { return null; })
+          .then(function (sfRes) {
+            return fetch(apiUrl('cart.js'))
+              .then(function (cr) { return cr.json(); })
+              .catch(function () { return null; })
+              .then(function (cart) {
+                var sfCart = (sfRes && sfRes.cart) ? sfRes.cart : loadSavedStorefrontCart();
+                updateCartCount(getCombinedCartItemCount(cart, sfCart), true);
+                if (cart && typeof cart.item_count === 'number') {
+                  var qtyInput = document.querySelector('[data-qty-input]');
+                  if (qtyInput && Array.isArray(cart.items)) {
+                    var matched = null;
+                    for (var i = 0; i < cart.items.length; i++) {
+                      if (String(cart.items[i].variant_id) === String(variantId)) {
+                        matched = cart.items[i];
+                        break;
+                      }
+                    }
+                    qtyInput.setAttribute('data-cart-quantity', String(matched ? matched.quantity : 0));
                   }
                 }
-                qtyInput.setAttribute('data-cart-quantity', String(matched ? matched.quantity : 0));
-              }
-            }
-            return {
-              ok: true,
-              source: 'shopify',
-              checkoutUrl: getThemeRoute('cart_checkout_url', 'checkout'),
-              cart: cart,
-              response: data
-            };
+                var bestCheckoutUrl = (sfRes && sfRes.checkoutUrl)
+                  || (sfCart && sfCart.checkoutUrl)
+                  || buildCheckoutUrlWithNoteAndDiscount(getThemeRoute('cart_checkout_url', 'checkout'), loadSavedOrderNote(), loadSavedDiscountCodes());
+                syncCheckoutLinksWithUrl(bestCheckoutUrl);
+                return {
+                  ok: true,
+                  source: 'shopify',
+                  checkoutUrl: bestCheckoutUrl,
+                  cart: cart || sfCart,
+                  response: data
+                };
+              });
           });
       });
   }
 
   on('[data-add]', 'click', function (e, btn) {
-    e.preventDefault();
-    e.stopPropagation();
+    if (e.preventDefault) e.preventDefault();
+    if (e.stopPropagation) e.stopPropagation();
     if (btn.disabled) return;
     var variantId = btn.getAttribute('data-variant') || btn.getAttribute('data-product-id');
     if (!variantId) return;
@@ -1584,6 +1736,13 @@
         })
       : [];
 
+    var activeNote = (sfCart && sfCart.note) ? sfCart.note : loadSavedOrderNote();
+    cartSection.querySelectorAll('[data-cart-note]').forEach(function (ta) {
+      if (document.activeElement !== ta && !ta.value && activeNote) {
+        ta.value = activeNote;
+      }
+    });
+
     if (sfContainer) {
       if (!sfItems.length) {
         sfContainer.innerHTML = '';
@@ -1595,10 +1754,19 @@
           var vTitle = (item.variant_title && item.variant_title !== 'Default Title') ? escapeHtml(item.variant_title) : '';
           var sku = item.sku ? escapeHtml(item.sku) : '';
           var qty = Math.max(1, Number(item.quantity) || 1);
-          var unitCents = Number(item.final_price) || 0;
-          var lineCents = Number(item.final_line_price) || (unitCents * qty);
+          var unitCents = Number(item.final_price !== undefined ? item.final_price : item.original_price) || 0;
+          var origLineCents = Number(item.original_line_price) || (Number(item.original_price || unitCents) * qty);
+          var lineCents = Number(item.final_line_price !== undefined ? item.final_line_price : origLineCents);
+          var lineDiscCents = Math.max(0, origLineCents - lineCents);
           var imgSrc = escapeHtml(item.image || '');
           var url = escapeHtml(item.url || apiUrl('collections/all'));
+          var noteAttrVal = '';
+          if (Array.isArray(item.attributes)) {
+            item.attributes.forEach(function (attr) {
+              if (attr && attr.key === 'Order Note' && attr.value) noteAttrVal = attr.value;
+            });
+          }
+          if (!noteAttrVal && activeNote) noteAttrVal = activeNote;
 
           return (
             '<div class="_row_1z0wo_52" data-cart-row data-cart-source="storefront_api" data-sf-line-id="' + lineId + '" data-variant-id="' + vid + '" data-unit-price="' + unitCents + '" data-quantity="' + qty + '">' +
@@ -1612,6 +1780,12 @@
                   (sku ? '<code class="tcg-sku-code">SKU: ' + sku + '</code>' : '') +
                   '<span class="_rowUnitPrice_1z0wo_94">' + escapeHtml(formatMoneyCents(unitCents)) + ' each</span>' +
                 '</div>' +
+                (noteAttrVal
+                  ? '<div class="tcg-cart-meta" style="margin-top:0.2rem;"><span class="_rowUnitPrice_1z0wo_94" style="color:#34d399;">Order Note: ' + escapeHtml(noteAttrVal) + '</span></div>'
+                  : '') +
+                (lineDiscCents > 0
+                  ? '<div class="tcg-cart-discounts"><span class="tcg-discount-pill">Promo Discount (-' + escapeHtml(formatMoneyCents(lineDiscCents)) + ')</span></div>'
+                  : '') +
                 '<div class="_qtyControl_1z0wo_100" data-cart-qty>' +
                   '<button type="button" name="minus" class="_qtyBtn_1z0wo_110" data-cart-minus data-sf-line-id="' + lineId + '" aria-label="Decrease quantity">' +
                     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"></path></svg>' +
@@ -1625,6 +1799,7 @@
                 '<p class="tcg-form-error" data-cart-line-error="sf-' + idx + '" hidden></p>' +
               '</div>' +
               '<div class="_rowEnd_1z0wo_145">' +
+                (origLineCents > lineCents ? '<del class="tcg-line-compare">' + escapeHtml(formatMoneyCents(origLineCents)) + '</del>' : '') +
                 '<span class="_lineTotal_1z0wo_152" data-row-line-total>' + escapeHtml(formatMoneyCents(lineCents)) + '</span>' +
                 '<button type="button" class="_removeBtn_1z0wo_160" data-cart-remove data-sf-line-id="' + lineId + '" aria-label="Remove ' + title + '">' +
                   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>Remove' +
@@ -1637,14 +1812,19 @@
     }
 
     var sfCount = 0;
-    var sfSubtotalCents = 0;
+    var sfOrigSubtotalCents = 0;
+    var sfFinalSubtotalCents = 0;
     sfItems.forEach(function (it) {
-      sfCount += (Number(it.quantity) || 0);
-      sfSubtotalCents += (Number(it.final_line_price) || 0);
+      var q = Number(it.quantity) || 0;
+      sfCount += q;
+      var origLine = Number(it.original_line_price) || ((Number(it.original_price || it.final_price) || 0) * q);
+      var finalLine = Number(it.final_line_price !== undefined ? it.final_line_price : origLine);
+      sfOrigSubtotalCents += origLine;
+      sfFinalSubtotalCents += finalLine;
     });
 
     var combinedCount = serverCount + sfCount;
-    var combinedCents = serverSubtotalCents + sfSubtotalCents;
+    var combinedOrigCents = serverSubtotalCents + sfOrigSubtotalCents;
 
     var filledView = cartSection.querySelector('[data-cart-filled-view]');
     var emptyView = cartSection.querySelector('[data-cart-empty-view]');
@@ -1658,7 +1838,8 @@
       }
     }
 
-    if (sfItems.length > 0 || serverCount === 0) {
+    var hasSfCart = Boolean(sfCart && sfCart.id && Array.isArray(sfCart.items) && sfCart.items.length > 0);
+    if (sfItems.length > 0 || serverCount === 0 || hasSfCart) {
       updateCartCount(combinedCount, false);
       var headerCount = cartSection.querySelector('[data-cart-header-count]');
       if (headerCount) {
@@ -1667,28 +1848,81 @@
       cartSection.querySelectorAll('[data-summary-item-count]').forEach(function (el) {
         el.textContent = String(combinedCount);
       });
+      var displayOrigCents = (hasSfCart && typeof sfCart.original_total_price === 'number' && sfCart.original_total_price > 0)
+        ? Math.max(combinedOrigCents, sfCart.original_total_price)
+        : combinedOrigCents;
       cartSection.querySelectorAll('[data-summary-subtotal]').forEach(function (el) {
-        el.textContent = formatMoneyCents(combinedCents);
+        el.textContent = formatMoneyCents(displayOrigCents);
       });
-      var finalTotalCents = (serverCount === 0 && sfCart && typeof sfCart.total_price === 'number')
-        ? sfCart.total_price
-        : combinedCents;
+
+      var totalDiscountCents = (hasSfCart && typeof sfCart.total_discount === 'number')
+        ? sfCart.total_discount
+        : Math.max(0, displayOrigCents - (serverSubtotalCents + sfFinalSubtotalCents));
+      var finalTotalCents = (hasSfCart && typeof sfCart.total_price === 'number')
+        ? Math.max(0, displayOrigCents - totalDiscountCents)
+        : (serverSubtotalCents + sfFinalSubtotalCents);
+
+      cartSection.querySelectorAll('[data-summary-discount-row]').forEach(function (row) {
+        if (totalDiscountCents > 0) {
+          row.removeAttribute('hidden');
+          row.hidden = false;
+        } else {
+          row.setAttribute('hidden', '');
+          row.hidden = true;
+        }
+      });
+      cartSection.querySelectorAll('[data-summary-discount]').forEach(function (el) {
+        el.textContent = '-' + formatMoneyCents(totalDiscountCents);
+      });
+
       cartSection.querySelectorAll('[data-summary-total]').forEach(function (el) {
         el.textContent = formatMoneyCents(finalTotalCents);
       });
+
+      // 渲染已生效的折扣码胶囊
+      var activeDiscounts = [];
+      if (sfCart && Array.isArray(sfCart.discount_codes)) {
+        sfCart.discount_codes.forEach(function (d) {
+          if (d && d.code && d.applicable !== false && activeDiscounts.indexOf(d.code) === -1) {
+            activeDiscounts.push(d.code);
+          }
+        });
+      }
+      if (!activeDiscounts.length) {
+        activeDiscounts = loadSavedDiscountCodes();
+      }
+      cartSection.querySelectorAll('[data-cart-discount-pills]').forEach(function (ul) {
+        ul.innerHTML = activeDiscounts.map(function (c) {
+          var codeEsc = escapeHtml(c);
+          return (
+            '<li class="tcg-discount-pill" data-discount-code="' + codeEsc + '">' +
+              '<span>' + codeEsc + '</span>' +
+              '<button type="button" data-remove-discount="' + codeEsc + '" aria-label="Remove discount ' + codeEsc + '" style="background:none;border:0;color:inherit;margin-left:0.35rem;cursor:pointer;font-weight:700;">×</button>' +
+            '</li>'
+          );
+        }).join('');
+      });
+
       var checkoutBtn = cartSection.querySelector('[data-official-checkout-submit]');
       if (checkoutBtn) {
         checkoutBtn.disabled = combinedCount <= 0;
         if (combinedCount > 0) checkoutBtn.removeAttribute('disabled');
       }
-      if (sfCart && sfCart.checkoutUrl) {
-        syncCheckoutLinksWithUrl(sfCart.checkoutUrl);
+      if (sfCart && (sfCart.rawCheckoutUrl || sfCart.checkoutUrl)) {
+        var syncedUrl = buildCheckoutUrlWithNoteAndDiscount(
+          sfCart.rawCheckoutUrl || sfCart.checkoutUrl,
+          activeNote,
+          activeDiscounts
+        );
+        sfCart.checkoutUrl = syncedUrl;
+        saveStorefrontCart(sfCart);
+        syncCheckoutLinksWithUrl(syncedUrl);
       }
       var checkoutItemsBox = cartSection.querySelector('[data-checkout-summary-items]');
       if (checkoutItemsBox && serverCount === 0 && sfItems.length > 0) {
         checkoutItemsBox.innerHTML = sfItems.map(function (it) {
           var vLabel = (it.variant_title && it.variant_title !== 'Default Title') ? ' (' + escapeHtml(it.variant_title) + ')' : '';
-          var lineCents = Number(it.final_line_price) || ((Number(it.final_price) || 0) * (Number(it.quantity) || 1));
+          var lineCents = Number(it.final_line_price !== undefined ? it.final_line_price : it.original_line_price) || 0;
           return (
             '<div class="tcg-checkout-item">' +
               '<span>' + escapeHtml(it.quantity) + '× ' + escapeHtml(it.product_title) + vLabel + '</span>' +
@@ -1901,18 +2135,132 @@
     updateCartLineQuantity(btn.getAttribute('data-line') || (row && row.getAttribute('data-line')), 0, row);
   });
 
-  // 当购物车中含有通过 Storefront Cart API 创建的商品且 AJAX /cart 为空时，点击 Go to checkout 跳转至 Storefront Cart 的官方 Shopify checkoutUrl
-  on('[data-tcg-official-cart-form]', 'submit', function (e, form) {
-    var serverRows = form.querySelectorAll('[data-cart-row][data-cart-source="shopify"]');
-    var sfCart = loadSavedStorefrontCart();
-    if (serverRows.length === 0 && sfCart && sfCart.checkoutUrl && Array.isArray(sfCart.items) && sfCart.items.length > 0) {
-      e.preventDefault();
-      window.location.href = sfCart.checkoutUrl;
+  function syncNoteAndDiscountsToStorefrontCart(noteVal, discountCodes) {
+    var cleanNote = String(noteVal == null ? '' : noteVal).trim();
+    saveOrderNoteLocal(cleanNote);
+    if (Array.isArray(discountCodes)) {
+      saveDiscountCodesLocal(discountCodes);
     }
+    var sfCart = loadSavedStorefrontCart();
+    if (!sfCart || !sfCart.id) return Promise.resolve(null);
+
+    var promises = [];
+
+    // 1. 同步订单级备注与属性，并将 Order Note 写入首个商品行的 line attributes（确保在 Shopify Checkout 右侧商品栏直接可见）
+    var noteMut = SF_CART_FRAGMENT + '\nmutation SyncCartNoteAndAttrs($cartId: ID!, $note: String!, $attrs: [AttributeInput!]!) {\n  cartNoteUpdate(cartId: $cartId, note: $note) {\n    cart { ...CartFields }\n  }\n  cartAttributesUpdate(attributes: $attrs, cartId: $cartId) {\n    cart { ...CartFields }\n  }\n}';
+    var attrsInput = cleanNote ? [{ key: 'Order Note', value: cleanNote }] : [];
+    promises.push(
+      executeStorefrontGraphql(noteMut, {
+        cartId: sfCart.id,
+        note: cleanNote,
+        attrs: attrsInput
+      }).then(function (r) {
+        var updatedCart = (r && r.data && r.data.cartAttributesUpdate && r.data.cartAttributesUpdate.cart)
+          || (r && r.data && r.data.cartNoteUpdate && r.data.cartNoteUpdate.cart);
+        if (updatedCart) {
+          sfCart = normalizeStorefrontCart(updatedCart) || sfCart;
+        }
+        if (sfCart && Array.isArray(sfCart.items) && sfCart.items.length > 0) {
+          var firstItem = sfCart.items[0];
+          var lineAttrs = (firstItem.attributes || []).filter(function (a) { return a && a.key !== 'Order Note'; });
+          if (cleanNote) {
+            lineAttrs.push({ key: 'Order Note', value: cleanNote });
+          }
+          var lineAttrMut = SF_CART_FRAGMENT + '\nmutation UpdateLineNoteAttr($cartId: ID!, $lines: [CartLineUpdateInput!]!) {\n  cartLinesUpdate(cartId: $cartId, lines: $lines) {\n    cart { ...CartFields }\n  }\n}';
+          return executeStorefrontGraphql(lineAttrMut, {
+            cartId: sfCart.id,
+            lines: [{ id: firstItem.line_id, quantity: firstItem.quantity, attributes: lineAttrs }]
+          }).then(function (lr) {
+            if (lr && lr.data && lr.data.cartLinesUpdate && lr.data.cartLinesUpdate.cart) {
+              sfCart = normalizeStorefrontCart(lr.data.cartLinesUpdate.cart) || sfCart;
+            }
+          });
+        }
+      }).catch(function () {})
+    );
+
+    // 2. 同步折扣码列表
+    if (Array.isArray(discountCodes)) {
+      var discMut = SF_CART_FRAGMENT + '\nmutation SyncCartDiscounts($cartId: ID!, $discountCodes: [String!]!) {\n  cartDiscountCodesUpdate(cartId: $cartId, discountCodes: $discountCodes) {\n    cart { ...CartFields }\n  }\n}';
+      promises.push(
+        executeStorefrontGraphql(discMut, {
+          cartId: sfCart.id,
+          discountCodes: discountCodes
+        }).then(function (dr) {
+          if (dr && dr.data && dr.data.cartDiscountCodesUpdate && dr.data.cartDiscountCodesUpdate.cart) {
+            sfCart = normalizeStorefrontCart(dr.data.cartDiscountCodesUpdate.cart) || sfCart;
+          }
+        }).catch(function () {})
+      );
+    }
+
+    return Promise.all(promises).then(function () {
+      renderStorefrontCartItemsInCartPage();
+      document.querySelectorAll('[data-cart-note-status]').forEach(function (el) {
+        if (cleanNote) {
+          el.removeAttribute('hidden');
+          el.hidden = false;
+        } else {
+          el.setAttribute('hidden', '');
+          el.hidden = true;
+        }
+      });
+      return loadSavedStorefrontCart();
+    });
+  }
+
+  // 点击 Go to checkout 时：自动把当前备注框与未点击 Apply 的折扣码输入框中的内容同步到官方支付会话，再跳转至带 discount 参数的官方支付页
+  on('[data-tcg-official-cart-form]', 'submit', function (e, form) {
+    var noteInput = form.querySelector('[data-cart-note]') || document.querySelector('[data-cart-note]');
+    var discInput = form.querySelector('[data-cart-discount]') || document.querySelector('[data-cart-discount]');
+    var noteVal = noteInput ? noteInput.value.trim() : loadSavedOrderNote();
+    var existingCodes = getExistingDiscountCodes(form);
+    var typedCode = discInput && discInput.value ? discInput.value.trim() : '';
+    if (typedCode && existingCodes.indexOf(typedCode) === -1) {
+      existingCodes.push(typedCode);
+    }
+    if (!existingCodes.length) {
+      existingCodes = loadSavedDiscountCodes();
+    }
+    if (discInput && existingCodes.length > 0) {
+      discInput.value = existingCodes.join(',');
+    }
+
+    var sfCart = loadSavedStorefrontCart();
+
+    if (sfCart && sfCart.id && Array.isArray(sfCart.items) && sfCart.items.length > 0) {
+      if (e.preventDefault) e.preventDefault();
+      var submitBtn = form.querySelector('[data-official-checkout-submit]');
+      if (submitBtn) submitBtn.disabled = true;
+
+      syncNoteAndDiscountsToStorefrontCart(noteVal, existingCodes)
+        .then(function (updatedCart) {
+          var latest = updatedCart || loadSavedStorefrontCart() || sfCart;
+          var targetUrl = buildCheckoutUrlWithNoteAndDiscount(
+            latest.rawCheckoutUrl || latest.checkoutUrl,
+            noteVal,
+            existingCodes
+          );
+          window.location.href = targetUrl;
+        })
+        .catch(function () {
+          var fallbackUrl = buildCheckoutUrlWithNoteAndDiscount(
+            sfCart.rawCheckoutUrl || sfCart.checkoutUrl,
+            noteVal,
+            existingCodes
+          );
+          window.location.href = fallbackUrl;
+        });
+      return;
+    }
+
+    // 即使未创建 Storefront Cart 而走传统 /cart 表单提交，也同步保存备注与折扣码到本地与表单隐藏字段
+    saveOrderNoteLocal(noteVal);
+    if (existingCodes.length > 0) saveDiscountCodesLocal(existingCodes);
   });
 
   /**
-   * 对齐参考模板 assets/cart-note.js：输入订单备注时防抖 200ms POST JSON { note } 到 Theme.routes.cart_update_url（同时同步到 Storefront Cart）
+   * 对齐参考模板 assets/cart-note.js：输入订单备注时防抖 200ms POST JSON { note } 到 Theme.routes.cart_update_url（同时同步到 Storefront Cart 与商品行属性）
    */
   var noteTimer = null;
   var noteAbortController = null;
@@ -1920,17 +2268,8 @@
     clearTimeout(noteTimer);
     noteTimer = setTimeout(function () {
       var noteVal = textarea.value;
-      var sfCart = loadSavedStorefrontCart();
-      if (sfCart && sfCart.id) {
-        var noteMut = SF_CART_FRAGMENT + '\nmutation CartNoteUpdate($cartId: ID!, $note: String!) {\n  cartNoteUpdate(cartId: $cartId, note: $note) {\n    cart { ...CartFields }\n  }\n}';
-        executeStorefrontGraphql(noteMut, { cartId: sfCart.id, note: noteVal })
-          .then(function (r) {
-            if (r && r.data && r.data.cartNoteUpdate && r.data.cartNoteUpdate.cart) {
-              normalizeStorefrontCart(r.data.cartNoteUpdate.cart);
-            }
-          })
-          .catch(function () {});
-      }
+      syncNoteAndDiscountsToStorefrontCart(noteVal, null);
+
       if (noteAbortController && typeof noteAbortController.abort === 'function') {
         noteAbortController.abort();
       }
@@ -1941,7 +2280,7 @@
       if (!/\.js($|\?)/.test(updateUrl)) {
         updateUrl = updateUrl.replace(/\/?$/, '.js');
       }
-      var cfg = fetchConfig('json', { body: JSON.stringify({ note: noteVal }) });
+      var cfg = fetchConfig('json', { body: JSON.stringify({ note: noteVal, attributes: { 'Order Note': noteVal } }) });
       if (noteAbortController) cfg.signal = noteAbortController.signal;
       fetch(updateUrl, cfg).catch(function () {});
     }, 200);
@@ -1962,16 +2301,41 @@
   function applyOrUpdateDiscounts(discountList, wrapper, inputEl) {
     var sectionId = (wrapper && wrapper.getAttribute('data-section-id')) || '';
     var errEl = wrapper ? wrapper.querySelector('[data-cart-discount-error]') : null;
-    if (errEl) errEl.setAttribute('hidden', '');
+    if (errEl) {
+      errEl.setAttribute('hidden', '');
+      errEl.hidden = true;
+    }
 
+    var typedCode = (inputEl && inputEl.value) ? inputEl.value.trim() : '';
     var sfCart = loadSavedStorefrontCart();
+    var sfHandled = false;
+
+    var sfPromise = Promise.resolve();
     if (sfCart && sfCart.id) {
-      var discMut = SF_CART_FRAGMENT + '\nmutation CartDiscountCodesUpdate($cartId: ID!, $discountCodes: [String!]) {\n  cartDiscountCodesUpdate(cartId: $cartId, discountCodes: $discountCodes) {\n    cart { ...CartFields }\n  }\n}';
-      executeStorefrontGraphql(discMut, { cartId: sfCart.id, discountCodes: discountList })
+      var discMut = SF_CART_FRAGMENT + '\nmutation CartDiscountCodesUpdate($cartId: ID!, $discountCodes: [String!]!) {\n  cartDiscountCodesUpdate(cartId: $cartId, discountCodes: $discountCodes) {\n    cart { ...CartFields }\n    userErrors { field message }\n  }\n}';
+      sfPromise = executeStorefrontGraphql(discMut, { cartId: sfCart.id, discountCodes: discountList })
         .then(function (r) {
-          if (r && r.data && r.data.cartDiscountCodesUpdate && r.data.cartDiscountCodesUpdate.cart) {
-            normalizeStorefrontCart(r.data.cartDiscountCodesUpdate.cart);
+          var payload = r && r.data && r.data.cartDiscountCodesUpdate;
+          if (payload && payload.cart) {
+            sfHandled = true;
+            var rawCodes = Array.isArray(payload.cart.discountCodes) ? payload.cart.discountCodes : [];
+            var isInvalidInSf = typedCode && rawCodes.some(function (d) {
+              return d && String(d.code || '').toLowerCase() === typedCode.toLowerCase() && d.applicable === false;
+            });
+            var validCodes = rawCodes.filter(function (d) { return d && d.code && d.applicable !== false; }).map(function (d) { return d.code; });
+            saveDiscountCodesLocal(validCodes);
+            normalizeStorefrontCart(payload.cart);
             renderStorefrontCartItemsInCartPage();
+
+            if (isInvalidInSf) {
+              if (inputEl) inputEl.value = '';
+              if (errEl) {
+                errEl.removeAttribute('hidden');
+                errEl.hidden = false;
+              }
+            } else if (inputEl) {
+              inputEl.value = '';
+            }
           }
         })
         .catch(function () {});
@@ -1987,31 +2351,36 @@
     };
     if (sectionId) payload.sections = [sectionId];
 
-    return fetch(updateUrl, fetchConfig('json', { body: JSON.stringify(payload) }))
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        if (inputEl && inputEl.value) {
-          var codeVal = inputEl.value.trim();
-          if (Array.isArray(data.discount_codes)) {
+    return sfPromise.then(function () {
+      return fetch(updateUrl, fetchConfig('json', { body: JSON.stringify(payload) }))
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (sfHandled) return;
+          if (typedCode && Array.isArray(data.discount_codes)) {
             var invalid = data.discount_codes.some(function (d) {
-              return d && d.code === codeVal && d.applicable === false;
+              return d && String(d.code || '').toLowerCase() === typedCode.toLowerCase() && d.applicable === false;
             });
             if (invalid) {
-              inputEl.value = '';
-              if (errEl) errEl.removeAttribute('hidden');
+              if (inputEl) inputEl.value = '';
+              if (errEl) {
+                errEl.removeAttribute('hidden');
+                errEl.hidden = false;
+              }
               return;
             }
           }
-        }
-        if (sectionId && data.sections && data.sections[sectionId]) {
-          syncCartDomFromSectionHtml(sectionId, data.sections[sectionId]);
-        } else if (typeof data.total_price === 'number') {
-          document.querySelectorAll('[data-summary-total]').forEach(function (el) {
-            el.textContent = formatMoneyCents(data.total_price);
-          });
-        }
-      })
-      .catch(function () {});
+          if (inputEl) inputEl.value = '';
+          saveDiscountCodesLocal(discountList);
+          if (sectionId && data.sections && data.sections[sectionId]) {
+            syncCartDomFromSectionHtml(sectionId, data.sections[sectionId]);
+          } else if (typeof data.total_price === 'number') {
+            document.querySelectorAll('[data-summary-total]').forEach(function (el) {
+              el.textContent = formatMoneyCents(data.total_price);
+            });
+          }
+        })
+        .catch(function () {});
+    });
   }
 
   on('[data-apply-discount-btn]', 'click', function (e, btn) {
@@ -2023,6 +2392,18 @@
     var existing = getExistingDiscountCodes(wrapper);
     if (existing.indexOf(code) === -1) existing.push(code);
     applyOrUpdateDiscounts(existing, wrapper, input);
+  });
+
+  on('[data-cart-discount]', 'keydown', function (e, input) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      var wrapper = input.closest('[data-cart-discount-wrapper]') || document;
+      var code = input.value.trim();
+      if (!code) return;
+      var existing = getExistingDiscountCodes(wrapper);
+      if (existing.indexOf(code) === -1) existing.push(code);
+      applyOrUpdateDiscounts(existing, wrapper, input);
+    }
   });
 
   on('[data-remove-discount]', 'click', function (e, btn) {

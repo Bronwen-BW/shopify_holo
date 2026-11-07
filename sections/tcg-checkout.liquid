@@ -111,10 +111,14 @@
               </button>
             </div>
             <p class="tcg-form-error" data-cart-discount-error hidden style="margin-top:0.4rem;">Invalid or inapplicable discount code.</p>
+            <ul class="tcg-cart-discounts" data-cart-discount-pills style="list-style:none;padding:0;margin:0.5rem 0 0;display:flex;flex-wrap:wrap;gap:0.4rem;"></ul>
           </div>
 
           <div class="tcg-form-row" style="margin-top:1rem;">
-            <label for="CheckoutNote" class="tcg-field-label">Order / Delivery Instructions</label>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
+              <label for="CheckoutNote" class="tcg-field-label">Order / Delivery Instructions</label>
+              <span class="tcg-note-status" data-cart-note-status hidden style="font-size:0.75rem;color:#34d399;font-weight:600;">✓ Saved to order</span>
+            </div>
             <textarea
               form="cart-form"
               id="CheckoutNote"
@@ -146,12 +150,10 @@
           <span data-summary-subtotal>{{ cart.original_total_price | money }}</span>
         </div>
 
-        {%- if cart.total_discount > 0 -%}
-          <div class="_summaryRow_1z0wo_208 tcg-summary-discount">
-            <span>Discounts</span>
-            <span data-summary-discount>-{{ cart.total_discount | money }}</span>
-          </div>
-        {%- endif -%}
+        <div class="_summaryRow_1z0wo_208 tcg-summary-discount" data-summary-discount-row {% unless cart.total_discount > 0 %}hidden{% endunless %}>
+          <span>Discounts</span>
+          <span data-summary-discount>-{{ cart.total_discount | money }}</span>
+        </div>
 
         <div class="_summaryRow_1z0wo_208">
           <span>Shipping &amp; Taxes</span>
