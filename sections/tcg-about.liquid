@@ -1,21 +1,33 @@
 {%- comment -%}
-  TCG About Us 页面（品牌故事、藏家承诺、数据指标与 Shopify page.content 集成）
+  TCG About Us 页面（品牌故事、藏家承诺、数据指标、检验流程时间轴与 Shopify page.content 集成）
 {%- endcomment -%}
 
 <div class="_page_4xdw3_1" data-tcg-about-section>
   <div class="_wide_4xdw3_6">
 
+    {%- comment %} 面包屑导航 {% endcomment -%}
+    <nav aria-label="Breadcrumb" class="_breadcrumb_4xdw3_11">
+      <a aria-label="Back to home" href="{{ routes.root_url }}" class="_crumbBack_4xdw3_69">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+      </a>
+      <ol>
+        <li><a href="{{ routes.root_url }}">Home</a></li>
+        <li aria-current="page"><span>About Us</span></li>
+      </ol>
+    </nav>
+
     {%- comment %} 顶部 Hero 介绍卡 {% endcomment -%}
     <section class="tcg-hero-banner-card">
       <div class="tcg-hero-banner-copy">
         <span class="tcg-eyebrow">{{ section.settings.eyebrow | default: 'About TCGHaven' }}</span>
-        <h1 class="_heading_1z0wo_14">{{ section.settings.heading | default: 'Built by Collectors, for Collectors.' }}</h1>
+        <h1 class="_heading_1z0wo_14" style="margin-top:0.35rem;">{{ section.settings.heading | default: 'Built by Collectors, for Collectors.' }}</h1>
         <p class="tcg-lead-text">
           {{ section.settings.intro | default: 'We specialize in authentic singles, factory-sealed booster boxes, and precision-graded collector slabs across Pokémon, Yu-Gi-Oh!, Magic: The Gathering, Disney Lorcana, and more.' }}
         </p>
         <div class="_actions_dtm2o_101" style="margin-top:1.5rem;">
           <a href="{{ routes.all_products_collection_url }}" class="_primaryButton_4xdw3_673" style="flex:none;">Explore the catalog</a>
-          <a href="/pages/contact" class="tcg-btn-secondary">Get in touch</a>
+          <a href="/blogs/news" class="tcg-btn-secondary">Read Collector Journal</a>
+          <a href="/pages/contact" class="tcg-btn-ghost">Get in touch</a>
         </div>
       </div>
       <div class="tcg-hero-banner-art">
@@ -56,24 +68,62 @@
       {%- if section.blocks.size > 0 -%}
         {%- for block in section.blocks -%}
           <div class="tcg-card-panel" {{ block.shopify_attributes }}>
-            <h3>{{ block.settings.title }}</h3>
+            <span class="tcg-badge-pill">0{{ forloop.index }}</span>
+            <h3 style="margin-top:0.65rem;">{{ block.settings.title }}</h3>
             <p class="tcg-muted-text" style="margin-top:.5rem;">{{ block.settings.text }}</p>
           </div>
         {%- endfor -%}
       {%- else -%}
         <div class="tcg-card-panel">
-          <h3>Strict Grading &amp; Condition Checks</h3>
-          <p class="tcg-muted-text" style="margin-top:.5rem;">Every single card is inspected under studio lighting for surface, centering, corners, and edges before entering our climate-controlled vault.</p>
+          <span class="tcg-badge-pill">01 · Inspection</span>
+          <h3 style="margin-top:0.65rem;">Strict Grading &amp; Condition Checks</h3>
+          <p class="tcg-muted-text" style="margin-top:.5rem;">Every single card is inspected under 5500K studio lighting for surface, centering, corners, and edges before entering our climate-controlled vault.</p>
         </div>
         <div class="tcg-card-panel">
-          <h3>Factory-Sealed Provenance</h3>
-          <p class="tcg-muted-text" style="margin-top:.5rem;">Our booster boxes, Elite Trainer Boxes, and collector gift sets come directly from authorized distribution channels with intact factory wrap.</p>
+          <span class="tcg-badge-pill">02 · Provenance</span>
+          <h3 style="margin-top:0.65rem;">Factory-Sealed Provenance</h3>
+          <p class="tcg-muted-text" style="margin-top:.5rem;">Our booster boxes, Elite Trainer Boxes, and collector gift sets come directly from authorized distribution channels with intact factory shrink-wrap.</p>
         </div>
         <div class="tcg-card-panel">
-          <h3>Collector-Grade Packaging</h3>
-          <p class="tcg-muted-text" style="margin-top:.5rem;">Singles ship in a penny sleeve, rigid toploader, team bag, and bubble mailer. Graded slabs and sealed boxes ship double-boxed with corner protection.</p>
+          <span class="tcg-badge-pill">03 · Fulfillment</span>
+          <h3 style="margin-top:0.65rem;">Collector-Grade Armor Packaging</h3>
+          <p class="tcg-muted-text" style="margin-top:.5rem;">Singles ship in an acid-free penny sleeve, rigid toploader, team bag, and bubble mailer. Graded slabs and sealed boxes ship double-boxed with corner armor.</p>
         </div>
       {%- endif -%}
+    </section>
+
+    {%- comment %} 4 步藏家检验与发货流程卡片 {% endcomment -%}
+    <section class="tcg-card-panel" style="margin-top:1.5rem;">
+      <div class="tcg-panel-head">
+        <div>
+          <span class="tcg-eyebrow">Our Vault Workflow</span>
+          <h2 style="margin-top:0.25rem;">How Every Card &amp; Sealed Box Reaches You</h2>
+        </div>
+        <a href="{{ routes.all_products_collection_url }}" class="tcg-link-accent">Browse verified stock →</a>
+      </div>
+
+      <div class="tcg-about-steps-grid">
+        <div class="tcg-about-step-item">
+          <span class="tcg-about-step-num">Step 1</span>
+          <h3>Sourcing &amp; Authentication</h3>
+          <p class="tcg-muted-text">All sealed products are sourced from official distributors, and every raw single or PSA/BGS slab is verified against counterfeit and tampering markers.</p>
+        </div>
+        <div class="tcg-about-step-item">
+          <span class="tcg-about-step-num">Step 2</span>
+          <h3>5500K Studio Grading</h3>
+          <p class="tcg-muted-text">Cards are examined under daylight-balanced lamps for holo print lines, whitening, and surface integrity, then immediately sleeved.</p>
+        </div>
+        <div class="tcg-about-step-item">
+          <span class="tcg-about-step-num">Step 3</span>
+          <h3>Climate-Controlled Storage</h3>
+          <p class="tcg-muted-text">Inventory is stored at 45%–50% relative humidity in UV-protected vault cabinets to prevent foil curling or seal degradation.</p>
+        </div>
+        <div class="tcg-about-step-item">
+          <span class="tcg-about-step-num">Step 4</span>
+          <h3>24h Tracked Dispatch</h3>
+          <p class="tcg-muted-text">Orders are packed with 4-layer collector armor and dispatched within 1 business day with end-to-end tracking updates.</p>
+        </div>
+      </div>
     </section>
 
   </div>

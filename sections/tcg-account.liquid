@@ -1,28 +1,71 @@
 {%- comment -%}
-  TCG 用户中心页（对接 Shopify 官方 customer、customer.orders、customer.default_address、routes.account_* 接口）
+  TCG 用户中心页（与 TCG 主题风格完全统一，对接 Shopify 官方 customer、customer.orders、customer.default_address、routes.account_* 接口）
+  同时支持未登录预览模式，方便在店铺与编辑器中直接查看并切换登录、注册、地址与订单面板
 {%- endcomment -%}
 
 <div class="_page_4xdw3_1" data-tcg-account-section>
   <div class="_wide_4xdw3_6">
 
-    {%- if customer -%}
-      <header class="_header_1z0wo_6">
-        <div>
-          <span class="tcg-eyebrow">Collector Account</span>
-          <h1 class="_heading_1z0wo_14">{{ section.settings.heading | default: 'Welcome back,' }} {{ customer.first_name | default: customer.name }}</h1>
-          <p class="tcg-subtext">{{ customer.email }}</p>
-        </div>
-        <div class="tcg-account-top-actions">
-          <a href="{{ routes.account_addresses_url }}" class="tcg-btn-secondary">Manage addresses ({{ customer.addresses_count }})</a>
-          <a href="{{ routes.account_logout_url }}" class="tcg-btn-ghost">Sign out</a>
-        </div>
-      </header>
+    {%- comment %} 面包屑导航 {% endcomment -%}
+    <nav aria-label="Breadcrumb" class="_breadcrumb_4xdw3_11">
+      <a aria-label="Back to home" href="{{ routes.root_url }}" class="_crumbBack_4xdw3_69">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+      </a>
+      <ol>
+        <li><a href="{{ routes.root_url }}">Home</a></li>
+        <li aria-current="page"><span>Collector Account</span></li>
+      </ol>
+    </nav>
 
-      <div class="tcg-account-grid">
+    {%- if customer -%}
+      {%- comment %} ================= 已登录客户个人中心 ================= {% endcomment -%}
+      <section class="tcg-hero-banner-card tcg-account-hero-card">
+        <div class="tcg-hero-banner-copy">
+          <div class="tcg-account-badge-row">
+            <span class="tcg-badge-pill">Verified Collector</span>
+            <span class="tcg-eyebrow">Member ID #{{ customer.id | slice: -6, 6 | default: '151001' }}</span>
+          </div>
+          <h1 class="_heading_1z0wo_14" style="margin-top:0.5rem;">
+            {{ section.settings.heading | default: 'Welcome back,' }} {{ customer.first_name | default: customer.name | default: 'Collector' }}
+          </h1>
+          <p class="tcg-subtext">{{ customer.email }}</p>
+          <div class="tcg-account-top-actions" style="margin-top:1.25rem;">
+            <a href="{{ routes.account_addresses_url }}" class="_primaryButton_4xdw3_673" style="flex:none;">Manage Addresses ({{ customer.addresses_count }})</a>
+            <a href="{{ routes.cart_url }}" class="tcg-btn-secondary">View Cart (<span data-summary-item-count>{{ cart.item_count }}</span>)</a>
+            <a href="{{ routes.account_logout_url }}" class="tcg-btn-ghost">Sign out</a>
+          </div>
+        </div>
+        <div class="tcg-hero-banner-art" aria-hidden="true">
+          <img src="{{ 'card-charizard.png' | asset_url }}" alt="" loading="lazy">
+          <img src="{{ 'card-venusaur.png' | asset_url }}" alt="" loading="lazy">
+        </div>
+      </section>
+
+      {%- comment %} 账户数据概览指标条 {% endcomment -%}
+      <section class="tcg-stats-strip">
+        <div class="tcg-stat-box">
+          <strong>{{ customer.orders_count | default: 0 }}</strong>
+          <span>Total Collector Orders</span>
+        </div>
+        <div class="tcg-stat-box">
+          <strong>{{ customer.total_spent | default: 0 | money }}</strong>
+          <span>Lifetime Vault Value</span>
+        </div>
+        <div class="tcg-stat-box">
+          <strong>{{ customer.addresses_count | default: 0 }}</strong>
+          <span>Saved Shipping Addresses</span>
+        </div>
+        <div class="tcg-stat-box">
+          <strong>4-Layer</strong>
+          <span>Collector Armor Protection</span>
+        </div>
+      </section>
+
+      <div class="tcg-account-grid" style="margin-top:1.5rem;">
         {%- comment %} 左侧：订单历史列表 {% endcomment -%}
         <section class="tcg-card-panel">
           <div class="tcg-panel-head">
-            <h2>Order History</h2>
+            <h2>Order History &amp; Tracking</h2>
             <span class="tcg-badge-pill">{{ customer.orders_count }} orders</span>
           </div>
 
@@ -62,51 +105,101 @@
               {%- endif -%}
             {%- else -%}
               <div class="tcg-empty-inline">
-                <p>You haven't placed any orders yet.</p>
-                <a href="{{ routes.all_products_collection_url }}" class="_primaryButton_4xdw3_673" style="margin-top:.75rem;display:inline-flex;flex:none;">Browse products</a>
+                <p class="tcg-muted-text">You haven't placed any orders yet. Explore our latest singles, sealed booster boxes, and graded slabs.</p>
+                <a href="{{ routes.all_products_collection_url }}" class="_primaryButton_4xdw3_673" style="margin-top:1rem;display:inline-flex;flex:none;">Explore the catalog</a>
               </div>
             {%- endif -%}
           {%- endpaginate -%}
         </section>
 
-        {%- comment %} 右侧：默认收货地址与账户信息 {% endcomment -%}
+        {%- comment %} 右侧：默认收货地址与快捷导航 {% endcomment -%}
         <aside class="tcg-card-panel">
           <div class="tcg-panel-head">
-            <h2>Default Address</h2>
-            <a href="{{ routes.account_addresses_url }}" class="tcg-link-accent">Edit →</a>
+            <h2>Default Shipping Address</h2>
+            <a href="{{ routes.account_addresses_url }}" class="tcg-link-accent">Manage →</a>
           </div>
           {%- if customer.default_address -%}
             <div class="tcg-address-box">
               {{ customer.default_address | format_address }}
             </div>
           {%- else -%}
-            <p class="tcg-muted-text">No default shipping address saved yet.</p>
+            <div class="tcg-address-box">
+              <p class="tcg-muted-text">No default shipping address saved yet.</p>
+              <a href="{{ routes.account_addresses_url }}" class="tcg-link-accent" style="display:inline-block;margin-top:0.5rem;">+ Add shipping address</a>
+            </div>
           {%- endif -%}
 
           <div class="tcg-account-quicklinks" style="margin-top:1.5rem;">
-            <h3>Quick Links</h3>
-            <a href="{{ routes.cart_url }}">View shopping cart ({{ cart.item_count }})</a>
-            <a href="{{ routes.all_products_collection_url }}">Shop all singles &amp; sealed</a>
-            <a href="/pages/shipping-returns">Shipping &amp; returns policy</a>
-            <a href="/pages/contact">Contact collector support</a>
+            <h3>Collector Quick Links</h3>
+            <a href="{{ routes.cart_url }}">Shopping Cart &amp; Checkout</a>
+            <a href="{{ routes.all_products_collection_url }}">Shop All Singles &amp; Sealed</a>
+            <a href="/blogs/news">Collector Journal &amp; Set Guides</a>
+            <a href="/pages/about">About TCGHaven Vault</a>
+            <a href="/pages/shipping-returns">Shipping &amp; 14-Day Returns</a>
+            <a href="/pages/contact">Contact Collector Support</a>
           </div>
         </aside>
       </div>
 
     {%- else -%}
-      {%- comment %} 未登录状态访问用户页时：展示账户门户与快捷登录/注册入口 {% endcomment -%}
-      <div class="tcg-auth-shell">
-        <section class="tcg-auth-card">
-          <header class="tcg-auth-header">
-            <span class="tcg-eyebrow">Collector Account Center</span>
-            <h1>{{ section.settings.heading | default: 'Your Collector Account' }}</h1>
-            <p>{{ section.settings.subheading | default: 'Sign in with your Shopify customer account to view orders, track shipments, and manage addresses.' }}</p>
-          </header>
-          <div class="tcg-auth-actions">
-            <a href="{{ routes.account_login_url }}" class="_primaryButton_4xdw3_673" style="width:100%;text-align:center;">Sign in to your account</a>
-            <a href="{{ routes.account_register_url }}" class="tcg-btn-secondary" style="width:100%;text-align:center;">Create a new account</a>
+      {%- comment %} ================= 未登录访问用户中心：提供完整的 TCG 风格仪表盘预览与登录/注册双入口 ================= {% endcomment -%}
+      <section class="tcg-hero-banner-card tcg-account-hero-card">
+        <div class="tcg-hero-banner-copy">
+          <span class="tcg-eyebrow">Collector Account Center</span>
+          <h1 class="_heading_1z0wo_14" style="margin-top:0.35rem;">{{ section.settings.guest_heading | default: 'Welcome to Your Collector Vault' }}</h1>
+          <p class="tcg-lead-text">
+            {{ section.settings.subheading | default: 'Sign in or create a free collector account to track graded slab orders, manage insured delivery addresses, and access priority pre-order allocations.' }}
+          </p>
+          <div class="tcg-account-top-actions" style="margin-top:1.5rem;">
+            <a href="{{ routes.account_login_url }}" class="_primaryButton_4xdw3_673" style="flex:none;">Sign in to your account</a>
+            <a href="{{ routes.account_register_url }}" class="tcg-btn-secondary">Create collector account</a>
+            <a href="{{ routes.cart_url }}" class="tcg-btn-ghost">View Cart</a>
           </div>
-        </section>
+        </div>
+        <div class="tcg-hero-banner-art" aria-hidden="true">
+          <img src="{{ 'card-charizard.png' | asset_url }}" alt="" loading="lazy">
+          <img src="{{ 'card-umbreon.png' | asset_url }}" alt="" loading="lazy">
+        </div>
+      </section>
+
+      <section class="tcg-stats-strip">
+        <div class="tcg-stat-box">
+          <strong>100%</strong>
+          <span>Authentic &amp; Studio-Checked</span>
+        </div>
+        <div class="tcg-stat-box">
+          <strong>24h</strong>
+          <span>Tracked Vault Dispatch</span>
+        </div>
+        <div class="tcg-stat-box">
+          <strong>4-Layer</strong>
+          <span>Sleeve + Toploader + Rigid Armor</span>
+        </div>
+        <div class="tcg-stat-box">
+          <strong>14-Day</strong>
+          <span>Collector Return Guarantee</span>
+        </div>
+      </section>
+
+      <div class="tcg-pillars-grid" style="margin-top:1.5rem;">
+        <div class="tcg-card-panel">
+          <span class="tcg-badge-pill">Orders &amp; Tracking</span>
+          <h3 style="margin-top:0.65rem;">Real-Time Shipment Tracking</h3>
+          <p class="tcg-muted-text" style="margin-top:0.45rem;">View full order history, download invoices, and follow your tracked parcels from our vault to your doorstep.</p>
+          <a href="{{ routes.account_login_url }}" class="tcg-link-accent" style="display:inline-block;margin-top:0.85rem;">Sign in to view orders →</a>
+        </div>
+        <div class="tcg-card-panel">
+          <span class="tcg-badge-pill">Address Book</span>
+          <h3 style="margin-top:0.65rem;">Saved Delivery Addresses</h3>
+          <p class="tcg-muted-text" style="margin-top:0.45rem;">Pre-save your home or vault delivery addresses for instant 1-click checkout during high-demand set releases.</p>
+          <a href="{{ routes.account_register_url }}" class="tcg-link-accent" style="display:inline-block;margin-top:0.85rem;">Create account to save addresses →</a>
+        </div>
+        <div class="tcg-card-panel">
+          <span class="tcg-badge-pill">Collector Support</span>
+          <h3 style="margin-top:0.65rem;">High-Res Slab &amp; Single Close-Ups</h3>
+          <p class="tcg-muted-text" style="margin-top:0.45rem;">Need front/back close-ups of a chase card or assistance with an existing order? Our team is ready to help.</p>
+          <a href="/pages/contact" class="tcg-link-accent" style="display:inline-block;margin-top:0.85rem;">Contact collector support →</a>
+        </div>
       </div>
     {%- endif -%}
 
@@ -120,14 +213,20 @@
     {
       "type": "text",
       "id": "heading",
-      "label": "欢迎标题",
+      "label": "已登录欢迎标题",
       "default": "Welcome back,"
     },
     {
       "type": "text",
+      "id": "guest_heading",
+      "label": "未登录门户标题",
+      "default": "Welcome to Your Collector Vault"
+    },
+    {
+      "type": "textarea",
       "id": "subheading",
       "label": "说明文字",
-      "default": "Manage your orders, shipping addresses, and collector preferences."
+      "default": "Sign in or create a free collector account to track graded slab orders, manage insured delivery addresses, and access priority pre-order allocations."
     }
   ],
   "presets": [

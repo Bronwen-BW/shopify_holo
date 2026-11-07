@@ -1,92 +1,159 @@
 {%- comment -%}
-  TCG 客户注册页（使用 Shopify 官方 {% form 'create_customer' %} 接口）
+  TCG 客户注册页（与 TCG 主题风格完全统一，对接 Shopify 官方 {% form 'create_customer' %} 接口）
 {%- endcomment -%}
 
 <div class="_page_4xdw3_1" data-tcg-register-section>
   <div class="_wide_4xdw3_6">
-    <div class="tcg-auth-shell">
-      <section class="tcg-auth-card">
-        <header class="tcg-auth-header">
-          <span class="tcg-eyebrow">Join the Community</span>
-          <h1>{{ section.settings.heading | default: 'Create your collector account' }}</h1>
-          <p>{{ section.settings.subheading | default: 'Save your delivery addresses, track graded & sealed shipments, and check out faster.' }}</p>
-        </header>
 
-        {%- form 'create_customer', novalidate: 'novalidate', class: 'tcg-auth-form' -%}
-          {%- if form.errors -%}
-            <div class="tcg-alert tcg-alert-error" role="alert">
-              {{ form.errors | default_errors }}
+    {%- comment %} 面包屑导航 {% endcomment -%}
+    <nav aria-label="Breadcrumb" class="_breadcrumb_4xdw3_11">
+      <a aria-label="Back to home" href="{{ routes.root_url }}" class="_crumbBack_4xdw3_69">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+      </a>
+      <ol>
+        <li><a href="{{ routes.root_url }}">Home</a></li>
+        <li aria-current="page"><span>Create Collector Account</span></li>
+      </ol>
+    </nav>
+
+    <div class="tcg-auth-stage">
+
+      {%- comment %} 左侧：TCG 主题藏家会员权益展示面板 {% endcomment -%}
+      <aside class="tcg-auth-showcase">
+        <div class="tcg-auth-showcase-copy">
+          <span class="tcg-eyebrow">Join the Collector Club</span>
+          <h2 class="tcg-auth-showcase-title">{{ section.settings.promo_heading | default: 'Built for Serious TCG Collectors.' }}</h2>
+          <p class="tcg-auth-showcase-desc">
+            {{ section.settings.promo_text | default: 'Create your free collector account to unlock priority set drop notifications, 4-layer armor shipping tracking, and full order archive.' }}
+          </p>
+
+          <ul class="tcg-auth-perks">
+            <li>
+              <span class="tcg-auth-perk-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+              </span>
+              <div>
+                <strong>Early Set &amp; Pre-order Alerts</strong>
+                <span>Be the first to know when Scarlet &amp; Violet, Prismatic Evolutions, and graded slabs drop.</span>
+              </div>
+            </li>
+            <li>
+              <span class="tcg-auth-perk-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m4 7 8-4 8 4-8 4-8-4Z"></path><path d="m4 7 8 4 8-4v10l-8 4-8-4V7Z"></path><path d="M12 11v10"></path></svg>
+              </span>
+              <div>
+                <strong>4-Layer Collector Armor Protection</strong>
+                <span>Penny sleeve + rigid toploader + team bag + reinforced mailer on every order.</span>
+              </div>
+            </li>
+            <li>
+              <span class="tcg-auth-perk-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V4m0 0h4M4 4l4 4"></path><path d="M5.5 15a8 8 0 1 0 .3-6"></path></svg>
+              </span>
+              <div>
+                <strong>14-Day Collector Return Guarantee</strong>
+                <span>Shop factory-sealed boxes and verified singles with complete peace of mind.</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="tcg-auth-showcase-art" aria-hidden="true">
+          <img src="{{ 'card-palkia.png' | asset_url }}" alt="" loading="lazy">
+          <img src="{{ 'card-blastoise.png' | asset_url }}" alt="" loading="lazy">
+        </div>
+      </aside>
+
+      {%- comment %} 右侧：官方注册表单卡片 {% endcomment -%}
+      <div class="tcg-auth-form-col">
+        <section class="tcg-auth-card">
+          <header class="tcg-auth-header">
+            <div class="tcg-auth-mode-tabs">
+              <a href="{{ routes.account_login_url }}" class="tcg-auth-mode-tab">Sign In</a>
+              <a href="{{ routes.account_register_url }}" class="tcg-auth-mode-tab is-active" aria-current="page">Create Account</a>
             </div>
-          {%- endif -%}
+            <span class="tcg-eyebrow" style="margin-top:0.9rem;display:inline-block;">New Collector Registration</span>
+            <h1>{{ section.settings.heading | default: 'Create your collector account' }}</h1>
+            <p>{{ section.settings.subheading | default: 'Save your delivery addresses, track graded & sealed shipments, and check out faster.' }}</p>
+          </header>
 
-          <div class="tcg-form-grid-2">
+          {%- form 'create_customer', novalidate: 'novalidate', class: 'tcg-auth-form' -%}
+            {%- if form.errors -%}
+              <div class="tcg-alert tcg-alert-error" role="alert">
+                {{ form.errors | default_errors }}
+              </div>
+            {%- endif -%}
+
+            <div class="tcg-form-grid-2">
+              <div class="tcg-form-row">
+                <label for="RegisterForm-FirstName" class="tcg-field-label">First name</label>
+                <input
+                  type="text"
+                  name="customer[first_name]"
+                  id="RegisterForm-FirstName"
+                  class="tcg-input"
+                  {% if form.first_name %}value="{{ form.first_name }}"{% endif %}
+                  autocomplete="given-name"
+                  placeholder="Ash"
+                >
+              </div>
+
+              <div class="tcg-form-row">
+                <label for="RegisterForm-LastName" class="tcg-field-label">Last name</label>
+                <input
+                  type="text"
+                  name="customer[last_name]"
+                  id="RegisterForm-LastName"
+                  class="tcg-input"
+                  {% if form.last_name %}value="{{ form.last_name }}"{% endif %}
+                  autocomplete="family-name"
+                  placeholder="Ketchum"
+                >
+              </div>
+            </div>
+
             <div class="tcg-form-row">
-              <label for="RegisterForm-FirstName" class="tcg-field-label">First name</label>
+              <label for="RegisterForm-email" class="tcg-field-label">Email address *</label>
               <input
-                type="text"
-                name="customer[first_name]"
-                id="RegisterForm-FirstName"
+                type="email"
+                name="customer[email]"
+                id="RegisterForm-email"
                 class="tcg-input"
-                {% if form.first_name %}value="{{ form.first_name }}"{% endif %}
-                autocomplete="given-name"
-                placeholder="Ash"
+                {% if form.email %}value="{{ form.email }}"{% endif %}
+                spellcheck="false"
+                autocapitalize="off"
+                autocomplete="email"
+                placeholder="collector@example.com"
+                required
               >
             </div>
 
             <div class="tcg-form-row">
-              <label for="RegisterForm-LastName" class="tcg-field-label">Last name</label>
+              <label for="RegisterForm-password" class="tcg-field-label">Password *</label>
               <input
-                type="text"
-                name="customer[last_name]"
-                id="RegisterForm-LastName"
+                type="password"
+                name="customer[password]"
+                id="RegisterForm-password"
                 class="tcg-input"
-                {% if form.last_name %}value="{{ form.last_name }}"{% endif %}
-                autocomplete="family-name"
-                placeholder="Ketchum"
+                autocomplete="new-password"
+                placeholder="At least 5 characters"
+                required
               >
             </div>
-          </div>
 
-          <div class="tcg-form-row">
-            <label for="RegisterForm-email" class="tcg-field-label">Email address *</label>
-            <input
-              type="email"
-              name="customer[email]"
-              id="RegisterForm-email"
-              class="tcg-input"
-              {% if form.email %}value="{{ form.email }}"{% endif %}
-              spellcheck="false"
-              autocapitalize="off"
-              autocomplete="email"
-              placeholder="collector@example.com"
-              required
-            >
-          </div>
+            <div class="tcg-auth-actions">
+              <button type="submit" class="_primaryButton_4xdw3_673" style="width:100%;">
+                {{ section.settings.submit_label | default: 'Create account' }}
+              </button>
+            </div>
+          {%- endform -%}
 
-          <div class="tcg-form-row">
-            <label for="RegisterForm-password" class="tcg-field-label">Password *</label>
-            <input
-              type="password"
-              name="customer[password]"
-              id="RegisterForm-password"
-              class="tcg-input"
-              autocomplete="new-password"
-              placeholder="At least 5 characters"
-              required
-            >
-          </div>
+          <footer class="tcg-auth-footer">
+            <p>Already have an account? <a href="{{ routes.account_login_url }}" class="tcg-link-accent">Sign in →</a></p>
+          </footer>
+        </section>
+      </div>
 
-          <div class="tcg-auth-actions">
-            <button type="submit" class="_primaryButton_4xdw3_673" style="width:100%;">
-              {{ section.settings.submit_label | default: 'Create account' }}
-            </button>
-          </div>
-        {%- endform -%}
-
-        <footer class="tcg-auth-footer">
-          <p>Already have an account? <a href="{{ routes.account_login_url }}" class="tcg-link-accent">Sign in →</a></p>
-        </footer>
-      </section>
     </div>
   </div>
 </div>
@@ -112,6 +179,18 @@
       "id": "submit_label",
       "label": "注册按钮文字",
       "default": "Create account"
+    },
+    {
+      "type": "text",
+      "id": "promo_heading",
+      "label": "左侧展示标题",
+      "default": "Built for Serious TCG Collectors."
+    },
+    {
+      "type": "textarea",
+      "id": "promo_text",
+      "label": "左侧展示说明",
+      "default": "Create your free collector account to unlock priority set drop notifications, 4-layer armor shipping tracking, and full order archive."
     }
   ],
   "presets": [

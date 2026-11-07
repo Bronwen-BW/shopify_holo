@@ -10,6 +10,7 @@
 
 {%- assign about_url = pages['about'].url | default: pages['about-us'].url | default: '/pages/about' -%}
 {%- assign contact_url = pages['contact'].url | default: pages['contact-us'].url | default: '/pages/contact' -%}
+{%- assign blog_url = blogs['news'].url | default: blogs['最新消息'].url | default: '/blogs/news' -%}
 {%- assign shipping_url = pages['shipping-returns'].url | default: shop.shipping_policy.url | default: '/pages/shipping-returns' -%}
 {%- assign policy_url = pages['policy'].url | default: shop.privacy_policy.url | default: '/pages/policy' -%}
 {%- assign privacy_url = shop.privacy_policy.url | default: '/policies/privacy-policy' -%}
@@ -71,6 +72,7 @@
       <div class="_linkCol_23f90_160">
         <h3 class="_linkHeading_23f90_181">Company &amp; Policies</h3>
         <a href="{{ about_url }}">About us</a>
+        <a href="{{ blog_url }}">Collector Journal (Articles)</a>
         <a href="{{ contact_url }}">Contact</a>
         <a href="{{ shipping_url }}">Shipping &amp; returns</a>
         <a href="{{ policy_url }}">Store policies</a>

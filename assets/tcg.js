@@ -2109,4 +2109,128 @@
       t.classList.toggle('is-active', t === tab);
     });
   });
+
+  /* -------------------------------------------------------------------
+   * 17. 文章列表页 -> 点击任意文章卡片切换到对应文章详情页（支持 URL ?article=<handle> 直达、无刷新页内切换与返回列表）
+   * ----------------------------------------------------------------- */
+  (function blogArticleSwitcher() {
+    var blogSection = document.querySelector('[data-tcg-blog-section]');
+    if (!blogSection) return;
+
+    var listView = blogSection.querySelector('[data-blog-list-view]');
+    var articleView = blogSection.querySelector('[data-blog-article-view]');
+    var jsonEl = blogSection.querySelector('[data-blog-articles-json]');
+    if (!listView || !articleView || !jsonEl) return;
+
+    var articles = [];
+    try {
+      articles = JSON.parse(jsonEl.textContent) || [];
+    } catch (e) {
+      articles = [];
+    }
+
+    function findArticleByHandle(handle) {
+      if (!handle) return null;
+      var h = String(handle).trim().toLowerCase();
+      for (var i = 0; i < articles.length; i++) {
+        if (articles[i] && String(articles[i].handle || '').toLowerCase() === h) {
+          return articles[i];
+        }
+      }
+      return articles[0] || null;
+    }
+
+    function openArticleDetail(handle, updateUrlFlag) {
+      var art = findArticleByHandle(handle);
+      if (!art) return false;
+
+      var crumbEl = articleView.querySelector('[data-article-detail-crumb]');
+      var tagEl = articleView.querySelector('[data-article-detail-tag]');
+      var metaEl = articleView.querySelector('[data-article-detail-meta]');
+      var titleEl = articleView.querySelector('[data-article-detail-title]');
+      var imgEl = articleView.querySelector('[data-article-detail-image]');
+      var contentEl = articleView.querySelector('[data-article-detail-content]');
+
+      if (crumbEl) crumbEl.textContent = art.title || 'Article';
+      if (tagEl) tagEl.textContent = art.tag || 'Collector Guide';
+      if (metaEl) metaEl.textContent = (art.published_at || '') + (art.author ? ' · ' + art.author : '');
+      if (titleEl) titleEl.textContent = art.title || '';
+      if (imgEl && art.image) {
+        imgEl.setAttribute('src', art.image);
+        imgEl.setAttribute('alt', art.title || '');
+      }
+      if (contentEl) {
+        contentEl.innerHTML = art.content_html || ('<p>' + escapeHtml(art.excerpt || '') + '</p>');
+      }
+
+      listView.setAttribute('hidden', '');
+      listView.hidden = true;
+      articleView.removeAttribute('hidden');
+      articleView.hidden = false;
+
+      if (updateUrlFlag !== false && window.history && window.history.pushState) {
+        try {
+          var u = new URL(window.location.href);
+          u.searchParams.set('article', art.handle);
+          window.history.pushState({ article: art.handle }, '', u.toString());
+        } catch (e) {}
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return true;
+    }
+
+    function backToArticleList(updateUrlFlag) {
+      articleView.setAttribute('hidden', '');
+      articleView.hidden = true;
+      listView.removeAttribute('hidden');
+      listView.hidden = false;
+
+      if (updateUrlFlag !== false && window.history && window.history.pushState) {
+        try {
+          var u = new URL(window.location.href);
+          u.searchParams.delete('article');
+          window.history.pushState({}, '', u.toString());
+        } catch (e) {}
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    on('[data-blog-article-card]', 'click', function (e, card) {
+      var handle = card.getAttribute('data-article-handle');
+      var realUrl = card.getAttribute('data-article-url');
+      // 若存在真实独立的 Shopify 文章 URL（非 ?article= 查询参数）且不在本地预览模式，优先页内秒切展示完整文章内容并同步 URL
+      if (handle && openArticleDetail(handle, true)) {
+        e.preventDefault();
+        return;
+      }
+      if (realUrl) {
+        window.location.href = realUrl;
+      }
+    }, blogSection);
+
+    on('[data-back-to-blog-list]', 'click', function (e) {
+      e.preventDefault();
+      backToArticleList(true);
+    }, blogSection);
+
+    window.addEventListener('popstate', function () {
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var h = params.get('article');
+        if (h) openArticleDetail(h, false);
+        else backToArticleList(false);
+      } catch (e) {}
+    });
+
+    // 初始化检查 URL 是否带有 ?article=<handle>
+    try {
+      var initParams = new URLSearchParams(window.location.search);
+      var initHandle = initParams.get('article');
+      if (initHandle) {
+        openArticleDetail(initHandle, false);
+      }
+    } catch (e) {}
+  })();
 })();

@@ -1,28 +1,96 @@
 {%- comment -%}
-  TCG 博客文章详情页（使用 Shopify 官方 article 对象）
+  TCG 博客文章详情页（使用 Shopify 官方 article 对象，并包含关联文章推荐与返回文章列表导航）
 {%- endcomment -%}
 
-<div class="_page_4xdw3_1">
+<div class="_page_4xdw3_1" data-tcg-article-section>
   <div class="_wide_4xdw3_6">
-    <article class="tcg-page-card">
+
+    <nav aria-label="Breadcrumb" class="_breadcrumb_4xdw3_11">
+      <a aria-label="Back to articles" href="{{ blog.url | default: '/blogs/news' }}" class="_crumbBack_4xdw3_69">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+      </a>
+      <ol>
+        <li><a href="{{ routes.root_url }}">Home</a></li>
+        <li><a href="{{ blog.url | default: '/blogs/news' }}">{{ blog.title | default: 'Collector Journal' }}</a></li>
+        <li aria-current="page"><span>{{ article.title | default: 'Collector Set Guide' }}</span></li>
+      </ol>
+    </nav>
+
+    <article class="tcg-page-card tcg-article-detail-card">
       <header class="tcg-page-card-header">
-        <a href="{{ blog.url | default: routes.root_url }}" class="_back_1fncu_49" style="margin-bottom:.75rem;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>Back to {{ blog.title | default: 'Blog' }}
+        <a href="{{ blog.url | default: '/blogs/news' }}" class="_back_1fncu_49" style="margin-bottom:.85rem;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>Back to {{ blog.title | default: 'Article List' }}
         </a>
-        <span class="tcg-eyebrow">{{ article.published_at | date: '%B %d, %Y' }}{% if article.author != blank %} · {{ article.author }}{% endif %}</span>
-        <h1>{{ article.title }}</h1>
+        <div class="tcg-blog-meta" style="margin-bottom:0.4rem;">
+          <span class="tcg-badge-pill">{{ article.tags.first | default: 'Collector Guide' }}</span>
+          <span class="tcg-eyebrow">
+            {{ article.published_at | date: '%B %d, %Y' | default: 'October 28, 2026' }}
+            {%- if article.author != blank %} · {{ article.author }}{%- else %} · TCGHaven Vault Team{%- endif -%}
+          </span>
+        </div>
+        <h1>{{ article.title | default: 'Scarlet & Violet 151 Complete Collector & Grading Guide' }}</h1>
       </header>
 
-      {%- if article.image -%}
-        <div style="margin-bottom:1.5rem;border-radius:1rem;overflow:hidden;">
+      <div class="tcg-article-hero-media">
+        {%- if article.image -%}
           <img src="{{ article.image | image_url: width: 1200 }}" alt="{{ article.title | escape }}">
-        </div>
-      {%- endif -%}
+        {%- else -%}
+          <img src="{{ 'card-charizard.png' | asset_url }}" alt="{{ article.title | default: 'Collector Guide' | escape }}">
+        {%- endif -%}
+      </div>
 
       <div class="tcg-rte">
-        {{ article.content }}
+        {%- if article.content != blank -%}
+          {{ article.content }}
+        {%- else -%}
+          <p>Scarlet &amp; Violet 151 brings the original Kanto Pokédex back to the modern Pokémon TCG era with breathtaking Special Illustration Rares for Charizard ex, Blastoise ex, and Venusaur ex.</p>
+          <h3>How We Inspect Every Single Card</h3>
+          <p>At TCGHaven, every raw single is inspected under 5500K studio lighting before entering our climate-controlled vault, ensuring accurate Near Mint grading and 4-layer collector armor protection.</p>
+        {%- endif -%}
       </div>
+
+      <footer class="tcg-article-footer">
+        <a href="{{ blog.url | default: '/blogs/news' }}" class="tcg-btn-secondary">← Back to Article List</a>
+        <a href="{{ routes.all_products_collection_url }}" class="_primaryButton_4xdw3_673" style="flex:none;">Shop Featured Sets</a>
+      </footer>
     </article>
+
+    {%- if blog != blank and blog.articles.size > 1 -%}
+      <section style="margin-top:2.5rem;">
+        <header class="_header_36e53_10">
+          <div>
+            <h2>More from {{ blog.title }}</h2>
+            <p>Explore other collector guides and set checklists.</p>
+          </div>
+          <a href="{{ blog.url }}" class="_viewAll_36e53_33">All articles</a>
+        </header>
+        <div class="tcg-pillars-grid tcg-blog-grid">
+          {%- assign shown_count = 0 -%}
+          {%- for other in blog.articles -%}
+            {%- if other.id != article.id and shown_count < 3 -%}
+              {%- assign shown_count = shown_count | plus: 1 -%}
+              <a href="{{ other.url }}" class="tcg-card-panel tcg-blog-card">
+                <div class="tcg-blog-thumb">
+                  {%- if other.image -%}
+                    <img src="{{ other.image | image_url: width: 600 }}" alt="{{ other.title | escape }}" loading="lazy">
+                  {%- else -%}
+                    <img src="{{ 'card-umbreon.png' | asset_url }}" alt="{{ other.title | escape }}" loading="lazy">
+                  {%- endif -%}
+                  <span class="tcg-badge-pill tcg-blog-badge">{{ other.tags.first | default: 'Guide' }}</span>
+                </div>
+                <div class="tcg-blog-card-body">
+                  <span class="tcg-eyebrow">{{ other.published_at | date: '%b %d, %Y' }}</span>
+                  <h3>{{ other.title }}</h3>
+                  <p class="tcg-muted-text">{{ other.excerpt_or_content | strip_html | truncate: 120 }}</p>
+                  <span class="tcg-blog-readmore">Read full article →</span>
+                </div>
+              </a>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      </section>
+    {%- endif -%}
+
   </div>
 </div>
 

@@ -1,127 +1,194 @@
 {%- comment -%}
-  TCG 客户登录页（使用 Shopify 官方 {% form 'customer_login' %}、{% form 'recover_customer_password' %} 与 {% form 'guest_login' %}）
+  TCG 客户登录页（与 TCG 主题深色/浅色双模式玻璃拟态、翠绿光晕与卡牌展陈风格完全统一）
+  对接 Shopify 官方 {% form 'customer_login' %}、{% form 'recover_customer_password' %} 与 {% form 'guest_login' %}
 {%- endcomment -%}
 
 <div class="_page_4xdw3_1" data-tcg-auth-section>
   <div class="_wide_4xdw3_6">
-    <div class="tcg-auth-shell">
 
-      {%- comment %} ================= 1. 找回密码表单（隐藏切换） ================= {% endcomment -%}
-      <section id="recover" class="tcg-auth-card" data-recover-panel hidden>
-        <header class="tcg-auth-header">
-          <span class="tcg-eyebrow">Account Recovery</span>
-          <h1>{{ section.settings.recover_heading | default: 'Reset your password' }}</h1>
-          <p>{{ section.settings.recover_subtext | default: 'Enter your email address and we will send you an official link to reset your password.' }}</p>
-        </header>
+    {%- comment %} 面包屑导航 {% endcomment -%}
+    <nav aria-label="Breadcrumb" class="_breadcrumb_4xdw3_11">
+      <a aria-label="Back to home" href="{{ routes.root_url }}" class="_crumbBack_4xdw3_69">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+      </a>
+      <ol>
+        <li><a href="{{ routes.root_url }}">Home</a></li>
+        <li aria-current="page"><span>Collector Sign In</span></li>
+      </ol>
+    </nav>
 
-        {%- form 'recover_customer_password', class: 'tcg-auth-form' -%}
-          {%- assign recover_success = form.posted_successfully? -%}
-          {%- if form.errors -%}
-            <div class="tcg-alert tcg-alert-error" role="alert">
-              {{ form.errors | default_errors }}
-            </div>
-          {%- endif -%}
+    <div class="tcg-auth-stage">
 
-          <div class="tcg-form-row">
-            <label for="RecoverEmail" class="tcg-field-label">Email address</label>
-            <input
-              type="email"
-              name="email"
-              id="RecoverEmail"
-              class="tcg-input"
-              autocomplete="email"
-              autocorrect="off"
-              autocapitalize="off"
-              placeholder="collector@example.com"
-              required
-            >
-          </div>
+      {%- comment %} 左侧：TCG 主题品牌视觉与藏家权益面板 {% endcomment -%}
+      <aside class="tcg-auth-showcase">
+        <div class="tcg-auth-showcase-copy">
+          <span class="tcg-eyebrow">Collector Vault Access</span>
+          <h2 class="tcg-auth-showcase-title">{{ section.settings.promo_heading | default: 'Your Personal TCG Vault & Order Hub.' }}</h2>
+          <p class="tcg-auth-showcase-desc">
+            {{ section.settings.promo_text | default: 'Sign in to track graded slab shipments in real time, manage insured delivery addresses, and access priority pre-order allocations.' }}
+          </p>
 
-          <div class="tcg-auth-actions">
-            <button type="submit" class="_primaryButton_4xdw3_673" style="width:100%;">Send reset link</button>
-            <a href="#login" class="tcg-btn-secondary" data-toggle-recover="false" style="width:100%;text-align:center;">Back to sign in</a>
-          </div>
-        {%- endform -%}
-      </section>
-
-      {%- comment %} ================= 2. 客户登录主表单 ================= {% endcomment -%}
-      <section id="login" class="tcg-auth-card" data-login-panel>
-        <header class="tcg-auth-header">
-          <span class="tcg-eyebrow">Collector Portal</span>
-          <h1>{{ section.settings.heading | default: 'Sign in to your account' }}</h1>
-          <p>{{ section.settings.subheading | default: 'Track your orders, manage saved addresses, and access your collector history.' }}</p>
-        </header>
-
-        {%- if recover_success == true -%}
-          <div class="tcg-alert tcg-alert-success" role="status">
-            We've sent you an email with a link to update your password.
-          </div>
-        {%- endif -%}
-
-        {%- form 'customer_login', novalidate: 'novalidate', class: 'tcg-auth-form' -%}
-          {%- if form.errors -%}
-            <div class="tcg-alert tcg-alert-error" role="alert">
-              {{ form.errors | default_errors }}
-            </div>
-          {%- endif -%}
-
-          <div class="tcg-form-row">
-            <label for="CustomerEmail" class="tcg-field-label">Email address</label>
-            <input
-              type="email"
-              name="customer[email]"
-              id="CustomerEmail"
-              class="tcg-input"
-              autocomplete="email"
-              autocorrect="off"
-              autocapitalize="off"
-              placeholder="collector@example.com"
-              required
-            >
-          </div>
-
-          {%- if form.password_needed -%}
-            <div class="tcg-form-row">
-              <div class="tcg-label-row">
-                <label for="CustomerPassword" class="tcg-field-label">Password</label>
-                <a href="#recover" class="tcg-link-accent" data-toggle-recover="true">Forgot password?</a>
+          <ul class="tcg-auth-perks">
+            <li>
+              <span class="tcg-auth-perk-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 5 6v5c0 4.6 2.8 8.1 7 10 4.2-1.9 7-5.4 7-10V6l-7-3Z"></path><path d="m9 12 2 2 4-4"></path></svg>
+              </span>
+              <div>
+                <strong>Verified Authenticity &amp; Grading</strong>
+                <span>Every single and PSA slab is studio-checked before dispatch.</span>
               </div>
+            </li>
+            <li>
+              <span class="tcg-auth-perk-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"></path><circle cx="7" cy="18" r="1.5"></circle><circle cx="18" cy="18" r="1.5"></circle></svg>
+              </span>
+              <div>
+                <strong>Real-Time Tracked Fulfillment</strong>
+                <span>Instant tracking updates from our climate-controlled vault to your door.</span>
+              </div>
+            </li>
+            <li>
+              <span class="tcg-auth-perk-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"></path><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4Z"></path></svg>
+              </span>
+              <div>
+                <strong>1-Click Express Checkout</strong>
+                <span>Save multiple delivery addresses for faster drop-day checkout.</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="tcg-auth-showcase-art" aria-hidden="true">
+          <img src="{{ 'card-charizard.png' | asset_url }}" alt="" loading="lazy">
+          <img src="{{ 'card-umbreon.png' | asset_url }}" alt="" loading="lazy">
+        </div>
+      </aside>
+
+      {%- comment %} 右侧：官方登录 / 找回密码 / 游客结账卡片 {% endcomment -%}
+      <div class="tcg-auth-form-col">
+
+        {%- comment %} ================= 1. 找回密码表单（隐藏切换） ================= {% endcomment -%}
+        <section id="recover" class="tcg-auth-card" data-recover-panel hidden>
+          <header class="tcg-auth-header">
+            <span class="tcg-eyebrow">Account Recovery</span>
+            <h1>{{ section.settings.recover_heading | default: 'Reset your password' }}</h1>
+            <p>{{ section.settings.recover_subtext | default: 'Enter your email address and we will send you an official link to reset your password.' }}</p>
+          </header>
+
+          {%- form 'recover_customer_password', class: 'tcg-auth-form' -%}
+            {%- assign recover_success = form.posted_successfully? -%}
+            {%- if form.errors -%}
+              <div class="tcg-alert tcg-alert-error" role="alert">
+                {{ form.errors | default_errors }}
+              </div>
+            {%- endif -%}
+
+            <div class="tcg-form-row">
+              <label for="RecoverEmail" class="tcg-field-label">Email address</label>
               <input
-                type="password"
-                value=""
-                name="customer[password]"
-                id="CustomerPassword"
+                type="email"
+                name="email"
+                id="RecoverEmail"
                 class="tcg-input"
-                autocomplete="current-password"
-                placeholder="••••••••"
+                autocomplete="email"
+                autocorrect="off"
+                autocapitalize="off"
+                placeholder="collector@example.com"
                 required
               >
             </div>
-          {%- endif -%}
 
-          <div class="tcg-auth-actions">
-            <button type="submit" class="_primaryButton_4xdw3_673" style="width:100%;">
-              {{ section.settings.submit_label | default: 'Sign in' }}
-            </button>
-          </div>
-        {%- endform -%}
-
-        <footer class="tcg-auth-footer">
-          <p>New to {{ shop.name | default: 'TCGHaven' }}? <a href="{{ routes.account_register_url }}" class="tcg-link-accent">Create an account →</a></p>
-        </footer>
-      </section>
-
-      {%- comment %} ================= 3. 游客继续结账（当由结账跳转且店铺开启 guest_login 时） ================= {% endcomment -%}
-      {%- if shop.checkout.guest_login -%}
-        <section class="tcg-auth-card" style="margin-top:1rem;">
-          <h2>Continue as a guest</h2>
-          <p class="tcg-muted-text" style="margin:.5rem 0 1rem;">No account required — proceed straight to Shopify Checkout.</p>
-          {%- form 'guest_login' -%}
-            <button type="submit" class="tcg-btn-secondary" style="width:100%;">Continue to checkout</button>
+            <div class="tcg-auth-actions">
+              <button type="submit" class="_primaryButton_4xdw3_673" style="width:100%;">Send reset link</button>
+              <a href="#login" class="tcg-btn-secondary" data-toggle-recover="false" style="width:100%;text-align:center;">Back to sign in</a>
+            </div>
           {%- endform -%}
         </section>
-      {%- endif -%}
 
+        {%- comment %} ================= 2. 客户登录主表单 ================= {% endcomment -%}
+        <section id="login" class="tcg-auth-card" data-login-panel>
+          <header class="tcg-auth-header">
+            <div class="tcg-auth-mode-tabs">
+              <a href="{{ routes.account_login_url }}" class="tcg-auth-mode-tab is-active" aria-current="page">Sign In</a>
+              <a href="{{ routes.account_register_url }}" class="tcg-auth-mode-tab">Create Account</a>
+            </div>
+            <span class="tcg-eyebrow" style="margin-top:0.9rem;display:inline-block;">Collector Portal</span>
+            <h1>{{ section.settings.heading | default: 'Sign in to your account' }}</h1>
+            <p>{{ section.settings.subheading | default: 'Track your orders, manage saved addresses, and access your collector history.' }}</p>
+          </header>
+
+          {%- if recover_success == true -%}
+            <div class="tcg-alert tcg-alert-success" role="status">
+              We've sent you an email with a link to update your password.
+            </div>
+          {%- endif -%}
+
+          {%- form 'customer_login', novalidate: 'novalidate', class: 'tcg-auth-form' -%}
+            {%- if form.errors -%}
+              <div class="tcg-alert tcg-alert-error" role="alert">
+                {{ form.errors | default_errors }}
+              </div>
+            {%- endif -%}
+
+            <div class="tcg-form-row">
+              <label for="CustomerEmail" class="tcg-field-label">Email address</label>
+              <input
+                type="email"
+                name="customer[email]"
+                id="CustomerEmail"
+                class="tcg-input"
+                autocomplete="email"
+                autocorrect="off"
+                autocapitalize="off"
+                placeholder="collector@example.com"
+                required
+              >
+            </div>
+
+            {%- if form.password_needed -%}
+              <div class="tcg-form-row">
+                <div class="tcg-label-row">
+                  <label for="CustomerPassword" class="tcg-field-label">Password</label>
+                  <a href="#recover" class="tcg-link-accent" data-toggle-recover="true">Forgot password?</a>
+                </div>
+                <input
+                  type="password"
+                  value=""
+                  name="customer[password]"
+                  id="CustomerPassword"
+                  class="tcg-input"
+                  autocomplete="current-password"
+                  placeholder="••••••••"
+                  required
+                >
+              </div>
+            {%- endif -%}
+
+            <div class="tcg-auth-actions">
+              <button type="submit" class="_primaryButton_4xdw3_673" style="width:100%;">
+                {{ section.settings.submit_label | default: 'Sign in' }}
+              </button>
+            </div>
+          {%- endform -%}
+
+          <footer class="tcg-auth-footer">
+            <p>New to {{ shop.name | default: 'TCGHaven' }}? <a href="{{ routes.account_register_url }}" class="tcg-link-accent">Create a collector account →</a></p>
+          </footer>
+        </section>
+
+        {%- comment %} ================= 3. 游客继续结账 ================= {% endcomment -%}
+        {%- if shop.checkout.guest_login -%}
+          <section class="tcg-auth-card" style="margin-top:1rem;">
+            <h2>Continue as a guest</h2>
+            <p class="tcg-muted-text" style="margin:.5rem 0 1rem;">No account required — proceed straight to Shopify Checkout.</p>
+            {%- form 'guest_login' -%}
+              <button type="submit" class="tcg-btn-secondary" style="width:100%;">Continue to checkout</button>
+            {%- endform -%}
+          </section>
+        {%- endif -%}
+
+      </div>
     </div>
   </div>
 </div>
@@ -147,6 +214,18 @@
       "id": "submit_label",
       "label": "登录按钮文字",
       "default": "Sign in"
+    },
+    {
+      "type": "text",
+      "id": "promo_heading",
+      "label": "左侧展示标题",
+      "default": "Your Personal TCG Vault & Order Hub."
+    },
+    {
+      "type": "textarea",
+      "id": "promo_text",
+      "label": "左侧展示说明",
+      "default": "Sign in to track graded slab shipments in real time, manage insured delivery addresses, and access priority pre-order allocations."
     },
     {
       "type": "text",

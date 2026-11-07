@@ -1856,3 +1856,314 @@ html[data-theme="light"] ._cardBody_36e53_256 {
   background: var(--tcg-accent-hover) !important;
 }
 
+/* ===== 登录、注册、用户中心、About Us 与文章列表/详情统一 TCG 主题样式 ===== */
+.tcg-auth-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(24rem, 0.92fr);
+  align-items: stretch;
+  gap: 1.5rem;
+  margin-top: 0.75rem;
+}
+@media (max-width: 980px) {
+  .tcg-auth-stage {
+    grid-template-columns: 1fr;
+  }
+}
+.tcg-auth-showcase {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: clamp(2rem, 3.8vw, 3rem);
+  border-radius: var(--tcg-radius-lg);
+  background:
+    radial-gradient(ellipse 65% 60% at 85% 80%, rgba(16, 185, 129, 0.22), transparent 72%),
+    radial-gradient(ellipse 50% 50% at 10% 15%, rgba(52, 211, 153, 0.10), transparent 70%),
+    var(--tcg-surface);
+  border: 1px solid var(--tcg-border);
+  overflow: hidden;
+  isolation: isolate;
+}
+.tcg-auth-showcase-title {
+  margin-top: 0.45rem;
+  color: var(--tcg-text);
+  font-family: Rubik, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.85rem, 3vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.08;
+}
+.tcg-auth-showcase-desc {
+  max-width: 48ch;
+  margin-top: 0.75rem;
+  color: var(--tcg-text-muted);
+  font-size: 0.98rem;
+  line-height: 1.65;
+}
+.tcg-auth-perks {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 1.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.tcg-auth-perks li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+.tcg-auth-perk-icon {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  flex-shrink: 0;
+  border-radius: 0.75rem;
+  background: var(--tcg-accent-soft);
+  border: 1px solid rgba(16, 185, 129, 0.32);
+  color: var(--tcg-accent-hover);
+}
+.tcg-auth-perk-icon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+.tcg-auth-perks li div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.tcg-auth-perks li strong {
+  color: var(--tcg-text);
+  font-family: Rubik, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.tcg-auth-perks li span {
+  color: var(--tcg-text-muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+.tcg-auth-showcase-art {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+.tcg-auth-showcase-art img {
+  width: clamp(6.5rem, 11vw, 9.25rem);
+  border-radius: 0.65rem;
+  filter: drop-shadow(0 16px 24px rgba(0, 0, 0, 0.45));
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tcg-auth-showcase-art img:first-child {
+  transform: rotate(-7deg);
+}
+.tcg-auth-showcase-art img:last-child {
+  transform: rotate(6deg);
+}
+.tcg-auth-showcase:hover .tcg-auth-showcase-art img:first-child {
+  transform: rotate(-4deg) translateY(-4px);
+}
+.tcg-auth-showcase:hover .tcg-auth-showcase-art img:last-child {
+  transform: rotate(3deg) translateY(-4px);
+}
+.tcg-auth-form-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.tcg-auth-mode-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+  padding: 0.3rem;
+  border-radius: 9999px;
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+}
+.tcg-auth-mode-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.35rem;
+  padding-inline: 1rem;
+  border-radius: 9999px;
+  color: var(--tcg-text-muted);
+  font-family: Rubik, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.18s ease;
+}
+.tcg-auth-mode-tab:hover {
+  color: var(--tcg-text);
+}
+.tcg-auth-mode-tab.is-active {
+  background: var(--tcg-accent);
+  color: var(--tcg-accent-fg);
+}
+.tcg-account-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+/* About Us 4 步检验流程网格 */
+.tcg-about-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+@media (max-width: 980px) {
+  .tcg-about-steps-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 560px) {
+  .tcg-about-steps-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.tcg-about-step-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 1.25rem;
+  border-radius: var(--tcg-radius-md);
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+}
+.tcg-about-step-num {
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.18rem 0.6rem;
+  border-radius: 9999px;
+  background: var(--tcg-accent-soft);
+  color: var(--tcg-accent-hover);
+  font-family: Rubik, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.tcg-about-step-item h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+/* 文章列表卡片与文章详情页样式 */
+.tcg-blog-grid {
+  align-items: stretch;
+}
+.tcg-blog-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0 !important;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.24s ease, box-shadow 0.28s ease;
+}
+.tcg-blog-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--tcg-accent);
+  box-shadow: 0 20px 36px -18px rgba(0, 0, 0, 0.65);
+}
+.tcg-blog-thumb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 10;
+  padding: 1.25rem;
+  background:
+    radial-gradient(ellipse 65% 60% at 50% 45%, rgba(16, 185, 129, 0.18), transparent 72%),
+    var(--tcg-surface-soft);
+  border-bottom: 1px solid var(--tcg-border);
+  overflow: hidden;
+}
+.tcg-blog-thumb img {
+  max-width: 100%;
+  max-height: 11.5rem;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.45));
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tcg-blog-card:hover .tcg-blog-thumb img {
+  transform: scale(1.06) rotate(-2deg);
+}
+.tcg-blog-badge {
+  position: absolute;
+  top: 0.85rem;
+  left: 0.85rem;
+}
+.tcg-blog-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.35rem 1.5rem 1.5rem;
+}
+.tcg-blog-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+.tcg-blog-author {
+  color: var(--tcg-text-muted);
+  font-size: 0.78rem;
+}
+.tcg-blog-card-body h3 {
+  color: var(--tcg-text);
+  font-family: Rubik, sans-serif;
+  font-size: 1.18rem;
+  font-weight: 700;
+  line-height: 1.32;
+}
+.tcg-blog-readmore {
+  margin-top: auto;
+  padding-top: 0.65rem;
+  color: var(--tcg-accent-hover);
+  font-family: Rubik, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.tcg-article-detail-card {
+  max-width: 64rem;
+  margin: 0 auto;
+}
+.tcg-article-hero-media {
+  display: grid;
+  place-items: center;
+  margin-bottom: 1.75rem;
+  padding: clamp(1.5rem, 3.5vw, 2.75rem);
+  border-radius: var(--tcg-radius-md);
+  background:
+    radial-gradient(ellipse 60% 60% at 50% 50%, rgba(16, 185, 129, 0.20), transparent 72%),
+    var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+}
+.tcg-article-hero-media img {
+  max-height: 22rem;
+  width: auto;
+  border-radius: 0.75rem;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.5));
+}
+.tcg-article-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2.25rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--tcg-border);
+}
+
+
