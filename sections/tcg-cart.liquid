@@ -35,7 +35,7 @@
       </li>
     </ol>
 
-    <span class="visually-hidden" ref="cartItemCount" data-cart-hidden-count aria-hidden="true">{{- cart.item_count -}}</span>
+    <span class="visually-hidden" ref="cartItemCount" data-cart-hidden-count aria-hidden="true" hidden>{{- cart.item_count -}}</span>
 
     <div data-cart-filled-view {% if cart.item_count == 0 %}hidden{% endif %}>
       <header class="_header_1z0wo_6" data-cart-header>
@@ -76,8 +76,11 @@
               data-key="{{ item.key }}"
               data-parent-key="{{ item.parent_relationship.parent.key }}"
               data-variant-id="{{ item.variant_id }}"
+              data-original-unit-price="{{ item.original_price }}"
               data-unit-price="{{ item.final_price }}"
+              data-original-line-price="{{ item.original_line_price }}"
               data-line-price="{{ item.final_line_price }}"
+              data-line-discount="{{ item.line_level_total_discount }}"
               data-quantity="{{ item.quantity }}"
             >
               <a href="{{ item.url }}" class="_thumb_1z0wo_62">
@@ -94,7 +97,7 @@
                   {%- if item.sku != blank -%}
                     <code class="tcg-sku-code">SKU: {{ item.sku }}</code>
                   {%- endif -%}
-                  <span class="_rowUnitPrice_1z0wo_94">{{ item.final_price | money }} each</span>
+                  <span class="_rowUnitPrice_1z0wo_94" data-row-unit-price>{{ item.original_price | money }} each</span>
                 </div>
 
                 {%- if item.line_level_discount_allocations.size > 0 -%}
@@ -194,7 +197,7 @@
         <aside class="_summary_1z0wo_183">
           <h2 class="_summaryTitle_1z0wo_199">Order summary</h2>
 
-          <div class="_summaryRow_1z0wo_208">
+          <div class="_summaryRow_1z0wo_208" data-summary-stats data-server-original-total="{{ cart.original_total_price }}" data-server-total-discount="{{ cart.total_discount }}" data-server-total-price="{{ cart.total_price }}">
             <span>Items (<span data-summary-item-count>{{ cart.item_count }}</span>)</span>
             <span data-summary-subtotal data-testid="cart-subtotal-value">{{ cart.original_total_price | money }}</span>
           </div>

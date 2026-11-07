@@ -662,14 +662,74 @@
     return createNewSfCart();
   }
 
+  /**
+   * 立即购买（Buy it now）专属：创建仅包含当前商品与数量的单品独立官方支付会话（Single-item Checkout Session）
+   * 绝不把当前商品追加到已有购物车，也绝不把购物车内已有的其他商品带入本次立即购买的支付结算页
+   */
+  function createBuyNowStandaloneCheckoutUrl(variantId, quantity) {
+    var qty = Math.max(1, parseInt(quantity, 10) || 1);
+    var merchGid = toVariantGid(variantId);
+    var savedNote = loadSavedOrderNote();
+    var savedDiscounts = loadSavedDiscountCodes();
+    var lineItemInput = { merchandiseId: merchGid, quantity: qty };
+    if (savedNote) {
+      lineItemInput.attributes = [{ key: 'Order Note', value: savedNote }];
+    }
+    var cartInput = {
+      lines: [lineItemInput]
+    };
+    if (savedNote) {
+      cartInput.note = savedNote;
+      cartInput.attributes = [{ key: 'Order Note', value: savedNote }];
+    }
+    if (savedDiscounts.length > 0) {
+      cartInput.discountCodes = savedDiscounts;
+    }
+
+    var createMut = [
+      'mutation BuyNowSingleCheckout($input: CartInput!) {',
+      '  cartCreate(input: $input) {',
+      '    cart {',
+      '      id',
+      '      checkoutUrl',
+      '    }',
+      '    userErrors { field message code }',
+      '  }',
+      '}'
+    ].join('\n');
+
+    return executeStorefrontGraphql(createMut, { input: cartInput }).then(function (res) {
+      var payload = res && res.data && res.data.cartCreate;
+      if (payload && payload.cart && payload.cart.checkoutUrl) {
+        var finalUrl = buildCheckoutUrlWithNoteAndDiscount(
+          payload.cart.checkoutUrl,
+          savedNote,
+          savedDiscounts
+        );
+        return {
+          ok: true,
+          checkoutUrl: finalUrl,
+          cartId: payload.cart.id
+        };
+      }
+      var uErr = (payload && payload.userErrors && payload.userErrors[0]) ? payload.userErrors[0].message : 'Unable to start direct checkout.';
+      return {
+        ok: false,
+        message: uErr,
+        checkoutUrl: buildCheckoutUrlWithNoteAndDiscount(apiUrl('cart/' + variantId + ':' + qty), savedNote, savedDiscounts)
+      };
+    }).catch(function () {
+      return {
+        ok: true,
+        checkoutUrl: buildCheckoutUrlWithNoteAndDiscount(apiUrl('cart/' + variantId + ':' + qty), savedNote, savedDiscounts)
+      };
+    });
+  }
+
   function syncCheckoutLinksWithUrl(checkoutUrl) {
     if (!checkoutUrl) return;
     document.querySelectorAll('[data-checkout-now-link], [data-checkout-step-link]').forEach(function (a) {
       a.setAttribute('href', checkoutUrl);
-    });
-    document.querySelectorAll('[data-direct-checkout]').forEach(function (btn) {
-      btn.setAttribute('data-official-checkout-url', checkoutUrl);
-      btn.setAttribute('data-checkout-url', checkoutUrl);
     });
   }
 
@@ -915,40 +975,52 @@
           };
         }
 
-        return addVariantViaStorefrontCartApi(variantId, qty)
+        // 当 /cart/add.js 成功将商品写入服务端购物车时，不再向 Storefront Cart 重复叠加同一商品，并从本地 Storefront 备份中移除该变体，避免数量与金额翻倍
+        return fetch(apiUrl('cart.js'))
+          .then(function (cr) { return cr.json(); })
           .catch(function () { return null; })
-          .then(function (sfRes) {
-            return fetch(apiUrl('cart.js'))
-              .then(function (cr) { return cr.json(); })
-              .catch(function () { return null; })
-              .then(function (cart) {
-                var sfCart = (sfRes && sfRes.cart) ? sfRes.cart : loadSavedStorefrontCart();
-                updateCartCount(getCombinedCartItemCount(cart, sfCart), true);
-                if (cart && typeof cart.item_count === 'number') {
-                  var qtyInput = document.querySelector('[data-qty-input]');
-                  if (qtyInput && Array.isArray(cart.items)) {
-                    var matched = null;
-                    for (var i = 0; i < cart.items.length; i++) {
-                      if (String(cart.items[i].variant_id) === String(variantId)) {
-                        matched = cart.items[i];
-                        break;
-                      }
-                    }
-                    qtyInput.setAttribute('data-cart-quantity', String(matched ? matched.quantity : 0));
+          .then(function (cart) {
+            var sfCart = loadSavedStorefrontCart();
+            if (sfCart && Array.isArray(sfCart.items) && sfCart.items.length > 0 && cart && Array.isArray(cart.items)) {
+              var serverVidMap = {};
+              cart.items.forEach(function (it) {
+                serverVidMap[String(it.variant_id || it.id)] = true;
+              });
+              sfCart.items = sfCart.items.filter(function (it) {
+                return !serverVidMap[String(it.variant_id)];
+              });
+              sfCart.item_count = sfCart.items.reduce(function (s, it) { return s + (Number(it.quantity) || 0); }, 0);
+              if (sfCart.item_count <= 0) {
+                saveStorefrontCart(null);
+                sfCart = null;
+              } else {
+                saveStorefrontCart(sfCart);
+              }
+            }
+            updateCartCount(getCombinedCartItemCount(cart, sfCart), true);
+            if (cart && typeof cart.item_count === 'number') {
+              var qtyInput = document.querySelector('[data-qty-input]');
+              if (qtyInput && Array.isArray(cart.items)) {
+                var matched = null;
+                for (var i = 0; i < cart.items.length; i++) {
+                  if (String(cart.items[i].variant_id) === String(variantId)) {
+                    matched = cart.items[i];
+                    break;
                   }
                 }
-                var bestCheckoutUrl = (sfRes && sfRes.checkoutUrl)
-                  || (sfCart && sfCart.checkoutUrl)
-                  || buildCheckoutUrlWithNoteAndDiscount(getThemeRoute('cart_checkout_url', 'checkout'), loadSavedOrderNote(), loadSavedDiscountCodes());
-                syncCheckoutLinksWithUrl(bestCheckoutUrl);
-                return {
-                  ok: true,
-                  source: 'shopify',
-                  checkoutUrl: bestCheckoutUrl,
-                  cart: cart || sfCart,
-                  response: data
-                };
-              });
+                qtyInput.setAttribute('data-cart-quantity', String(matched ? matched.quantity : 0));
+              }
+            }
+            var bestCheckoutUrl = (sfCart && sfCart.checkoutUrl)
+              || buildCheckoutUrlWithNoteAndDiscount(getThemeRoute('cart_checkout_url', 'checkout'), loadSavedOrderNote(), loadSavedDiscountCodes());
+            syncCheckoutLinksWithUrl(bestCheckoutUrl);
+            return {
+              ok: true,
+              source: 'shopify',
+              checkoutUrl: bestCheckoutUrl,
+              cart: cart || sfCart,
+              response: data
+            };
           });
       });
   }
@@ -1509,20 +1581,20 @@
   }
 
   on('[data-product-form]', 'submit', function (e, form) {
-    // 若用户点击的是原生 name="checkout" 提交按钮，直接允许或引导至 Shopify 官方结账流程
+    // 若用户点击的是原生 name="checkout" 提交按钮（立即购买），创建仅含当前单品的独立官方支付会话，绝不把购物车其他商品混入
     var submitter = e.submitter || document.activeElement;
     if (submitter && submitter.getAttribute && submitter.getAttribute('name') === 'checkout') {
-      e.preventDefault();
+      if (e.preventDefault) e.preventDefault();
       var directBtn = submitter;
       var directVidInput = form.querySelector('[data-variant-id-input]');
       var directVid = (directVidInput && directVidInput.value) || directBtn.getAttribute('data-variant');
       if (!directVid) return;
       var directQty = getProductQuantity();
       directBtn.setAttribute('disabled', '');
-      addVariantToCart(directVid, directQty, form)
+      createBuyNowStandaloneCheckoutUrl(directVid, directQty)
         .then(function (res) {
-          if (res && res.ok) {
-            window.location.href = res.checkoutUrl || getOfficialCheckoutUrl(directBtn);
+          if (res && res.checkoutUrl) {
+            window.location.href = res.checkoutUrl;
           } else {
             window.location.href = apiUrl('cart/' + directVid + ':' + directQty);
           }
@@ -1593,27 +1665,14 @@
 
   // 捕获点击“立即購買 / Buy it now”按钮（含 {{ form | payment_button }} 加速结账容器与备用按钮）：
   // 统一先通过双通道官方购物车（/cart/add.js 或 Storefront Cart API）加购，再直达官方 Checkout，彻底杜绝 wallets/checkouts.json 弹窗报错“交易失敗：此品項已下架。”
-  window.addEventListener('click', function (e) {
-    var path = e.composedPath ? e.composedPath() : [];
-    var directWrap = null;
-    for (var i = 0; i < path.length; i++) {
-      var node = path[i];
-      if (node && node.getAttribute && node.hasAttribute('data-direct-checkout')) {
-        directWrap = node;
-        break;
-      }
-    }
-    if (!directWrap && e.target && e.target.closest) {
-      directWrap = e.target.closest('[data-direct-checkout]');
-    }
+  function handleDirectBuyNowClick(e, directWrap) {
     if (!directWrap || directWrap.disabled || directWrap.hasAttribute('hidden')) return;
 
-    // 若点击的是“更多付款方式 (more-payment-options-link)”链接，同样引导至官方完整 Checkout
-    e.preventDefault();
-    e.stopPropagation();
+    if (e.preventDefault) e.preventDefault();
+    if (e.stopPropagation) e.stopPropagation();
     if (e.stopImmediatePropagation) e.stopImmediatePropagation();
 
-    var form = directWrap.closest('form') || document.querySelector('[data-product-form]');
+    var form = (directWrap.closest && directWrap.closest('form')) || document.querySelector('[data-product-form]');
     var idInput = (form && form.querySelector('[data-variant-id-input]')) || document.querySelector('[data-variant-id-input]');
     var addBtn = (form && form.querySelector('[data-product-add]')) || document.querySelector('[data-product-add]');
     var formErrorEl = (form && form.querySelector('[data-product-form-error]')) || document.querySelector('[data-product-form-error]');
@@ -1629,14 +1688,16 @@
     directWrap.style.pointerEvents = 'none';
     directWrap.style.opacity = '0.7';
 
-    addVariantToCart(variantId, quantity, form)
+    // 立即购买（Buy it now）：仅创建包含当前选中 SKU 与数量的独立单品结账会话，既不修改用户已有购物车，也不把购物车其他商品带入支付页
+    createBuyNowStandaloneCheckoutUrl(variantId, quantity)
       .then(function (res) {
-        if (res && res.ok) {
-          var targetUrl = res.checkoutUrl || getOfficialCheckoutUrl(directWrap);
-          window.location.href = targetUrl;
+        if (res && res.ok && res.checkoutUrl) {
+          window.location.href = res.checkoutUrl;
         } else if (formErrorEl && res && res.message) {
           formErrorEl.textContent = res.message;
           formErrorEl.removeAttribute('hidden');
+        } else if (res && res.checkoutUrl) {
+          window.location.href = res.checkoutUrl;
         } else {
           window.location.href = apiUrl('cart/' + variantId + ':' + quantity);
         }
@@ -1648,6 +1709,28 @@
         directWrap.style.pointerEvents = '';
         directWrap.style.opacity = '';
       });
+  }
+
+  on('[data-direct-checkout]', 'click', function (e, directWrap) {
+    handleDirectBuyNowClick(e, directWrap);
+  });
+
+  window.addEventListener('click', function (e) {
+    var path = e.composedPath ? e.composedPath() : [];
+    var directWrap = null;
+    for (var i = 0; i < path.length; i++) {
+      var node = path[i];
+      if (node && node.hasAttribute && node.hasAttribute('data-direct-checkout')) {
+        directWrap = node;
+        break;
+      }
+    }
+    if (!directWrap && e.target && e.target.closest) {
+      directWrap = e.target.closest('[data-direct-checkout]');
+    }
+    if (directWrap) {
+      handleDirectBuyNowClick(e, directWrap);
+    }
   }, true);
 
   /* -------------------------------------------------------------------
@@ -1711,7 +1794,7 @@
     return detectCurrencyPrefix() + num.toFixed(2);
   }
 
-  function renderStorefrontCartItemsInCartPage() {
+  function renderStorefrontCartItemsInCartPage(serverCartOverride) {
     var cartSection = document.querySelector('[data-tcg-cart-section], [data-tcg-checkout-section]');
     if (!cartSection) return;
 
@@ -1719,16 +1802,48 @@
     var sfCart = loadSavedStorefrontCart();
     var seenServerVids = {};
     var serverCount = 0;
-    var serverSubtotalCents = 0;
+    var serverOrigSubtotalCents = 0;
+    var serverFinalSubtotalCents = 0;
+    var serverLineDiscountCents = 0;
 
     cartSection.querySelectorAll('[data-cart-row][data-cart-source="shopify"]').forEach(function (row) {
       var vid = row.getAttribute('data-variant-id');
       if (vid) seenServerVids[String(vid)] = true;
       var q = parseInt(row.getAttribute('data-quantity'), 10) || 0;
-      var unit = parseInt(row.getAttribute('data-unit-price'), 10) || 0;
+      var origUnitAttr = parseInt(row.getAttribute('data-original-unit-price'), 10);
+      var finalUnitAttr = parseInt(row.getAttribute('data-unit-price'), 10);
+      var unitOrig = !isNaN(origUnitAttr) && origUnitAttr >= 0 ? origUnitAttr : (!isNaN(finalUnitAttr) ? finalUnitAttr : 0);
+      var unitFinal = !isNaN(finalUnitAttr) && finalUnitAttr >= 0 ? finalUnitAttr : unitOrig;
+
+      var origLineAttr = parseInt(row.getAttribute('data-original-line-price'), 10);
+      var finalLineAttr = parseInt(row.getAttribute('data-line-price'), 10);
+      var lineOrig = !isNaN(origLineAttr) && origLineAttr >= 0 ? origLineAttr : (unitOrig * q);
+      var lineFinal = !isNaN(finalLineAttr) && finalLineAttr >= 0 ? finalLineAttr : (unitFinal * q);
+      var lineDiscAttr = parseInt(row.getAttribute('data-line-discount'), 10);
+      var lineDisc = !isNaN(lineDiscAttr) && lineDiscAttr >= 0 ? lineDiscAttr : Math.max(0, lineOrig - lineFinal);
+
       serverCount += q;
-      serverSubtotalCents += (unit * q);
+      serverOrigSubtotalCents += lineOrig;
+      serverFinalSubtotalCents += lineFinal;
+      serverLineDiscountCents += lineDisc;
     });
+
+    // 若服务端购物车已包含某商品，同步清理本地 Storefront 备份中的同变体重复项，杜绝数量或金额叠加
+    if (sfCart && Array.isArray(sfCart.items) && sfCart.items.length > 0 && Object.keys(seenServerVids).length > 0) {
+      var beforeLen = sfCart.items.length;
+      sfCart.items = sfCart.items.filter(function (it) {
+        return !seenServerVids[String(it.variant_id)];
+      });
+      if (sfCart.items.length !== beforeLen) {
+        sfCart.item_count = sfCart.items.reduce(function (s, it) { return s + (Number(it.quantity) || 0); }, 0);
+        if (sfCart.item_count <= 0) {
+          saveStorefrontCart(null);
+          sfCart = null;
+        } else {
+          saveStorefrontCart(sfCart);
+        }
+      }
+    }
 
     var sfItems = (sfCart && Array.isArray(sfCart.items))
       ? sfCart.items.filter(function (it) {
@@ -1754,8 +1869,8 @@
           var vTitle = (item.variant_title && item.variant_title !== 'Default Title') ? escapeHtml(item.variant_title) : '';
           var sku = item.sku ? escapeHtml(item.sku) : '';
           var qty = Math.max(1, Number(item.quantity) || 1);
-          var unitCents = Number(item.final_price !== undefined ? item.final_price : item.original_price) || 0;
-          var origLineCents = Number(item.original_line_price) || (Number(item.original_price || unitCents) * qty);
+          var origUnitCents = Number(item.original_price !== undefined ? item.original_price : item.final_price) || 0;
+          var origLineCents = Number(item.original_line_price) || (origUnitCents * qty);
           var lineCents = Number(item.final_line_price !== undefined ? item.final_line_price : origLineCents);
           var lineDiscCents = Math.max(0, origLineCents - lineCents);
           var imgSrc = escapeHtml(item.image || '');
@@ -1769,7 +1884,7 @@
           if (!noteAttrVal && activeNote) noteAttrVal = activeNote;
 
           return (
-            '<div class="_row_1z0wo_52" data-cart-row data-cart-source="storefront_api" data-sf-line-id="' + lineId + '" data-variant-id="' + vid + '" data-unit-price="' + unitCents + '" data-quantity="' + qty + '">' +
+            '<div class="_row_1z0wo_52" data-cart-row data-cart-source="storefront_api" data-sf-line-id="' + lineId + '" data-variant-id="' + vid + '" data-original-unit-price="' + origUnitCents + '" data-unit-price="' + origUnitCents + '" data-original-line-price="' + origLineCents + '" data-line-price="' + lineCents + '" data-quantity="' + qty + '">' +
               '<a href="' + url + '" class="_thumb_1z0wo_62">' +
                 (imgSrc ? '<img alt="' + title + '" draggable="false" src="' + imgSrc + '" loading="lazy">' : '') +
               '</a>' +
@@ -1778,7 +1893,7 @@
                 '<div class="tcg-cart-meta">' +
                   (vTitle ? '<span class="_rowUnitPrice_1z0wo_94">' + vTitle + '</span>' : '') +
                   (sku ? '<code class="tcg-sku-code">SKU: ' + sku + '</code>' : '') +
-                  '<span class="_rowUnitPrice_1z0wo_94">' + escapeHtml(formatMoneyCents(unitCents)) + ' each</span>' +
+                  '<span class="_rowUnitPrice_1z0wo_94" data-row-unit-price>' + escapeHtml(formatMoneyCents(origUnitCents)) + ' each</span>' +
                 '</div>' +
                 (noteAttrVal
                   ? '<div class="tcg-cart-meta" style="margin-top:0.2rem;"><span class="_rowUnitPrice_1z0wo_94" style="color:#34d399;">Order Note: ' + escapeHtml(noteAttrVal) + '</span></div>'
@@ -1823,75 +1938,104 @@
       sfFinalSubtotalCents += finalLine;
     });
 
+    // 若传入了最新的服务端 cart JSON（如数量修改或折扣更新返回的数据），优先使用其权威统计字段
+    if (serverCartOverride && typeof serverCartOverride.item_count === 'number') {
+      serverCount = serverCartOverride.item_count;
+      if (typeof serverCartOverride.original_total_price === 'number') {
+        serverOrigSubtotalCents = serverCartOverride.original_total_price;
+      }
+      if (typeof serverCartOverride.total_price === 'number') {
+        serverFinalSubtotalCents = serverCartOverride.total_price;
+      }
+      if (typeof serverCartOverride.total_discount === 'number') {
+        serverLineDiscountCents = serverCartOverride.total_discount;
+      }
+    } else if (serverCount > 0) {
+      var statsEl = cartSection.querySelector('[data-summary-stats]');
+      if (statsEl) {
+        var srvTotalDiscAttr = parseInt(statsEl.getAttribute('data-server-total-discount'), 10);
+        if (!isNaN(srvTotalDiscAttr) && srvTotalDiscAttr > serverLineDiscountCents) {
+          serverLineDiscountCents = srvTotalDiscAttr;
+          serverFinalSubtotalCents = Math.max(0, serverOrigSubtotalCents - serverLineDiscountCents);
+        }
+      }
+    }
+
     var combinedCount = serverCount + sfCount;
-    var combinedOrigCents = serverSubtotalCents + sfOrigSubtotalCents;
+    var combinedOrigCents = serverOrigSubtotalCents + sfOrigSubtotalCents;
 
     var filledView = cartSection.querySelector('[data-cart-filled-view]');
     var emptyView = cartSection.querySelector('[data-cart-empty-view]');
     if (filledView && emptyView) {
       if (combinedCount > 0) {
         filledView.removeAttribute('hidden');
+        filledView.hidden = false;
         emptyView.setAttribute('hidden', '');
+        emptyView.hidden = true;
       } else {
         filledView.setAttribute('hidden', '');
+        filledView.hidden = true;
         emptyView.removeAttribute('hidden');
+        emptyView.hidden = false;
       }
     }
 
-    var hasSfCart = Boolean(sfCart && sfCart.id && Array.isArray(sfCart.items) && sfCart.items.length > 0);
-    if (sfItems.length > 0 || serverCount === 0 || hasSfCart) {
-      updateCartCount(combinedCount, false);
-      var headerCount = cartSection.querySelector('[data-cart-header-count]');
-      if (headerCount) {
-        headerCount.textContent = ' (' + combinedCount + (combinedCount === 1 ? ' item)' : ' items)');
+    updateCartCount(combinedCount, false);
+    var hiddenCountEl = cartSection.querySelector('[data-cart-hidden-count]');
+    if (hiddenCountEl) hiddenCountEl.textContent = String(combinedCount);
+
+    var headerCount = cartSection.querySelector('[data-cart-header-count]');
+    if (headerCount) {
+      headerCount.textContent = ' (' + combinedCount + (combinedCount === 1 ? ' item)' : ' items)');
+    }
+    cartSection.querySelectorAll('[data-summary-item-count]').forEach(function (el) {
+      el.textContent = String(combinedCount);
+    });
+
+    // 严格按当前购物车真实显示的商品计算原价小计、折扣金额与最终应付总价（绝不读取过期的历史缓存）
+    var displayOrigCents = combinedOrigCents;
+    var sfExtraDiscountCents = Math.max(0, sfOrigSubtotalCents - sfFinalSubtotalCents);
+    if (serverCount === 0 && sfItems.length > 0 && sfCart && typeof sfCart.total_discount === 'number') {
+      sfExtraDiscountCents = Math.max(sfExtraDiscountCents, sfCart.total_discount);
+    }
+    var totalDiscountCents = Math.min(displayOrigCents, serverLineDiscountCents + sfExtraDiscountCents);
+    var finalTotalCents = Math.max(0, displayOrigCents - totalDiscountCents);
+
+    cartSection.querySelectorAll('[data-summary-subtotal]').forEach(function (el) {
+      el.textContent = formatMoneyCents(displayOrigCents);
+    });
+
+    cartSection.querySelectorAll('[data-summary-discount-row]').forEach(function (row) {
+      if (totalDiscountCents > 0) {
+        row.removeAttribute('hidden');
+        row.hidden = false;
+      } else {
+        row.setAttribute('hidden', '');
+        row.hidden = true;
       }
-      cartSection.querySelectorAll('[data-summary-item-count]').forEach(function (el) {
-        el.textContent = String(combinedCount);
-      });
-      var displayOrigCents = (hasSfCart && typeof sfCart.original_total_price === 'number' && sfCart.original_total_price > 0)
-        ? Math.max(combinedOrigCents, sfCart.original_total_price)
-        : combinedOrigCents;
-      cartSection.querySelectorAll('[data-summary-subtotal]').forEach(function (el) {
-        el.textContent = formatMoneyCents(displayOrigCents);
-      });
+    });
+    cartSection.querySelectorAll('[data-summary-discount]').forEach(function (el) {
+      el.textContent = '-' + formatMoneyCents(totalDiscountCents);
+    });
 
-      var totalDiscountCents = (hasSfCart && typeof sfCart.total_discount === 'number')
-        ? sfCart.total_discount
-        : Math.max(0, displayOrigCents - (serverSubtotalCents + sfFinalSubtotalCents));
-      var finalTotalCents = (hasSfCart && typeof sfCart.total_price === 'number')
-        ? Math.max(0, displayOrigCents - totalDiscountCents)
-        : (serverSubtotalCents + sfFinalSubtotalCents);
+    cartSection.querySelectorAll('[data-summary-total]').forEach(function (el) {
+      el.textContent = formatMoneyCents(finalTotalCents);
+    });
 
-      cartSection.querySelectorAll('[data-summary-discount-row]').forEach(function (row) {
-        if (totalDiscountCents > 0) {
-          row.removeAttribute('hidden');
-          row.hidden = false;
-        } else {
-          row.setAttribute('hidden', '');
-          row.hidden = true;
+    // 渲染已生效的折扣码胶囊
+    var activeDiscounts = [];
+    if (sfCart && Array.isArray(sfCart.discount_codes)) {
+      sfCart.discount_codes.forEach(function (d) {
+        if (d && d.code && d.applicable !== false && activeDiscounts.indexOf(d.code) === -1) {
+          activeDiscounts.push(d.code);
         }
       });
-      cartSection.querySelectorAll('[data-summary-discount]').forEach(function (el) {
-        el.textContent = '-' + formatMoneyCents(totalDiscountCents);
-      });
-
-      cartSection.querySelectorAll('[data-summary-total]').forEach(function (el) {
-        el.textContent = formatMoneyCents(finalTotalCents);
-      });
-
-      // 渲染已生效的折扣码胶囊
-      var activeDiscounts = [];
-      if (sfCart && Array.isArray(sfCart.discount_codes)) {
-        sfCart.discount_codes.forEach(function (d) {
-          if (d && d.code && d.applicable !== false && activeDiscounts.indexOf(d.code) === -1) {
-            activeDiscounts.push(d.code);
-          }
-        });
-      }
-      if (!activeDiscounts.length) {
-        activeDiscounts = loadSavedDiscountCodes();
-      }
-      cartSection.querySelectorAll('[data-cart-discount-pills]').forEach(function (ul) {
+    }
+    if (!activeDiscounts.length) {
+      activeDiscounts = loadSavedDiscountCodes();
+    }
+    cartSection.querySelectorAll('[data-cart-discount-pills]').forEach(function (ul) {
+      if (activeDiscounts.length > 0) {
         ul.innerHTML = activeDiscounts.map(function (c) {
           var codeEsc = escapeHtml(c);
           return (
@@ -1901,36 +2045,38 @@
             '</li>'
           );
         }).join('');
-      });
+      } else if (serverCount === 0) {
+        ul.innerHTML = '';
+      }
+    });
 
-      var checkoutBtn = cartSection.querySelector('[data-official-checkout-submit]');
-      if (checkoutBtn) {
-        checkoutBtn.disabled = combinedCount <= 0;
-        if (combinedCount > 0) checkoutBtn.removeAttribute('disabled');
-      }
-      if (sfCart && (sfCart.rawCheckoutUrl || sfCart.checkoutUrl)) {
-        var syncedUrl = buildCheckoutUrlWithNoteAndDiscount(
-          sfCart.rawCheckoutUrl || sfCart.checkoutUrl,
-          activeNote,
-          activeDiscounts
+    var checkoutBtn = cartSection.querySelector('[data-official-checkout-submit]');
+    if (checkoutBtn) {
+      checkoutBtn.disabled = combinedCount <= 0;
+      if (combinedCount > 0) checkoutBtn.removeAttribute('disabled');
+    }
+    if (sfCart && (sfCart.rawCheckoutUrl || sfCart.checkoutUrl)) {
+      var syncedUrl = buildCheckoutUrlWithNoteAndDiscount(
+        sfCart.rawCheckoutUrl || sfCart.checkoutUrl,
+        activeNote,
+        activeDiscounts
+      );
+      sfCart.checkoutUrl = syncedUrl;
+      saveStorefrontCart(sfCart);
+      syncCheckoutLinksWithUrl(syncedUrl);
+    }
+    var checkoutItemsBox = cartSection.querySelector('[data-checkout-summary-items]');
+    if (checkoutItemsBox && serverCount === 0 && sfItems.length > 0) {
+      checkoutItemsBox.innerHTML = sfItems.map(function (it) {
+        var vLabel = (it.variant_title && it.variant_title !== 'Default Title') ? ' (' + escapeHtml(it.variant_title) + ')' : '';
+        var lineCents = Number(it.final_line_price !== undefined ? it.final_line_price : it.original_line_price) || 0;
+        return (
+          '<div class="tcg-checkout-item">' +
+            '<span>' + escapeHtml(it.quantity) + '× ' + escapeHtml(it.product_title) + vLabel + '</span>' +
+            '<strong>' + escapeHtml(formatMoneyCents(lineCents)) + '</strong>' +
+          '</div>'
         );
-        sfCart.checkoutUrl = syncedUrl;
-        saveStorefrontCart(sfCart);
-        syncCheckoutLinksWithUrl(syncedUrl);
-      }
-      var checkoutItemsBox = cartSection.querySelector('[data-checkout-summary-items]');
-      if (checkoutItemsBox && serverCount === 0 && sfItems.length > 0) {
-        checkoutItemsBox.innerHTML = sfItems.map(function (it) {
-          var vLabel = (it.variant_title && it.variant_title !== 'Default Title') ? ' (' + escapeHtml(it.variant_title) + ')' : '';
-          var lineCents = Number(it.final_line_price !== undefined ? it.final_line_price : it.original_line_price) || 0;
-          return (
-            '<div class="tcg-checkout-item">' +
-              '<span>' + escapeHtml(it.quantity) + '× ' + escapeHtml(it.product_title) + vLabel + '</span>' +
-              '<strong>' + escapeHtml(formatMoneyCents(lineCents)) + '</strong>' +
-            '</div>'
-          );
-        }).join('');
-      }
+      }).join('');
     }
   }
 
@@ -2044,7 +2190,7 @@
         if (sectionId && parsed.sections && parsed.sections[sectionId]) {
           var morphed = syncCartDomFromSectionHtml(sectionId, parsed.sections[sectionId]);
           if (morphed) {
-            updateCartCount(getCombinedCartItemCount(parsed, null), true);
+            renderStorefrontCartItemsInCartPage(parsed);
             return;
           }
         }
@@ -2060,43 +2206,33 @@
             input.setAttribute('data-cart-quantity', String(cleanQty));
           }
           var matchedLine = (parsed.items && parsed.items[cleanLine - 1]) ? parsed.items[cleanLine - 1] : null;
-          var unitCents = matchedLine ? Number(matchedLine.final_price) : (parseInt(rowEl.getAttribute('data-unit-price'), 10) || 0);
-          var lineCents = matchedLine ? Number(matchedLine.final_line_price) : (unitCents * cleanQty);
+          var origUnitCents = matchedLine && matchedLine.original_price !== undefined
+            ? Number(matchedLine.original_price)
+            : (parseInt(rowEl.getAttribute('data-original-unit-price'), 10) || parseInt(rowEl.getAttribute('data-unit-price'), 10) || 0);
+          var finalUnitCents = matchedLine && matchedLine.final_price !== undefined
+            ? Number(matchedLine.final_price)
+            : origUnitCents;
+          var origLineCents = matchedLine && matchedLine.original_line_price !== undefined
+            ? Number(matchedLine.original_line_price)
+            : (origUnitCents * cleanQty);
+          var finalLineCents = matchedLine && matchedLine.final_line_price !== undefined
+            ? Number(matchedLine.final_line_price)
+            : (finalUnitCents * cleanQty);
+          var lineDiscCents = Math.max(0, origLineCents - finalLineCents);
+
+          rowEl.setAttribute('data-original-unit-price', String(origUnitCents));
+          rowEl.setAttribute('data-unit-price', String(finalUnitCents));
+          rowEl.setAttribute('data-original-line-price', String(origLineCents));
+          rowEl.setAttribute('data-line-price', String(finalLineCents));
+          rowEl.setAttribute('data-line-discount', String(lineDiscCents));
+
+          var unitPriceEl = rowEl.querySelector('[data-row-unit-price]');
+          if (unitPriceEl) unitPriceEl.textContent = formatMoneyCents(origUnitCents) + ' each';
           var lineTotalEl = rowEl.querySelector('[data-row-line-total]');
-          if (lineTotalEl) lineTotalEl.textContent = formatMoneyCents(lineCents);
+          if (lineTotalEl) lineTotalEl.textContent = formatMoneyCents(finalLineCents);
         }
 
-        var newCount = getCombinedCartItemCount(parsed, null);
-        updateCartCount(newCount, true);
-
-        if (newCount <= 0) {
-          window.location.reload();
-          return;
-        }
-
-        if (cartSection) {
-          var headerCount = cartSection.querySelector('[data-cart-header-count]');
-          if (headerCount) {
-            headerCount.textContent = ' (' + newCount + (newCount === 1 ? ' item)' : ' items)');
-          }
-          cartSection.querySelectorAll('[data-summary-item-count]').forEach(function (el) {
-            el.textContent = String(newCount);
-          });
-          if (typeof parsed.original_total_price === 'number') {
-            cartSection.querySelectorAll('[data-summary-subtotal]').forEach(function (el) {
-              el.textContent = formatMoneyCents(parsed.original_total_price);
-            });
-          }
-          if (typeof parsed.total_price === 'number') {
-            cartSection.querySelectorAll('[data-summary-total]').forEach(function (el) {
-              el.textContent = formatMoneyCents(parsed.total_price);
-            });
-          }
-          var checkoutBtn = cartSection.querySelector('[data-official-checkout-submit]');
-          if (checkoutBtn) {
-            checkoutBtn.disabled = newCount <= 0;
-          }
-        }
+        renderStorefrontCartItemsInCartPage(parsed);
       })
       .catch(function () {
         window.location.reload();
@@ -2226,9 +2362,10 @@
       discInput.value = existingCodes.join(',');
     }
 
+    var serverRows = form.querySelectorAll('[data-cart-row][data-cart-source="shopify"]');
     var sfCart = loadSavedStorefrontCart();
 
-    if (sfCart && sfCart.id && Array.isArray(sfCart.items) && sfCart.items.length > 0) {
+    if (serverRows.length === 0 && sfCart && sfCart.id && Array.isArray(sfCart.items) && sfCart.items.length > 0) {
       if (e.preventDefault) e.preventDefault();
       var submitBtn = form.querySelector('[data-official-checkout-submit]');
       if (submitBtn) submitBtn.disabled = true;
@@ -2254,7 +2391,7 @@
       return;
     }
 
-    // 即使未创建 Storefront Cart 而走传统 /cart 表单提交，也同步保存备注与折扣码到本地与表单隐藏字段
+    // 服务端购物车结账：保存备注与折扣码，若表单中已绑定 [name="note"] 和 [name="discount"]，让浏览器原生 POST /cart (name="checkout") 进入当前购物车专属官方收银台
     saveOrderNoteLocal(noteVal);
     if (existingCodes.length > 0) saveDiscountCodesLocal(existingCodes);
   });
@@ -2373,11 +2510,8 @@
           saveDiscountCodesLocal(discountList);
           if (sectionId && data.sections && data.sections[sectionId]) {
             syncCartDomFromSectionHtml(sectionId, data.sections[sectionId]);
-          } else if (typeof data.total_price === 'number') {
-            document.querySelectorAll('[data-summary-total]').forEach(function (el) {
-              el.textContent = formatMoneyCents(data.total_price);
-            });
           }
+          renderStorefrontCartItemsInCartPage(data);
         })
         .catch(function () {});
     });

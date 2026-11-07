@@ -1852,6 +1852,17 @@ html[data-theme="light"] ._cardBody_36e53_256 {
   color: var(--tcg-accent-fg) !important;
   box-shadow: none !important;
 }
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
 ._addBtn_36e53_338:hover:not(:disabled) {
   background: var(--tcg-accent-hover) !important;
 }
