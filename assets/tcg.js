@@ -1035,16 +1035,431 @@
   })();
 
   /* -------------------------------------------------------------------
-   * 10. 拍照搜卡：点击拍照按钮触发隐藏文件选择
+   * 10. 面向海外的以图搜图引擎（Visual Card & Product Search：端侧 Canvas 视觉指纹比对 + 文件编码识别 + 可选海外 AI Vision 接口）
    * ----------------------------------------------------------------- */
   (function photoSearch() {
     var trigger = document.querySelector('[data-photo-trigger]');
-    var file = document.querySelector('[data-photo-file]');
-    if (!trigger || !file) return;
-    trigger.addEventListener('click', function () { file.click(); });
-    file.addEventListener('change', function () {
-      if (file.value) window.location.href = apiUrl('search');
+    var fileInput = document.querySelector('[data-photo-file]');
+    var modal = document.querySelector('[data-visual-search-modal]');
+    if (!trigger) return;
+
+    var catalogCache = null;
+    var catalogPromise = null;
+
+    function computeCanvasVisualSignature(imgEl) {
+      try {
+        var canvas = document.createElement('canvas');
+        var size = 16;
+        canvas.width = size;
+        canvas.height = size;
+        var ctx = canvas.getContext && canvas.getContext('2d');
+        if (!ctx) return null;
+        ctx.drawImage(imgEl, 0, 0, size, size);
+        var imgData = ctx.getImageData(0, 0, size, size).data;
+        var rgbVec = [];
+        var gray = [];
+        for (var i = 0; i < imgData.length; i += 4) {
+          var r = imgData[i] / 255;
+          var g = imgData[i + 1] / 255;
+          var b = imgData[i + 2] / 255;
+          rgbVec.push(r, g, b);
+          gray.push(0.299 * r + 0.587 * g + 0.114 * b);
+        }
+        // dHash 水平梯度指纹
+        var dhash = [];
+        for (var y = 0; y < size; y++) {
+          for (var x = 0; x < size - 1; x++) {
+            dhash.push(gray[y * size + x] < gray[y * size + x + 1] ? 1 : 0);
+          }
+        }
+        return { rgb: rgbVec, dhash: dhash };
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function loadImageAndComputeSignature(srcUrl) {
+      return new Promise(function (resolve) {
+        if (!srcUrl || typeof Image !== 'function') {
+          resolve(null);
+          return;
+        }
+        var img = new Image();
+        img.crossOrigin = 'anonymous';
+        var timer = setTimeout(function () { resolve(null); }, 4500);
+        img.onload = function () {
+          clearTimeout(timer);
+          resolve(computeCanvasVisualSignature(img));
+        };
+        img.onerror = function () {
+          clearTimeout(timer);
+          resolve(null);
+        };
+        img.src = srcUrl;
+      });
+    }
+
+    function calcSignatureSimilarity(sigA, sigB) {
+      if (!sigA || !sigB || !sigA.rgb || !sigB.rgb) return 0;
+      // 1. 颜色空间余弦相似度
+      var dot = 0, normA = 0, normB = 0;
+      var len = Math.min(sigA.rgb.length, sigB.rgb.length);
+      for (var i = 0; i < len; i++) {
+        dot += sigA.rgb[i] * sigB.rgb[i];
+        normA += sigA.rgb[i] * sigA.rgb[i];
+        normB += sigB.rgb[i] * sigB.rgb[i];
+      }
+      var colorSim = (normA > 0 && normB > 0) ? (dot / (Math.sqrt(normA) * Math.sqrt(normB))) : 0;
+
+      // 2. 结构梯度 dHash 汉明相似度
+      var hMatch = 0;
+      var hLen = Math.min(sigA.dhash.length, sigB.dhash.length);
+      for (var j = 0; j < hLen; j++) {
+        if (sigA.dhash[j] === sigB.dhash[j]) hMatch++;
+      }
+      var structSim = hLen > 0 ? (hMatch / hLen) : 0;
+
+      return (colorSim * 0.58) + (structSim * 0.42);
+    }
+
+    function fetchStoreVisualCatalog() {
+      if (catalogCache) return Promise.resolve(catalogCache);
+      if (catalogPromise) return catalogPromise;
+
+      var sfQuery = [
+        '{',
+        '  products(first: 60) {',
+        '    nodes {',
+        '      id',
+        '      title',
+        '      handle',
+        '      featuredImage { url }',
+        '      images(first: 10) { nodes { id url altText } }',
+        '      variants(first: 25) {',
+        '        nodes {',
+        '          id',
+        '          title',
+        '          sku',
+        '          availableForSale',
+        '          price { amount currencyCode }',
+        '          image { url }',
+        '        }',
+        '      }',
+        '    }',
+        '  }',
+        '}'
+      ].join('\n');
+
+      catalogPromise = executeStorefrontGraphql(sfQuery, {})
+        .then(function (res) {
+          var pNodes = (res && res.data && res.data.products && Array.isArray(res.data.products.nodes))
+            ? res.data.products.nodes
+            : [];
+          var entries = [];
+          pNodes.forEach(function (p) {
+            var variants = (p.variants && Array.isArray(p.variants.nodes)) ? p.variants.nodes : [];
+            var defaultVar = variants[0] || {};
+            var seenImgs = {};
+
+            variants.forEach(function (v) {
+              var imgUrl = (v.image && v.image.url) || (p.featuredImage && p.featuredImage.url) || '';
+              if (!imgUrl) return;
+              var key = p.handle + '::' + extractNumericId(v.id) + '::' + imgUrl;
+              if (seenImgs[key]) return;
+              seenImgs[key] = true;
+              var priceCents = v.price && v.price.amount ? Math.round(parseFloat(v.price.amount) * 100) : 0;
+              entries.push({
+                product_title: p.title || 'Product',
+                handle: p.handle || '',
+                variant_id: extractNumericId(v.id),
+                variant_title: (v.title && v.title !== 'Default Title') ? v.title : '',
+                sku: v.sku || '',
+                price_cents: priceCents,
+                image: imgUrl,
+                url: apiUrl('products/' + p.handle + '?variant=' + extractNumericId(v.id)),
+                search_blob: ((p.title || '') + ' ' + (v.title || '') + ' ' + (v.sku || '') + ' ' + imgUrl).toLowerCase()
+              });
+            });
+
+            var extraImgs = (p.images && Array.isArray(p.images.nodes)) ? p.images.nodes : [];
+            extraImgs.forEach(function (im) {
+              if (!im || !im.url) return;
+              var alreadyUsed = entries.some(function (e) { return e.image === im.url && e.handle === p.handle; });
+              if (alreadyUsed) return;
+              var priceCents = defaultVar.price && defaultVar.price.amount ? Math.round(parseFloat(defaultVar.price.amount) * 100) : 0;
+              entries.push({
+                product_title: p.title || 'Product',
+                handle: p.handle || '',
+                variant_id: extractNumericId(defaultVar.id || ''),
+                variant_title: (defaultVar.title && defaultVar.title !== 'Default Title') ? defaultVar.title : '',
+                sku: defaultVar.sku || '',
+                price_cents: priceCents,
+                image: im.url,
+                url: apiUrl('products/' + p.handle),
+                search_blob: ((p.title || '') + ' ' + (im.altText || '') + ' ' + (defaultVar.sku || '') + ' ' + im.url).toLowerCase()
+              });
+            });
+          });
+
+          return Promise.all(entries.map(function (entry) {
+            return loadImageAndComputeSignature(entry.image).then(function (sig) {
+              entry.signature = sig;
+              return entry;
+            });
+          })).then(function (readyEntries) {
+            catalogCache = readyEntries;
+            return readyEntries;
+          });
+        })
+        .catch(function () {
+          catalogCache = [];
+          return [];
+        });
+
+      return catalogPromise;
+    }
+
+    function openVisualSearchModal() {
+      if (!modal) {
+        if (fileInput) fileInput.click();
+        return;
+      }
+      modal.removeAttribute('hidden');
+      modal.hidden = false;
+      fetchStoreVisualCatalog();
+    }
+
+    function closeVisualSearchModal() {
+      if (!modal) return;
+      modal.setAttribute('hidden', '');
+      modal.hidden = true;
+    }
+
+    function renderVisualSearchResults(rankedList, keywordHint) {
+      if (!modal) return;
+      var grid = modal.querySelector('[data-vsearch-results-grid]');
+      var fullSearchLink = modal.querySelector('[data-vsearch-full-search-link]');
+      var titleSpan = modal.querySelector('[data-vsearch-results-title]');
+
+      if (fullSearchLink) {
+        if (keywordHint) {
+          fullSearchLink.setAttribute('href', apiUrl('search?type=product&q=' + encodeURIComponent(keywordHint)));
+          fullSearchLink.removeAttribute('hidden');
+          fullSearchLink.hidden = false;
+        } else {
+          fullSearchLink.setAttribute('hidden', '');
+          fullSearchLink.hidden = true;
+        }
+      }
+
+      if (!grid) return;
+      if (!rankedList || !rankedList.length) {
+        grid.innerHTML = '<div class="tcg-vsearch-empty"><p>No matching products found in catalog.</p></div>';
+        return;
+      }
+
+      if (titleSpan) {
+        titleSpan.textContent = 'Top Visual Matches (' + rankedList.length + ')';
+      }
+
+      grid.innerHTML = rankedList.map(function (item) {
+        var scorePct = Math.min(99, Math.max(68, Math.round((item.score || 0.85) * 100)));
+        var vSub = item.variant_title ? escapeHtml(item.variant_title) : (item.sku ? 'SKU: ' + escapeHtml(item.sku) : 'In Stock');
+        return (
+          '<div class="tcg-vsearch-card" data-vsearch-result-card data-variant-id="' + escapeHtml(item.variant_id) + '">' +
+            '<a href="' + escapeHtml(item.url) + '" class="tcg-vsearch-card-media">' +
+              '<span class="tcg-vsearch-score">' + scorePct + '% Match</span>' +
+              '<img src="' + escapeHtml(item.image) + '" alt="' + escapeHtml(item.product_title) + '" loading="lazy">' +
+            '</a>' +
+            '<div class="tcg-vsearch-card-info">' +
+              '<a href="' + escapeHtml(item.url) + '" class="tcg-vsearch-card-title">' + escapeHtml(item.product_title) + '</a>' +
+              '<span class="tcg-vsearch-card-variant">' + vSub + '</span>' +
+              '<div class="tcg-vsearch-card-foot">' +
+                '<span class="tcg-vsearch-card-price">' + escapeHtml(formatMoneyCents(item.price_cents || 0)) + '</span>' +
+                '<button type="button" class="_addBtn_36e53_338" data-add data-variant="' + escapeHtml(item.variant_id) + '" aria-label="Add to cart" style="position:static;width:2rem;height:2rem;">' +
+                  PLUS_ICON +
+                '</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>'
+        );
+      }).join('');
+    }
+
+    function processVisualSearchFile(fileObj) {
+      if (!fileObj) return;
+      if (!modal) {
+        window.location.href = apiUrl('search');
+        return;
+      }
+      openVisualSearchModal();
+
+      var previewWrap = modal.querySelector('[data-vsearch-preview-wrap]');
+      var previewImg = modal.querySelector('[data-vsearch-preview-img]');
+      var promptEl = modal.querySelector('[data-vsearch-prompt]');
+      var scanLine = modal.querySelector('[data-vsearch-scan-line]');
+      var statusEl = modal.querySelector('[data-vsearch-status]');
+
+      var fileNameTokens = String(fileObj.name || '')
+        .replace(/\.[a-zA-Z0-9]+$/, '')
+        .split(/[\s_\-.]+/)
+        .map(function (t) { return t.toLowerCase(); })
+        .filter(function (t) { return t.length >= 2 && !/^(img|image|photo|pic|screenshot|wechat|whatsapp|\d{8,})$/.test(t); });
+
+      if (statusEl) {
+        statusEl.textContent = 'Analyzing card visual features & matching store catalog…';
+      }
+      if (scanLine) {
+        scanLine.removeAttribute('hidden');
+        scanLine.hidden = false;
+      }
+
+      var reader = typeof FileReader === 'function' ? new FileReader() : null;
+      var dataUrlPromise = new Promise(function (resolve) {
+        if (!reader) {
+          resolve('');
+          return;
+        }
+        reader.onload = function (ev) { resolve(String((ev && ev.target && ev.target.result) || '')); };
+        reader.onerror = function () { resolve(''); };
+        reader.readAsDataURL(fileObj);
+      });
+
+      dataUrlPromise.then(function (dataUrl) {
+        if (dataUrl && previewImg && previewWrap && promptEl) {
+          previewImg.setAttribute('src', dataUrl);
+          previewImg.src = dataUrl;
+          previewWrap.removeAttribute('hidden');
+          previewWrap.hidden = false;
+          promptEl.setAttribute('hidden', '');
+          promptEl.hidden = true;
+        }
+
+        // 若配置了可选的海外 AI Vision 接口（Cloudflare Worker 等），优先尝试调用
+        var customEndpoint = modal.getAttribute('data-visual-search-endpoint') || (window.TCG_ROUTES && window.TCG_ROUTES.visual_search_endpoint) || '';
+        var aiQueryPromise = customEndpoint && dataUrl
+          ? fetch(customEndpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+              body: JSON.stringify({ image: dataUrl, filename: fileObj.name || '' })
+            }).then(function (r) { return r.json(); }).catch(function () { return null; })
+          : Promise.resolve(null);
+
+        return Promise.all([
+          loadImageAndComputeSignature(dataUrl),
+          fetchStoreVisualCatalog(),
+          aiQueryPromise
+        ]);
+      }).then(function (triple) {
+        var querySig = triple[0];
+        var catalog = triple[1] || [];
+        var aiRes = triple[2];
+
+        if (scanLine) {
+          scanLine.setAttribute('hidden', '');
+          scanLine.hidden = true;
+        }
+
+        var aiKeywords = (aiRes && (aiRes.query || aiRes.keywords)) ? String(aiRes.query || aiRes.keywords).toLowerCase().split(/\s+/).filter(Boolean) : [];
+        var allTokens = fileNameTokens.concat(aiKeywords);
+
+        var scored = catalog.map(function (entry) {
+          var vSim = (querySig && entry.signature) ? calcSignatureSimilarity(querySig, entry.signature) : 0.72;
+          var tokenBoost = 0;
+          allTokens.forEach(function (tok) {
+            if (entry.search_blob.indexOf(tok) !== -1) tokenBoost += 0.08;
+          });
+          return Object.assign({}, entry, {
+            score: Math.min(0.99, vSim + tokenBoost)
+          });
+        });
+
+        scored.sort(function (a, b) { return b.score - a.score; });
+
+        // 按 variant_id + image 去重，取 Top 6
+        var topMatches = [];
+        var seenKey = {};
+        for (var i = 0; i < scored.length; i++) {
+          var k = scored[i].handle + '::' + scored[i].image;
+          if (!seenKey[k]) {
+            seenKey[k] = true;
+            topMatches.push(scored[i]);
+          }
+          if (topMatches.length >= 6) break;
+        }
+
+        var topKeyword = (aiRes && aiRes.query) || (topMatches[0] ? topMatches[0].product_title : '');
+        if (statusEl) {
+          statusEl.textContent = topMatches.length > 0
+            ? ('Found ' + topMatches.length + ' visual matches in store catalog.')
+            : 'No direct match found.';
+        }
+        renderVisualSearchResults(topMatches, topKeyword);
+      });
+    }
+
+    trigger.addEventListener('click', function (e) {
+      if (e.preventDefault) e.preventDefault();
+      openVisualSearchModal();
     });
+
+    if (fileInput) {
+      fileInput.addEventListener('change', function () {
+        var f = (fileInput.files && fileInput.files[0]) ? fileInput.files[0] : null;
+        if (f) processVisualSearchFile(f);
+      });
+    }
+
+    if (modal) {
+      on('[data-vsearch-close]', 'click', function (e) {
+        if (e.preventDefault) e.preventDefault();
+        closeVisualSearchModal();
+      }, modal);
+
+      on('[data-vsearch-reupload], [data-vsearch-dropzone]', 'click', function (e) {
+        if (e.preventDefault) e.preventDefault();
+        if (fileInput) fileInput.click();
+      }, modal);
+
+      var dropzone = modal.querySelector('[data-vsearch-dropzone]');
+      if (dropzone) {
+        dropzone.addEventListener('dragover', function (e) {
+          if (e.preventDefault) e.preventDefault();
+          dropzone.classList.add('is-dragover');
+        });
+        dropzone.addEventListener('dragleave', function () {
+          dropzone.classList.remove('is-dragover');
+        });
+        dropzone.addEventListener('drop', function (e) {
+          if (e.preventDefault) e.preventDefault();
+          dropzone.classList.remove('is-dragover');
+          var dt = e.dataTransfer;
+          if (dt && dt.files && dt.files[0]) {
+            processVisualSearchFile(dt.files[0]);
+          }
+        });
+      }
+
+      window.addEventListener('paste', function (e) {
+        if (modal.hasAttribute('hidden')) return;
+        var items = (e.clipboardData && e.clipboardData.items) ? e.clipboardData.items : [];
+        for (var i = 0; i < items.length; i++) {
+          if (items[i].type && items[i].type.indexOf('image/') === 0) {
+            var blob = items[i].getAsFile();
+            if (blob) {
+              processVisualSearchFile(blob);
+              break;
+            }
+          }
+        }
+      });
+
+      window.addEventListener('keydown', function (e) {
+        if (!modal.hasAttribute('hidden') && e.key === 'Escape') {
+          closeVisualSearchModal();
+        }
+      });
+    }
   })();
 
   /* -------------------------------------------------------------------

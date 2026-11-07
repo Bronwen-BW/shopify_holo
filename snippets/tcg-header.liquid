@@ -147,3 +147,70 @@
     </div>
   </div>
 </header>
+
+{%- comment %} ================= 以图搜图（Visual Card & Product Search）全局模态框 ================= {% endcomment -%}
+<div
+  class="tcg-vsearch-modal"
+  data-visual-search-modal
+  data-visual-search-endpoint="{{ section.settings.visual_search_endpoint | escape }}"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Visual Card & Product Search"
+  hidden
+>
+  <div class="tcg-vsearch-backdrop" data-vsearch-close></div>
+  <div class="tcg-vsearch-dialog">
+    <header class="tcg-vsearch-head">
+      <div>
+        <span class="tcg-eyebrow">AI &amp; Visual Matching</span>
+        <h2>Search by Card or Product Photo</h2>
+      </div>
+      <button type="button" class="tcg-vsearch-close" data-vsearch-close aria-label="Close visual search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+      </button>
+    </header>
+
+    <div class="tcg-vsearch-body">
+      {%- comment %} 左侧：上传 / 拖拽 / 剪贴板粘贴 / 当前图片预览 {% endcomment -%}
+      <aside class="tcg-vsearch-upload-col">
+        <div class="tcg-vsearch-dropzone" data-vsearch-dropzone tabindex="0" role="button" aria-label="Upload or drop an image to search">
+          <div class="tcg-vsearch-preview-wrap" data-vsearch-preview-wrap hidden>
+            <img data-vsearch-preview-img src="" alt="Uploaded query image">
+            <span class="tcg-vsearch-scan-line" data-vsearch-scan-line hidden></span>
+          </div>
+          <div class="tcg-vsearch-prompt" data-vsearch-prompt>
+            <span class="tcg-vsearch-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"></path><rect x="8.5" y="7.5" width="7" height="9" rx="1"></rect></svg>
+            </span>
+            <strong>Drop a card photo here, or click to browse</strong>
+            <span>Supports JPG, PNG, WEBP, or Ctrl+V paste</span>
+          </div>
+        </div>
+
+        <div class="tcg-vsearch-upload-actions">
+          <button type="button" class="tcg-btn-secondary" data-vsearch-reupload style="width:100%;">
+            Choose another photo
+          </button>
+        </div>
+
+        <div class="tcg-vsearch-meta" data-vsearch-status>
+          Upload any card, slab, or gift box photo to find matching items &amp; SKUs in our catalog.
+        </div>
+      </aside>
+
+      {%- comment %} 右侧：相似商品与 SKU 匹配结果列表 {% endcomment -%}
+      <section class="tcg-vsearch-results-col">
+        <div class="tcg-vsearch-results-head">
+          <span data-vsearch-results-title>Visual Matches in Store</span>
+          <a href="{{ routes.search_url }}" class="tcg-link-accent" data-vsearch-full-search-link hidden>Open in full search page →</a>
+        </div>
+
+        <div class="tcg-vsearch-grid" data-vsearch-results-grid>
+          <div class="tcg-vsearch-empty">
+            <p>Select or drop a photo on the left to start visual matching.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

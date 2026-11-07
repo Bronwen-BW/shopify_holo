@@ -2455,4 +2455,314 @@ html[data-theme="light"] ._cardBody_36e53_256 {
   border-top: 1px solid var(--tcg-border);
 }
 
+/* ===== 以图搜图（Visual Card & Product Search）全局模态框样式 ===== */
+.tcg-vsearch-modal {
+  position: fixed;
+  z-index: 9998;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: clamp(0.85rem, 2.5vw, 2rem);
+}
+.tcg-vsearch-modal[hidden] {
+  display: none !important;
+}
+.tcg-vsearch-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(9, 11, 16, 0.84);
+  backdrop-filter: blur(12px);
+}
+.tcg-vsearch-dialog {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: min(95vw, 68rem);
+  max-height: 90dvh;
+  padding: clamp(1.25rem, 2.5vw, 1.85rem);
+  border-radius: 1.35rem;
+  background: var(--tcg-surface);
+  border: 1px solid var(--tcg-border-strong);
+  box-shadow: 0 32px 64px -16px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+}
+.tcg-vsearch-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--tcg-border);
+}
+.tcg-vsearch-head h2 {
+  margin-top: 0.2rem;
+  color: var(--tcg-text);
+  font-family: Rubik, sans-serif;
+  font-size: clamp(1.25rem, 2vw, 1.55rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.tcg-vsearch-close {
+  display: grid;
+  place-items: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 50%;
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+  color: var(--tcg-text);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.tcg-vsearch-close:hover {
+  background: var(--tcg-accent);
+  color: var(--tcg-accent-fg);
+}
+.tcg-vsearch-close svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+.tcg-vsearch-body {
+  display: grid;
+  grid-template-columns: minmax(15rem, 19rem) minmax(0, 1fr);
+  gap: 1.35rem;
+  margin-top: 1.15rem;
+  min-height: 0;
+  overflow-y: auto;
+}
+@media (max-width: 820px) {
+  .tcg-vsearch-body {
+    grid-template-columns: 1fr;
+  }
+}
+.tcg-vsearch-upload-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.tcg-vsearch-dropzone {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  padding: 1.25rem;
+  border-radius: 1.1rem;
+  background:
+    radial-gradient(ellipse 65% 60% at 50% 50%, rgba(16, 185, 129, 0.16), transparent 72%),
+    var(--tcg-surface-soft);
+  border: 1.5px dashed var(--tcg-border-strong);
+  text-align: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.tcg-vsearch-dropzone:hover,
+.tcg-vsearch-dropzone.is-dragover {
+  border-color: var(--tcg-accent);
+  background:
+    radial-gradient(ellipse 65% 60% at 50% 50%, rgba(16, 185, 129, 0.26), transparent 72%),
+    var(--tcg-surface-hover);
+}
+.tcg-vsearch-preview-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+.tcg-vsearch-preview-wrap[hidden] {
+  display: none !important;
+}
+.tcg-vsearch-preview-wrap img {
+  max-width: 100%;
+  max-height: 14.5rem;
+  object-fit: contain;
+  border-radius: 0.65rem;
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.45));
+}
+.tcg-vsearch-scan-line {
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #34d399, #10b981, transparent);
+  box-shadow: 0 0 12px #10b981;
+  animation: tcgScanSweep 1.35s ease-in-out infinite alternate;
+}
+.tcg-vsearch-scan-line[hidden] {
+  display: none !important;
+}
+@keyframes tcgScanSweep {
+  0% { top: 8%; }
+  100% { top: 90%; }
+}
+.tcg-vsearch-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+}
+.tcg-vsearch-prompt[hidden] {
+  display: none !important;
+}
+.tcg-vsearch-icon {
+  display: grid;
+  place-items: center;
+  width: 3.1rem;
+  height: 3.1rem;
+  border-radius: 0.9rem;
+  background: var(--tcg-accent-soft);
+  color: var(--tcg-accent-hover);
+}
+.tcg-vsearch-icon svg {
+  width: 1.55rem;
+  height: 1.55rem;
+}
+.tcg-vsearch-prompt strong {
+  color: var(--tcg-text);
+  font-family: Rubik, sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+.tcg-vsearch-prompt span {
+  color: var(--tcg-text-muted);
+  font-size: 0.78rem;
+}
+.tcg-vsearch-meta {
+  padding: 0.65rem 0.8rem;
+  border-radius: 0.75rem;
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+  color: var(--tcg-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+.tcg-vsearch-results-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  min-width: 0;
+}
+.tcg-vsearch-results-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-family: Rubik, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--tcg-text);
+}
+.tcg-vsearch-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+  max-height: 58dvh;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+@media (max-width: 960px) {
+  .tcg-vsearch-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .tcg-vsearch-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.tcg-vsearch-empty {
+  grid-column: 1 / -1;
+  display: grid;
+  place-items: center;
+  min-height: 14rem;
+  padding: 2rem;
+  border-radius: 1rem;
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+  color: var(--tcg-text-muted);
+  text-align: center;
+  font-size: 0.9rem;
+}
+.tcg-vsearch-card {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
+  border-radius: 1rem;
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.tcg-vsearch-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--tcg-accent);
+}
+.tcg-vsearch-card-media {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  background: radial-gradient(ellipse 65% 60% at 50% 45%, rgba(255, 255, 255, 0.06), transparent 72%), rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+.tcg-vsearch-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.tcg-vsearch-score {
+  position: absolute;
+  top: 0.45rem;
+  left: 0.45rem;
+  padding: 0.16rem 0.5rem;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  color: #34d399;
+  font-family: Rubik, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.tcg-vsearch-card-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-top: 0.6rem;
+}
+.tcg-vsearch-card-title {
+  color: var(--tcg-text);
+  font-family: Rubik, sans-serif;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.3;
+  text-decoration: none;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.tcg-vsearch-card-variant {
+  color: var(--tcg-text-muted);
+  font-size: 0.75rem;
+}
+.tcg-vsearch-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.55rem;
+}
+.tcg-vsearch-card-price {
+  color: var(--tcg-text);
+  font-family: Rubik, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+
 
