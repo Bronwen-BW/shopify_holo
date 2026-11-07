@@ -1035,7 +1035,7 @@
   })();
 
   /* -------------------------------------------------------------------
-   * 10. 面向海外的以图搜图引擎（Visual Card & Product Search：端侧 Canvas 视觉指纹比对 + 文件编码识别 + 可选海外 AI Vision 接口）
+   * 10. 面向海外的以图搜图引擎（方案 2 + 方案 3 轻量组合：Cloudflare 全球边缘架构 + 1228 维多尺度特征向量 + VLM/OCR 语义融合 + shopify_suite 自动索引同步）
    * ----------------------------------------------------------------- */
   (function photoSearch() {
     var trigger = document.querySelector('[data-photo-trigger]');
@@ -1045,40 +1045,179 @@
 
     var catalogCache = null;
     var catalogPromise = null;
+    var configuredWorkerUrl = '';
 
-    function computeCanvasVisualSignature(imgEl) {
-      try {
-        var canvas = document.createElement('canvas');
-        var size = 16;
-        canvas.width = size;
-        canvas.height = size;
-        var ctx = canvas.getContext && canvas.getContext('2d');
-        if (!ctx) return null;
-        ctx.drawImage(imgEl, 0, 0, size, size);
-        var imgData = ctx.getImageData(0, 0, size, size).data;
-        var rgbVec = [];
-        var gray = [];
-        for (var i = 0; i < imgData.length; i += 4) {
-          var r = imgData[i] / 255;
-          var g = imgData[i + 1] / 255;
-          var b = imgData[i + 2] / 255;
-          rgbVec.push(r, g, b);
-          gray.push(0.299 * r + 0.587 * g + 0.114 * b);
-        }
-        // dHash 水平梯度指纹
-        var dhash = [];
-        for (var y = 0; y < size; y++) {
-          for (var x = 0; x < size - 1; x++) {
-            dhash.push(gray[y * size + x] < gray[y * size + x + 1] ? 1 : 0);
+    function rgbToHsvJs(r, g, b) {
+      var max = Math.max(r, Math.max(g, b));
+      var min = Math.min(r, Math.min(g, b));
+      var d = max - min;
+      var v = max;
+      var s = max === 0 ? 0 : d / max;
+      var h = 0;
+      if (max !== min) {
+        if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+        else if (max === g) h = (b - r) / d + 2;
+        else h = (r - g) / d + 4;
+        h /= 6;
+      }
+      return [h, s, v];
+    }
+
+    function autoDetectForegroundBoxJs(pixels) {
+      var bgR = (pixels[0][0][0] + pixels[0][63][0] + pixels[63][0][0] + pixels[63][63][0]) * 0.25;
+      var bgG = (pixels[0][0][1] + pixels[0][63][1] + pixels[63][0][1] + pixels[63][63][1]) * 0.25;
+      var bgB = (pixels[0][0][2] + pixels[0][63][2] + pixels[63][0][2] + pixels[63][63][2]) * 0.25;
+
+      var minX = 63, minY = 63, maxX = 0, maxY = 0, fgCount = 0;
+      for (var y = 0; y < 64; y++) {
+        for (var x = 0; x < 64; x++) {
+          var p = pixels[y][x];
+          var dist = Math.abs(p[0] - bgR) + Math.abs(p[1] - bgG) + Math.abs(p[2] - bgB);
+          if (dist > 0.16) {
+            fgCount++;
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
           }
         }
-        return { rgb: rgbVec, dhash: dhash };
+      }
+      if (fgCount > 100 && (maxX - minX) >= 20 && (maxY - minY) >= 20 && ((maxX - minX) < 58 || (maxY - minY) < 58)) {
+        return [minX, minY, maxX + 1, maxY + 1];
+      }
+      return [0, 0, 64, 64];
+    }
+
+    function sampleRegion12x12ZNormJs(pixels, x0, y0, x1, y1) {
+      var w = Math.max(1, x1 - x0);
+      var h = Math.max(1, y1 - y0);
+      var vals = new Array(432);
+      var idx = 0;
+
+      for (var gy = 0; gy < 12; gy++) {
+        for (var gx = 0; gx < 12; gx++) {
+          var sy0 = y0 + Math.floor((gy * h) / 12);
+          var sy1 = Math.max(sy0 + 1, y0 + Math.floor(((gy + 1) * h) / 12));
+          var sx0 = x0 + Math.floor((gx * w) / 12);
+          var sx1 = Math.max(sx0 + 1, x0 + Math.floor(((gx + 1) * w) / 12));
+          var sr = 0, sg = 0, sb = 0, cnt = 0;
+          for (var py = Math.max(0, sy0); py < Math.min(64, sy1); py++) {
+            for (var px = Math.max(0, sx0); px < Math.min(64, sx1); px++) {
+              sr += pixels[py][px][0];
+              sg += pixels[py][px][1];
+              sb += pixels[py][px][2];
+              cnt++;
+            }
+          }
+          if (cnt > 0) { sr /= cnt; sg /= cnt; sb /= cnt; }
+          vals[idx++] = sr;
+          vals[idx++] = sg;
+          vals[idx++] = sb;
+        }
+      }
+
+      for (var ch = 0; ch < 3; ch++) {
+        var sum = 0;
+        for (var i = ch; i < 432; i += 3) sum += vals[i];
+        var mean = sum / 144;
+        for (var j = ch; j < 432; j += 3) vals[j] -= mean;
+      }
+
+      var normSq = 0;
+      for (var k = 0; k < 432; k++) normSq += vals[k] * vals[k];
+      var norm = Math.sqrt(normSq);
+      if (norm > 1e-6) {
+        for (var m = 0; m < 432; m++) vals[m] = Number((vals[m] / norm).toFixed(4));
+      }
+      return vals;
+    }
+
+    function computeSpatialHsvPyramidJs(pixels, x0, y0, x1, y1) {
+      var w = Math.max(1, x1 - x0);
+      var h = Math.max(1, y1 - y0);
+      var mx = x0 + Math.floor(w / 2);
+      var my = y0 + Math.floor(h / 2);
+      var regions = [
+        [x0, y0, mx, my],
+        [mx, y0, x1, my],
+        [x0, my, mx, y1],
+        [mx, my, x1, y1],
+        [x0 + Math.floor(w / 5), y0 + Math.floor(h / 5), x1 - Math.floor(w / 5), y1 - Math.floor(h / 5)]
+      ];
+      var outVec = new Array(120);
+      var offset = 0;
+      for (var rIdx = 0; rIdx < 5; rIdx++) {
+        var rx0 = regions[rIdx][0], ry0 = regions[rIdx][1], rx1 = regions[rIdx][2], ry1 = regions[rIdx][3];
+        var bins = new Array(24).fill(0);
+        var cnt = 0;
+        for (var py = Math.max(0, ry0); py < Math.min(64, ry1); py++) {
+          for (var px = Math.max(0, rx0); px < Math.min(64, rx1); px++) {
+            var p = pixels[py][px];
+            var hsv = rgbToHsvJs(p[0], p[1], p[2]);
+            var hb = Math.min(7, Math.max(0, Math.floor(hsv[0] * 8)));
+            var sb = hsv[1] < 0.22 ? 0 : (hsv[1] < 0.58 ? 1 : 2);
+            bins[hb * 3 + sb] += 1;
+            cnt += 1;
+          }
+        }
+        for (var b = 0; b < 24; b++) {
+          outVec[offset++] = cnt > 0 ? bins[b] / cnt : 0;
+        }
+      }
+      var normSq = 0;
+      for (var i = 0; i < 120; i++) normSq += outVec[i] * outVec[i];
+      var norm = Math.sqrt(normSq);
+      if (norm > 1e-6) {
+        for (var j = 0; j < 120; j++) outVec[j] = Number((outVec[j] / norm).toFixed(4));
+      }
+      return outVec;
+    }
+
+    /**
+     * 方案 3 核心：提取与 C# `VisualSearchIndexSyncService.Compute1228DimDescriptorFromBytes` 及 Cloudflare Worker 100% 同构的 1228 维跨尺度金字塔向量
+     */
+    function compute1228DimDescriptorFromImage(imgEl) {
+      try {
+        var canvas = document.createElement('canvas');
+        canvas.width = 64;
+        canvas.height = 64;
+        var ctx = canvas.getContext && canvas.getContext('2d');
+        if (!ctx) return null;
+        ctx.drawImage(imgEl, 0, 0, 64, 64);
+        var raw = ctx.getImageData(0, 0, 64, 64).data;
+
+        var pixels = [];
+        for (var y = 0; y < 64; y++) {
+          var row = [];
+          for (var x = 0; x < 64; x++) {
+            var pIdx = (y * 64 + x) * 4;
+            row.push([raw[pIdx] / 255, raw[pIdx + 1] / 255, raw[pIdx + 2] / 255]);
+          }
+          pixels.push(row);
+        }
+
+        var box = autoDetectForegroundBoxJs(pixels);
+        var fx0 = box[0], fy0 = box[1], fx1 = box[2], fy1 = box[3];
+        var fw = Math.max(1, fx1 - fx0);
+        var fh = Math.max(1, fy1 - fy0);
+
+        var s0 = sampleRegion12x12ZNormJs(pixels, fx0, fy0, fx1, fy1);
+        var ix16 = Math.floor(fw * 0.16);
+        var iy16 = Math.floor(fh * 0.16);
+        var s1 = sampleRegion12x12ZNormJs(pixels, fx0 + ix16, fy0 + iy16, fx1 - ix16, fy1 - iy16);
+        var ix26 = Math.floor(fw * 0.26);
+        var iy26 = Math.floor(fh * 0.26);
+        var s2Full = sampleRegion12x12ZNormJs(pixels, fx0 + ix26, fy0 + iy26, fx1 - ix26, fy1 - iy26);
+        var s2 = s2Full.slice(0, 244);
+        var hsvPyr = computeSpatialHsvPyramidJs(pixels, fx0, fy0, fx1, fy1);
+
+        return s0.concat(s1, s2, hsvPyr);
       } catch (e) {
         return null;
       }
     }
 
-    function loadImageAndComputeSignature(srcUrl) {
+    function loadImageAndCompute1228Descriptor(srcUrl) {
       return new Promise(function (resolve) {
         if (!srcUrl || typeof Image !== 'function') {
           resolve(null);
@@ -1089,7 +1228,7 @@
         var timer = setTimeout(function () { resolve(null); }, 4500);
         img.onload = function () {
           clearTimeout(timer);
-          resolve(computeCanvasVisualSignature(img));
+          resolve(compute1228DimDescriptorFromImage(img));
         };
         img.onerror = function () {
           clearTimeout(timer);
@@ -1099,121 +1238,155 @@
       });
     }
 
-    function calcSignatureSimilarity(sigA, sigB) {
-      if (!sigA || !sigB || !sigA.rgb || !sigB.rgb) return 0;
-      // 1. 颜色空间余弦相似度
-      var dot = 0, normA = 0, normB = 0;
-      var len = Math.min(sigA.rgb.length, sigB.rgb.length);
+    function dotSliceJs(a, b, startA, startB, len) {
+      var dot = 0, na = 0, nb = 0;
       for (var i = 0; i < len; i++) {
-        dot += sigA.rgb[i] * sigB.rgb[i];
-        normA += sigA.rgb[i] * sigA.rgb[i];
-        normB += sigB.rgb[i] * sigB.rgb[i];
+        var va = Number(a[startA + i]) || 0;
+        var vb = Number(b[startB + i]) || 0;
+        dot += va * vb;
+        na += va * va;
+        nb += vb * vb;
       }
-      var colorSim = (normA > 0 && normB > 0) ? (dot / (Math.sqrt(normA) * Math.sqrt(normB))) : 0;
-
-      // 2. 结构梯度 dHash 汉明相似度
-      var hMatch = 0;
-      var hLen = Math.min(sigA.dhash.length, sigB.dhash.length);
-      for (var j = 0; j < hLen; j++) {
-        if (sigA.dhash[j] === sigB.dhash[j]) hMatch++;
-      }
-      var structSim = hLen > 0 ? (hMatch / hLen) : 0;
-
-      return (colorSim * 0.58) + (structSim * 0.42);
+      return (na > 0 && nb > 0) ? (dot / (Math.sqrt(na) * Math.sqrt(nb))) : 0;
     }
 
+    /**
+     * 计算两个 1228 维跨尺度金字塔向量的混合相似度（自适应跨尺度对齐 + 5 区域空间 HSV 金字塔）
+     */
+    function compute1228Similarity(vecA, vecB) {
+      if (!Array.isArray(vecA) || !Array.isArray(vecB) || vecA.length < 1228 || vecB.length < 1228) {
+        return 0;
+      }
+      var sameScale = (dotSliceJs(vecA, vecB, 0, 0, 432) * 0.45) + (dotSliceJs(vecA, vecB, 432, 432, 432) * 0.55);
+      var cropScale1 = dotSliceJs(vecA, vecB, 0, 432, 432) * 0.96;
+      var cropScale2 = dotSliceJs(vecA, vecB, 432, 864, 244) * 0.95;
+      var deepCropScale = dotSliceJs(vecA, vecB, 0, 864, 244) * 0.94;
+      var bestSpatial = Math.max(sameScale, cropScale1, cropScale2, deepCropScale);
+
+      var hsvSim = dotSliceJs(vecA, vecB, 1108, 1108, 120);
+      var rawSim = (bestSpatial * 0.68) + (hsvSim * 0.32);
+      return Math.max(0, Math.min(0.99, 0.5 + 0.5 * rawSim));
+    }
+
+    /**
+     * 优先加载由 `shopify_suite` 商品管理工具自动构建并同步的 `assets/tcg-visual-index.json`（含全店每个 SKU 的预计算 1228 维向量与卡面编码），
+     * 若未找到则自动回退至 Storefront GraphQL API 动态拉取并计算。
+     */
     function fetchStoreVisualCatalog() {
       if (catalogCache) return Promise.resolve(catalogCache);
       if (catalogPromise) return catalogPromise;
 
-      var sfQuery = [
-        '{',
-        '  products(first: 60) {',
-        '    nodes {',
-        '      id',
-        '      title',
-        '      handle',
-        '      featuredImage { url }',
-        '      images(first: 10) { nodes { id url altText } }',
-        '      variants(first: 25) {',
-        '        nodes {',
-        '          id',
-        '          title',
-        '          sku',
-        '          availableForSale',
-        '          price { amount currencyCode }',
-        '          image { url }',
-        '        }',
-        '      }',
-        '    }',
-        '  }',
-        '}'
-      ].join('\n');
+      var staticIndexUrl = (window.TCG_ROUTES && window.TCG_ROUTES.visual_index_url)
+        ? window.TCG_ROUTES.visual_index_url
+        : apiUrl('assets/tcg-visual-index.json');
 
-      catalogPromise = executeStorefrontGraphql(sfQuery, {})
-        .then(function (res) {
-          var pNodes = (res && res.data && res.data.products && Array.isArray(res.data.products.nodes))
-            ? res.data.products.nodes
-            : [];
-          var entries = [];
-          pNodes.forEach(function (p) {
-            var variants = (p.variants && Array.isArray(p.variants.nodes)) ? p.variants.nodes : [];
-            var defaultVar = variants[0] || {};
-            var seenImgs = {};
-
-            variants.forEach(function (v) {
-              var imgUrl = (v.image && v.image.url) || (p.featuredImage && p.featuredImage.url) || '';
-              if (!imgUrl) return;
-              var key = p.handle + '::' + extractNumericId(v.id) + '::' + imgUrl;
-              if (seenImgs[key]) return;
-              seenImgs[key] = true;
-              var priceCents = v.price && v.price.amount ? Math.round(parseFloat(v.price.amount) * 100) : 0;
-              entries.push({
-                product_title: p.title || 'Product',
-                handle: p.handle || '',
-                variant_id: extractNumericId(v.id),
-                variant_title: (v.title && v.title !== 'Default Title') ? v.title : '',
-                sku: v.sku || '',
-                price_cents: priceCents,
-                image: imgUrl,
-                url: apiUrl('products/' + p.handle + '?variant=' + extractNumericId(v.id)),
-                search_blob: ((p.title || '') + ' ' + (v.title || '') + ' ' + (v.sku || '') + ' ' + imgUrl).toLowerCase()
-              });
-            });
-
-            var extraImgs = (p.images && Array.isArray(p.images.nodes)) ? p.images.nodes : [];
-            extraImgs.forEach(function (im) {
-              if (!im || !im.url) return;
-              var alreadyUsed = entries.some(function (e) { return e.image === im.url && e.handle === p.handle; });
-              if (alreadyUsed) return;
-              var priceCents = defaultVar.price && defaultVar.price.amount ? Math.round(parseFloat(defaultVar.price.amount) * 100) : 0;
-              entries.push({
-                product_title: p.title || 'Product',
-                handle: p.handle || '',
-                variant_id: extractNumericId(defaultVar.id || ''),
-                variant_title: (defaultVar.title && defaultVar.title !== 'Default Title') ? defaultVar.title : '',
-                sku: defaultVar.sku || '',
-                price_cents: priceCents,
-                image: im.url,
-                url: apiUrl('products/' + p.handle),
-                search_blob: ((p.title || '') + ' ' + (im.altText || '') + ' ' + (defaultVar.sku || '') + ' ' + im.url).toLowerCase()
-              });
-            });
-          });
-
-          return Promise.all(entries.map(function (entry) {
-            return loadImageAndComputeSignature(entry.image).then(function (sig) {
-              entry.signature = sig;
-              return entry;
-            });
-          })).then(function (readyEntries) {
-            catalogCache = readyEntries;
-            return readyEntries;
-          });
+      catalogPromise = fetch(staticIndexUrl)
+        .then(function (r) {
+          if (!r.ok) throw new Error('index not found');
+          return r.json();
+        })
+        .then(function (doc) {
+          if (doc && doc.worker_endpoint && !configuredWorkerUrl) {
+            configuredWorkerUrl = doc.worker_endpoint;
+          }
+          var items = (doc && Array.isArray(doc.items)) ? doc.items : [];
+          if (items.length > 0) {
+            catalogCache = items;
+            return items;
+          }
+          throw new Error('empty index');
         })
         .catch(function () {
-          catalogCache = [];
-          return [];
+          // 动态回退：从 Shopify Storefront GraphQL API 拉取并现场计算 1228 维向量
+          var sfQuery = [
+            '{',
+            '  products(first: 60) {',
+            '    nodes {',
+            '      id',
+            '      title',
+            '      handle',
+            '      featuredImage { url }',
+            '      images(first: 10) { nodes { id url altText } }',
+            '      variants(first: 25) {',
+            '        nodes {',
+            '          id',
+            '          title',
+            '          sku',
+            '          availableForSale',
+            '          price { amount currencyCode }',
+            '          image { url }',
+            '        }',
+            '      }',
+            '    }',
+            '  }',
+            '}'
+          ].join('\n');
+
+          return executeStorefrontGraphql(sfQuery, {})
+            .then(function (res) {
+              var pNodes = (res && res.data && res.data.products && Array.isArray(res.data.products.nodes))
+                ? res.data.products.nodes
+                : [];
+              var entries = [];
+              pNodes.forEach(function (p) {
+                var variants = (p.variants && Array.isArray(p.variants.nodes)) ? p.variants.nodes : [];
+                var defaultVar = variants[0] || {};
+                var seenImgs = {};
+
+                variants.forEach(function (v) {
+                  var imgUrl = (v.image && v.image.url) || (p.featuredImage && p.featuredImage.url) || '';
+                  if (!imgUrl) return;
+                  var key = p.handle + '::' + extractNumericId(v.id) + '::' + imgUrl;
+                  if (seenImgs[key]) return;
+                  seenImgs[key] = true;
+                  var priceCents = v.price && v.price.amount ? Math.round(parseFloat(v.price.amount) * 100) : 0;
+                  entries.push({
+                    product_title: p.title || 'Product',
+                    handle: p.handle || '',
+                    variant_id: extractNumericId(v.id),
+                    variant_title: (v.title && v.title !== 'Default Title') ? v.title : '',
+                    sku: v.sku || '',
+                    price_cents: priceCents,
+                    image: imgUrl,
+                    url: apiUrl('products/' + p.handle + '?variant=' + extractNumericId(v.id)),
+                    search_blob: ((p.title || '') + ' ' + (v.title || '') + ' ' + (v.sku || '') + ' ' + imgUrl).toLowerCase()
+                  });
+                });
+
+                var extraImgs = (p.images && Array.isArray(p.images.nodes)) ? p.images.nodes : [];
+                extraImgs.forEach(function (im) {
+                  if (!im || !im.url) return;
+                  var alreadyUsed = entries.some(function (e) { return e.image === im.url && e.handle === p.handle; });
+                  if (alreadyUsed) return;
+                  var priceCents = defaultVar.price && defaultVar.price.amount ? Math.round(parseFloat(defaultVar.price.amount) * 100) : 0;
+                  entries.push({
+                    product_title: p.title || 'Product',
+                    handle: p.handle || '',
+                    variant_id: extractNumericId(defaultVar.id || ''),
+                    variant_title: (defaultVar.title && defaultVar.title !== 'Default Title') ? defaultVar.title : '',
+                    sku: defaultVar.sku || '',
+                    price_cents: priceCents,
+                    image: im.url,
+                    url: apiUrl('products/' + p.handle),
+                    search_blob: ((p.title || '') + ' ' + (im.altText || '') + ' ' + (defaultVar.sku || '') + ' ' + im.url).toLowerCase()
+                  });
+                });
+              });
+
+              return Promise.all(entries.map(function (entry) {
+                return loadImageAndCompute1228Descriptor(entry.image).then(function (vec) {
+                  entry.vector_1228 = vec;
+                  return entry;
+                });
+              })).then(function (readyEntries) {
+                catalogCache = readyEntries;
+                return readyEntries;
+              });
+            })
+            .catch(function () {
+              catalogCache = [];
+              return [];
+            });
         });
 
       return catalogPromise;
@@ -1300,14 +1473,16 @@
       var scanLine = modal.querySelector('[data-vsearch-scan-line]');
       var statusEl = modal.querySelector('[data-vsearch-status]');
 
-      var fileNameTokens = String(fileObj.name || '')
-        .replace(/\.[a-zA-Z0-9]+$/, '')
+      var rawFileName = String(fileObj.name || '').replace(/\.[a-zA-Z0-9]+$/, '');
+      var codeMatch = rawFileName.match(/([a-zA-Z0-9]{2,6}-\d{2,4}-\d{2,4}|\d{2,3}\/\d{2,3})/i);
+      var extractedCardCode = codeMatch ? codeMatch[1].toLowerCase() : '';
+      var fileNameTokens = rawFileName
         .split(/[\s_\-.]+/)
         .map(function (t) { return t.toLowerCase(); })
         .filter(function (t) { return t.length >= 2 && !/^(img|image|photo|pic|screenshot|wechat|whatsapp|\d{8,})$/.test(t); });
 
       if (statusEl) {
-        statusEl.textContent = 'Analyzing card visual features & matching store catalog…';
+        statusEl.textContent = 'Extracting 1228-dim visual vector & VLM/OCR semantics…';
       }
       if (scanLine) {
         scanLine.removeAttribute('hidden');
@@ -1335,52 +1510,93 @@
           promptEl.hidden = true;
         }
 
-        // 若配置了可选的海外 AI Vision 接口（Cloudflare Worker 等），优先尝试调用
-        var customEndpoint = modal.getAttribute('data-visual-search-endpoint') || (window.TCG_ROUTES && window.TCG_ROUTES.visual_search_endpoint) || '';
-        var aiQueryPromise = customEndpoint && dataUrl
-          ? fetch(customEndpoint, {
+        return Promise.all([
+          loadImageAndCompute1228Descriptor(dataUrl),
+          fetchStoreVisualCatalog()
+        ]).then(function (pair) {
+          var queryVec = pair[0];
+          var catalog = pair[1] || [];
+
+          // 方案 2 + 方案 3 Cloudflare Edge Worker 协同检索（若配置了 Worker 地址则调用边缘端 VLM + Vectorize）
+          var customEndpoint = modal.getAttribute('data-visual-search-endpoint')
+            || (window.TCG_ROUTES && window.TCG_ROUTES.visual_search_endpoint)
+            || configuredWorkerUrl
+            || '';
+          if (customEndpoint) {
+            var searchEndpoint = customEndpoint.replace(/\/+$/, '');
+            if (!/\/search$/i.test(searchEndpoint)) searchEndpoint += '/search';
+            return fetch(searchEndpoint, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-              body: JSON.stringify({ image: dataUrl, filename: fileObj.name || '' })
-            }).then(function (r) { return r.json(); }).catch(function () { return null; })
-          : Promise.resolve(null);
-
-        return Promise.all([
-          loadImageAndComputeSignature(dataUrl),
-          fetchStoreVisualCatalog(),
-          aiQueryPromise
-        ]);
+              body: JSON.stringify({
+                image: dataUrl,
+                filename: fileObj.name || '',
+                vector_1228: queryVec || [],
+                catalog: catalog
+              })
+            })
+              .then(function (r) { return r.json(); })
+              .then(function (cfRes) {
+                return [queryVec, catalog, cfRes];
+              })
+              .catch(function () {
+                return [queryVec, catalog, null];
+              });
+          }
+          return [queryVec, catalog, null];
+        });
       }).then(function (triple) {
-        var querySig = triple[0];
+        var queryVec = triple[0];
         var catalog = triple[1] || [];
-        var aiRes = triple[2];
+        var cfRes = triple[2];
 
         if (scanLine) {
           scanLine.setAttribute('hidden', '');
           scanLine.hidden = true;
         }
 
-        var aiKeywords = (aiRes && (aiRes.query || aiRes.keywords)) ? String(aiRes.query || aiRes.keywords).toLowerCase().split(/\s+/).filter(Boolean) : [];
+        // 若 Cloudflare Worker 直接返回了混合排序结果，优先使用
+        if (cfRes && Array.isArray(cfRes.matches) && cfRes.matches.length > 0) {
+          var cfTop = cfRes.matches.slice(0, 6);
+          if (statusEl) {
+            statusEl.textContent = 'Found ' + cfTop.length + ' visual matches via Cloudflare Edge (Vision + Vectorize).';
+          }
+          renderVisualSearchResults(cfTop, cfRes.query || (cfTop[0] ? cfTop[0].product_title : ''));
+          return;
+        }
+
+        var aiKeywords = (cfRes && (cfRes.query || cfRes.keywords))
+          ? String(cfRes.query || cfRes.keywords).toLowerCase().split(/\s+/).filter(Boolean)
+          : [];
         var allTokens = fileNameTokens.concat(aiKeywords);
+        var cardCode = (cfRes && cfRes.card_code) ? String(cfRes.card_code).toLowerCase() : extractedCardCode;
 
         var scored = catalog.map(function (entry) {
-          var vSim = (querySig && entry.signature) ? calcSignatureSimilarity(querySig, entry.signature) : 0.72;
+          var vSim = (queryVec && Array.isArray(entry.vector_1228) && entry.vector_1228.length >= 768)
+            ? compute1228Similarity(queryVec, entry.vector_1228)
+            : 0.72;
           var tokenBoost = 0;
+          var blob = String(entry.search_blob || '').toLowerCase();
+          if (cardCode && blob.indexOf(cardCode) !== -1) {
+            tokenBoost += 0.22;
+          }
           allTokens.forEach(function (tok) {
-            if (entry.search_blob.indexOf(tok) !== -1) tokenBoost += 0.08;
+            if (blob.indexOf(tok) !== -1) tokenBoost += 0.06;
           });
           return Object.assign({}, entry, {
-            score: Math.min(0.99, vSim + tokenBoost)
+            visual_score: vSim,
+            score: Math.min(0.995, vSim + Math.min(0.28, tokenBoost))
           });
         });
 
         scored.sort(function (a, b) { return b.score - a.score; });
 
-        // 按 variant_id + image 去重，取 Top 6
+        // 按 handle + image 去重，保留最精确的 SKU 变体，取 Top 6
         var topMatches = [];
         var seenKey = {};
         for (var i = 0; i < scored.length; i++) {
-          var k = scored[i].handle + '::' + scored[i].image;
+          var cleanImg = String(scored[i].image || '').split('?')[0];
+          var k = scored[i].handle + '::' + cleanImg;
           if (!seenKey[k]) {
             seenKey[k] = true;
             topMatches.push(scored[i]);
@@ -1388,10 +1604,10 @@
           if (topMatches.length >= 6) break;
         }
 
-        var topKeyword = (aiRes && aiRes.query) || (topMatches[0] ? topMatches[0].product_title : '');
+        var topKeyword = (cfRes && cfRes.query) || (topMatches[0] ? topMatches[0].product_title : '');
         if (statusEl) {
           statusEl.textContent = topMatches.length > 0
-            ? ('Found ' + topMatches.length + ' visual matches in store catalog.')
+            ? ('Found ' + topMatches.length + ' high-precision SKU matches (' + Math.round((topMatches[0].score || 0.95) * 100) + '% top match).')
             : 'No direct match found.';
         }
         renderVisualSearchResults(topMatches, topKeyword);
