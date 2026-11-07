@@ -14,15 +14,34 @@
         } catch (e) {}
       })();
       window.TCG_ROUTES = {
-        root: {{ routes.root_url | default: '/' | json }},
-        cart_url: {{ routes.cart_url | default: '/cart' | json }},
-        cart_add_url: {{ routes.cart_add_url | default: '/cart/add' | json }},
-        cart_change_url: {{ routes.cart_change_url | default: '/cart/change' | json }},
-        cart_update_url: {{ routes.cart_update_url | default: '/cart/update' | json }},
-        cart_clear_url: {{ routes.cart_clear_url | default: '/cart/clear' | json }},
+        root: {{ routes.root_url | json }},
+        cart_url: {{ routes.cart_url | json }},
+        cart_add_url: {{ routes.cart_add_url | append: '.js' | json }},
+        cart_add_form_url: {{ routes.cart_add_url | json }},
+        cart_change_url: {{ routes.cart_change_url | json }},
+        cart_update_url: {{ routes.cart_update_url | json }},
+        cart_clear_url: {{ routes.cart_clear_url | json }},
         cart_checkout_url: {{ routes.cart_checkout_url | default: '/checkout' | json }},
-        all_products_collection_url: {{ routes.all_products_collection_url | default: '/collections/all' | json }},
-        search_url: {{ routes.search_url | default: '/search' | json }}
+        predictive_search_url: {{ routes.predictive_search_url | json }},
+        all_products_collection_url: {{ routes.all_products_collection_url | json }},
+        search_url: {{ routes.search_url | json }}
+      };
+      window.Theme = window.Theme || {};
+      window.Theme.routes = Object.assign({}, window.Theme.routes || {}, {
+        cart_add_url: window.TCG_ROUTES.cart_add_url,
+        cart_change_url: window.TCG_ROUTES.cart_change_url,
+        cart_update_url: window.TCG_ROUTES.cart_update_url,
+        cart_url: window.TCG_ROUTES.cart_url,
+        cart_checkout_url: window.TCG_ROUTES.cart_checkout_url,
+        predictive_search_url: window.TCG_ROUTES.predictive_search_url,
+        search_url: window.TCG_ROUTES.search_url
+      });
+      window.Theme.translations = Object.assign({}, window.Theme.translations || {}, {
+        added: {{ 'actions.added' | t | default: 'Added to cart' | json }},
+        cart_count: {{ 'accessibility.cart_count' | t | default: 'Cart count' | json }}
+      });
+      window.Theme.template = {
+        name: {{ template | json }}
       };
       window.Shopify = window.Shopify || {};
       window.Shopify.routes = Object.assign({}, window.Shopify.routes || {}, window.TCG_ROUTES);
@@ -57,6 +76,8 @@
     <script>
       window.Shopify = window.Shopify || {};
       window.Shopify.routes = Object.assign({}, window.Shopify.routes || {}, window.TCG_ROUTES || {});
+      window.Theme = window.Theme || {};
+      window.Theme.routes = Object.assign({}, window.Theme.routes || {}, window.TCG_ROUTES || {});
     </script>
     <script type="application/json" id="tcg-initial-cart-json">{{ cart | json }}</script>
     {% # theme-check-enable RemoteAsset %}

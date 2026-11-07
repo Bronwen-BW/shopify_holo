@@ -1,127 +1,139 @@
 {%- comment -%}
-  TCG 付款与结账确认页（对接 Shopify 官方结账接口 routes.cart_checkout_url 与 form action="/cart"）
+  TCG 付款与结账页（保留 TCG 外观，核心付款逻辑与参考模板 cart-summary.liquid 完全一致：
+  通过官方 <form action="{{ routes.cart_url }}" method="post" id="cart-form"> 与 <button type="submit" id="checkout" name="checkout" form="cart-form">
+  及 {{ content_for_additional_checkout_buttons }} 直接调用 Shopify 官方支付流程完成付款操作）
 {%- endcomment -%}
 
 <div
   class="_page_1z0wo_1"
   data-tcg-checkout-section
+  data-section-id="{{ section.id }}"
   data-currency-sample="{{ 1000 | money | escape }}"
 >
   <div class="_wide_4xdw3_6">
 
     <ol class="_steps_16l9l_44" aria-label="Checkout progress" style="margin-bottom:clamp(1.5rem,4vh,2.5rem);width:fit-content;">
-      <li class="_stepDone_16l9l_87" data-step-indicator="cart">
+      <li class="_stepDone_16l9l_87">
         <a href="{{ routes.cart_url }}" class="_stepLink_16l9l_54">
           <span class="_stepDot_16l9l_76" aria-hidden="true">✓</span>
           <span class="_stepLabel_16l9l_225">Cart</span>
         </a>
       </li>
-      <li class="_stepCurrent_16l9l_96" data-step-indicator="checkout" aria-current="step">
+      <li class="_stepCurrent_16l9l_96" aria-current="step">
         <span class="_stepLink_16l9l_54">
-          <span class="_stepDot_16l9l_76" data-step-dot="checkout" aria-hidden="true">2</span>
+          <span class="_stepDot_16l9l_76" aria-hidden="true">2</span>
           <span class="_stepLabel_16l9l_225">Checkout &amp; Payment</span>
         </span>
       </li>
-      <li data-step-indicator="confirmation">
+      <li>
         <span class="_stepLink_16l9l_54">
-          <span class="_stepDot_16l9l_76" data-step-dot="confirmation" aria-hidden="true">3</span>
+          <span class="_stepDot_16l9l_76" aria-hidden="true">3</span>
           <span class="_stepLabel_16l9l_225">Confirmation</span>
         </span>
       </li>
     </ol>
 
-    <div data-cart-step-panel="checkout">
-      <header class="_header_1z0wo_6">
-        <div>
-          <h1 class="_heading_1z0wo_14">{{ section.settings.heading | default: 'Checkout & Payment' }}</h1>
-          <p class="tcg-subtext">{{ section.settings.subheading | default: 'Review your order details and proceed to official Shopify encrypted payment.' }}</p>
-        </div>
-        <a href="{{ routes.cart_url }}" class="tcg-link-subtle">← Back to cart</a>
-      </header>
+    <header class="_header_1z0wo_6">
+      <div>
+        <h1 class="_heading_1z0wo_14">{{ section.settings.heading | default: 'Checkout & Payment' }}</h1>
+        <p class="tcg-subtext">{{ section.settings.subheading | default: 'Review your order details and proceed to official Shopify encrypted payment.' }}</p>
+      </div>
+      <a href="{{ routes.cart_url }}" class="tcg-link-subtle">← Back to cart</a>
+    </header>
 
-      <form action="{{ routes.cart_url }}" method="post" class="tcg-checkout-grid" data-tcg-checkout-form novalidate>
-        <div class="tcg-checkout-main">
-          {%- comment %} 客户账户与收货地址卡片 {% endcomment -%}
-          <section class="tcg-card-panel">
-            <div class="tcg-panel-head">
-              <h2>1. Customer &amp; Delivery Address</h2>
-              {%- unless customer -%}
-                <a href="{{ routes.account_login_url }}" class="tcg-link-accent">Sign in for faster checkout →</a>
-              {%- endunless -%}
+    <form
+      action="{{ routes.cart_url }}"
+      method="post"
+      id="cart-form"
+      class="tcg-checkout-grid cart-form"
+      data-tcg-official-cart-form
+    >
+      <div class="tcg-checkout-main">
+        {%- comment %} 客户账户状态卡片 {% endcomment -%}
+        <section class="tcg-card-panel">
+          <div class="tcg-panel-head">
+            <h2>1. Customer &amp; Delivery Account</h2>
+            {%- unless customer -%}
+              <a href="{{ routes.account_login_url }}?checkout_url={{ routes.cart_checkout_url | url_encode }}" class="tcg-link-accent">Sign in for faster checkout →</a>
+            {%- endunless -%}
+          </div>
+          {%- if customer -%}
+            <div class="tcg-customer-brief">
+              <p><strong>{{ customer.name }}</strong> ({{ customer.email }})</p>
+              {%- if customer.default_address -%}
+                <p class="tcg-muted-text">
+                  Default shipping address: {{ customer.default_address.address1 }}, {{ customer.default_address.city }} {{ customer.default_address.zip }}, {{ customer.default_address.country }}
+                </p>
+              {%- endif -%}
             </div>
+          {%- else -%}
+            <p class="tcg-muted-text">You can check out as a guest on the official Shopify Checkout screen, or sign in to use your saved addresses.</p>
+          {%- endif -%}
+        </section>
 
-            <div class="tcg-form-grid-2">
-              <div class="tcg-form-row">
-                <label for="PageCheckoutName" class="tcg-field-label">Full Name</label>
-                <input type="text" id="PageCheckoutName" class="tcg-input" data-checkout-name value="{{ customer.name | default: 'Collector Guest' | escape }}" required>
-              </div>
-              <div class="tcg-form-row">
-                <label for="PageCheckoutEmail" class="tcg-field-label">Email Address</label>
-                <input type="email" id="PageCheckoutEmail" class="tcg-input" data-checkout-email value="{{ customer.email | default: 'collector@tcghaven.store' | escape }}" required>
-              </div>
+        {%- comment %} 官方支付方式与折扣码/备注同步 {% endcomment -%}
+        <section class="tcg-card-panel">
+          <h2>2. Supported Official Payment Methods</h2>
+          <p class="tcg-muted-text">All transactions are encrypted and processed directly through Shopify Official Checkout.</p>
+          <div class="tcg-payment-grid">
+            <div class="tcg-payment-item">
+              <strong>Credit &amp; Debit Cards</strong>
+              <span>Visa, Mastercard, Maestro, American Express</span>
             </div>
-
-            <div class="tcg-form-row" style="margin-top:0.85rem;">
-              <label for="PageCheckoutAddress" class="tcg-field-label">Shipping Street Address</label>
-              <input type="text" id="PageCheckoutAddress" class="tcg-input" data-checkout-address value="{{ customer.default_address.address1 | default: '151 Pallet Town Blvd, Suite 10' | escape }}" required>
+            <div class="tcg-payment-item">
+              <strong>Express Wallets</strong>
+              <span>Shop Pay, Apple Pay, Google Pay, PayPal</span>
             </div>
-
-            <div class="tcg-form-grid-2" style="margin-top:0.85rem;">
-              <div class="tcg-form-row">
-                <label for="PageCheckoutCity" class="tcg-field-label">City</label>
-                <input type="text" id="PageCheckoutCity" class="tcg-input" data-checkout-city value="{{ customer.default_address.city | default: 'Utrecht' | escape }}" required>
-              </div>
-              <div class="tcg-form-row">
-                <label for="PageCheckoutZip" class="tcg-field-label">Postal / ZIP Code</label>
-                <input type="text" id="PageCheckoutZip" class="tcg-input" data-checkout-zip value="{{ customer.default_address.zip | default: '3511 AA' | escape }}" required>
-              </div>
+            <div class="tcg-payment-item">
+              <strong>European &amp; Local Banking</strong>
+              <span>iDEAL, Bancontact, Klarna, SEPA Bank Transfer</span>
             </div>
+          </div>
 
-            <div class="tcg-form-row" style="margin-top:0.85rem;">
-              <label for="PageCheckoutCountry" class="tcg-field-label">Country / Region</label>
-              <input type="text" id="PageCheckoutCountry" class="tcg-input" data-checkout-country value="{{ customer.default_address.country | default: 'Netherlands / International' | escape }}" required>
+          <div class="tcg-form-row" style="margin-top:1.25rem;" data-cart-discount-wrapper data-section-id="{{ section.id }}">
+            <label for="CheckoutDiscountCode" class="tcg-field-label">Promo / Gift Card Code</label>
+            <div style="display:flex;gap:0.5rem;align-items:center;">
+              <input
+                type="text"
+                id="CheckoutDiscountCode"
+                name="discount"
+                class="tcg-input"
+                placeholder="Enter discount code to apply at Shopify Checkout"
+                data-cart-discount
+              >
+              <button
+                type="button"
+                class="tcg-btn-secondary"
+                style="min-height:2.75rem;padding:0.5rem 1rem;flex-shrink:0;"
+                data-apply-discount-btn
+              >
+                Apply
+              </button>
             </div>
-          </section>
+            <p class="tcg-form-error" data-cart-discount-error hidden style="margin-top:0.4rem;">Invalid or inapplicable discount code.</p>
+          </div>
 
-          {%- comment %} 支付方式与安全说明 {% endcomment -%}
-          <section class="tcg-card-panel">
-            <h2>2. Supported Official Payment Methods</h2>
-            <p class="tcg-muted-text">All transactions are encrypted and processed directly through Shopify Official Checkout.</p>
-            <div class="tcg-payment-grid" data-payment-methods>
-              <label class="tcg-payment-item tcg-payment-option is-selected" data-payment-option>
-                <input type="radio" name="tcg_payment_method" value="Credit / Debit Card (Visa · Mastercard)" checked hidden>
-                <strong>Credit &amp; Debit Cards</strong>
-                <span>Visa, Mastercard, Maestro, American Express</span>
-              </label>
-              <label class="tcg-payment-item tcg-payment-option" data-payment-option>
-                <input type="radio" name="tcg_payment_method" value="Express Wallet (Shop Pay / PayPal)" hidden>
-                <strong>Express Wallets</strong>
-                <span>Shop Pay, Apple Pay, Google Pay, PayPal</span>
-              </label>
-              <label class="tcg-payment-item tcg-payment-option" data-payment-option>
-                <input type="radio" name="tcg_payment_method" value="European & Local Banking (iDEAL / Klarna)" hidden>
-                <strong>European &amp; Local Banking</strong>
-                <span>iDEAL, Bancontact, Klarna, SEPA Bank Transfer</span>
-              </label>
-            </div>
+          <div class="tcg-form-row" style="margin-top:1rem;">
+            <label for="CheckoutNote" class="tcg-field-label">Order / Delivery Instructions</label>
+            <textarea
+              form="cart-form"
+              id="CheckoutNote"
+              name="note"
+              rows="3"
+              class="tcg-textarea"
+              placeholder="Special instructions for protective card packing or shipping…"
+              data-cart-note
+            >{{ cart.note }}</textarea>
+          </div>
+        </section>
+      </div>
 
-            <div class="tcg-form-row" style="margin-top:1.25rem;">
-              <label for="CheckoutDiscountCode" class="tcg-field-label">Promo / Gift Card Code</label>
-              <input type="text" id="CheckoutDiscountCode" name="discount" class="tcg-input" data-checkout-discount placeholder="Enter discount code to apply at Shopify Checkout">
-            </div>
+      {%- comment %} 右侧订单汇总与直接调用 Shopify 官方结账支付 {% endcomment -%}
+      <aside class="_summary_1z0wo_183">
+        <h2 class="_summaryTitle_1z0wo_199">Order summary (<span data-summary-item-count>{{ cart.item_count }}</span>)</h2>
 
-            <div class="tcg-form-row" style="margin-top:1rem;">
-              <label for="CheckoutNote" class="tcg-field-label">Order / Delivery Instructions</label>
-              <textarea id="CheckoutNote" name="note" rows="3" class="tcg-textarea" data-checkout-note placeholder="Special instructions for protective card packing or shipping…">{{ cart.note }}</textarea>
-            </div>
-          </section>
-        </div>
-
-        {%- comment %} 右侧订单汇总与完成购买 {% endcomment -%}
-        <aside class="_summary_1z0wo_183">
-          <h2 class="_summaryTitle_1z0wo_199">Order summary (<span data-checkout-item-count>{{ cart.item_count }}</span>)</h2>
-
-          <div class="tcg-checkout-items" data-checkout-items-list>
+        {%- if cart.item_count > 0 -%}
+          <div class="tcg-checkout-items">
             {%- for item in cart.items -%}
               <div class="tcg-checkout-item">
                 <span>{{ item.quantity }}× {{ item.product.title }}{% if item.variant.title != 'Default Title' %} ({{ item.variant.title }}){% endif %}</span>
@@ -129,80 +141,55 @@
               </div>
             {%- endfor -%}
           </div>
+        {%- endif -%}
 
-          <div class="_summaryRow_1z0wo_208">
-            <span>Subtotal</span>
-            <span data-checkout-subtotal>{{ cart.total_price | default: 0 | money }}</span>
-          </div>
-          <div class="_summaryRow_1z0wo_208">
-            <span>Shipping</span>
-            <span style="color:var(--tcg-accent-hover);font-weight:600;">Free Tracked</span>
-          </div>
-          <div class="_summaryTotal_1z0wo_221">
-            <span>Total due</span>
-            <span data-checkout-total>{{ cart.total_price | default: 0 | money }}</span>
-          </div>
+        <div class="_summaryRow_1z0wo_208">
+          <span>Subtotal</span>
+          <span data-summary-subtotal>{{ cart.original_total_price | money }}</span>
+        </div>
 
-          <button type="submit" name="checkout" class="_checkoutBtn_1z0wo_241" data-complete-order-btn>
-            {{ section.settings.cta_label | default: 'Complete Purchase' }}
+        {%- if cart.total_discount > 0 -%}
+          <div class="_summaryRow_1z0wo_208 tcg-summary-discount">
+            <span>Discounts</span>
+            <span data-summary-discount>-{{ cart.total_discount | money }}</span>
+          </div>
+        {%- endif -%}
+
+        <div class="_summaryRow_1z0wo_208">
+          <span>Shipping &amp; Taxes</span>
+          <span>Calculated at next step</span>
+        </div>
+
+        <div class="_summaryTotal_1z0wo_221">
+          <span>Total due</span>
+          <span data-summary-total data-testid="cart-total-value" data-cart-subtotal>{{ cart.total_price | money }}</span>
+        </div>
+
+        <div class="cart__ctas" style="display:grid;gap:0.6rem;width:100%;">
+          <button
+            type="submit"
+            id="checkout"
+            name="checkout"
+            form="cart-form"
+            class="_checkoutBtn_1z0wo_241 cart__checkout-button button"
+            data-official-checkout-submit
+            {% if cart == empty %}disabled{% endif %}
+          >
+            <span class="button-text">
+              {{ section.settings.cta_label | default: 'Proceed to Official Payment' }}
+            </span>
           </button>
 
-          <a href="{{ routes.cart_checkout_url }}" class="tcg-btn-secondary" style="width:100%;text-align:center;margin-top:.5rem;">
-            Official Shopify Checkout →
-          </a>
-
-          <p class="_summaryNote_1z0wo_291">256-bit SSL encrypted checkout powered by Shopify.</p>
-        </aside>
-      </form>
-    </div>
-
-    <div data-cart-step-panel="confirmation" hidden>
-      <div class="tcg-card-panel tcg-confirmation-card">
-        <div class="tcg-confirmation-head">
-          <span class="tcg-confirmation-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
-          </span>
-          <div>
-            <span class="tcg-eyebrow">Order Confirmed</span>
-            <h1 class="_heading_1z0wo_14">Thank you for your purchase!</h1>
-            <p class="tcg-subtext">Your collector order has been placed and is being prepared in our climate-controlled vault.</p>
-          </div>
+          {%- if additional_checkout_buttons -%}
+            <div class="additional-checkout-buttons additional-checkout-buttons--vertical tcg-additional-checkout">
+              {{ content_for_additional_checkout_buttons }}
+            </div>
+          {%- endif -%}
         </div>
 
-        <div class="tcg-confirmation-meta-grid">
-          <div class="tcg-payment-item">
-            <span>Order Number</span>
-            <strong data-order-number>#TCG-849201</strong>
-          </div>
-          <div class="tcg-payment-item">
-            <span>Order Date</span>
-            <strong data-order-date>Today</strong>
-          </div>
-          <div class="tcg-payment-item">
-            <span>Payment Status</span>
-            <strong data-order-payment style="color:var(--tcg-accent-hover);">Paid · Credit / Debit Card</strong>
-          </div>
-          <div class="tcg-payment-item">
-            <span>Delivery Address</span>
-            <strong data-order-address>Utrecht, Netherlands</strong>
-          </div>
-        </div>
-
-        <div class="tcg-confirmation-items-wrap">
-          <h2 class="_summaryTitle_1z0wo_199" style="margin-bottom:0.75rem;">Purchased Items</h2>
-          <div class="tcg-checkout-items" data-order-confirmed-items></div>
-          <div class="_summaryTotal_1z0wo_221" style="margin-top:0.85rem;">
-            <span>Total Paid</span>
-            <span data-order-confirmed-total>€0.00</span>
-          </div>
-        </div>
-
-        <div class="tcg-confirmation-actions">
-          <a href="{{ routes.all_products_collection_url }}" class="_checkoutBtn_1z0wo_241" style="width:auto;padding-inline:2rem;">Continue shopping</a>
-          <a href="{{ routes.root_url }}" class="tcg-btn-secondary">Back to home</a>
-        </div>
-      </div>
-    </div>
+        <p class="_summaryNote_1z0wo_291">256-bit SSL encrypted checkout powered by Shopify.</p>
+      </aside>
+    </form>
   </div>
 </div>
 
@@ -225,8 +212,8 @@
     {
       "type": "text",
       "id": "cta_label",
-      "label": "付款按钮文字",
-      "default": "Continue to Official Shopify Payment"
+      "label": "主按钮文字",
+      "default": "Proceed to Official Payment"
     }
   ],
   "presets": [

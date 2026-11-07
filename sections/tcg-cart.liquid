@@ -1,14 +1,11 @@
 {%- comment -%}
-  TCG 购物车页
-  功能：
-  1. 统一使用全站标准宽度容器 _wide_4xdw3_6
-  2. 基于 Shopify 官方表单 action="{{ routes.cart_url }}" method="post"、/cart/change.js、/cart/update.js、routes.cart_checkout_url
-  3. 完整显示商品主图/SKU图、变体规格名、SKU 编码、单价、小计、订单备注、折扣码与动态加速结账按钮
+  TCG 购物车页（保留现有 TCG 外观，核心加购、数量修改、折扣码、备注与官方支付流程完全对齐参考模板 main-cart.liquid / cart-products.liquid / cart-summary.liquid）
 {%- endcomment -%}
 
 <div
   class="_page_1z0wo_1"
   data-tcg-cart-section
+  data-section-id="{{ section.id }}"
   data-currency-sample="{{ 1000 | money | escape }}"
   data-cart-url="{{ routes.cart_url }}"
   data-checkout-url="{{ routes.cart_checkout_url }}"
@@ -16,421 +13,303 @@
 >
   <div class="_wide_4xdw3_6">
 
-    {%- comment %} 结账步骤进度条（1. Cart -> 2. Checkout & Payment -> 3. Confirmation） {% endcomment -%}
+    {%- comment %} 结账步骤进度条（点击第 2 步直达 Shopify 官方结账 routes.cart_checkout_url） {% endcomment -%}
     <ol class="_steps_16l9l_44" aria-label="Checkout progress" style="margin-bottom:clamp(1.5rem,4vh,2.5rem);width:fit-content;">
-      <li class="_stepCurrent_16l9l_96" data-step-indicator="cart" aria-current="step">
-        <a href="{{ routes.cart_url }}" class="_stepLink_16l9l_54" data-step-nav="cart">
-          <span class="_stepDot_16l9l_76" data-step-dot="cart" aria-hidden="true">1</span>
+      <li class="_stepCurrent_16l9l_96" aria-current="step">
+        <a href="{{ routes.cart_url }}" class="_stepLink_16l9l_54">
+          <span class="_stepDot_16l9l_76" aria-hidden="true">1</span>
           <span class="_stepLabel_16l9l_225">Cart</span>
         </a>
       </li>
-      <li data-step-indicator="checkout">
-        <a href="{{ routes.cart_url }}?step=checkout" class="_stepLink_16l9l_54" data-step-nav="checkout">
-          <span class="_stepDot_16l9l_76" data-step-dot="checkout" aria-hidden="true">2</span>
+      <li>
+        <a href="{{ routes.cart_checkout_url }}" class="_stepLink_16l9l_54" data-checkout-step-link>
+          <span class="_stepDot_16l9l_76" aria-hidden="true">2</span>
           <span class="_stepLabel_16l9l_225">Checkout &amp; Payment</span>
         </a>
       </li>
-      <li data-step-indicator="confirmation">
+      <li>
         <span class="_stepLink_16l9l_54">
-          <span class="_stepDot_16l9l_76" data-step-dot="confirmation" aria-hidden="true">3</span>
+          <span class="_stepDot_16l9l_76" aria-hidden="true">3</span>
           <span class="_stepLabel_16l9l_225">Confirmation</span>
         </span>
       </li>
     </ol>
 
-    {%- comment %} ================= STEP 1: CART 视图 ================= {% endcomment -%}
-    <div data-cart-step-panel="cart">
-      <div data-cart-filled-view {% if cart.item_count == 0 %}hidden{% endif %}>
-        <header class="_header_1z0wo_6">
-          <h1 class="_heading_1z0wo_14">
-            {{ section.settings.heading | default: 'Your cart' }}
-            <span class="_count_1z0wo_27" data-cart-header-count> ({{ cart.item_count }} {% if cart.item_count == 1 %}item{% else %}items{% endif %})</span>
-          </h1>
-          <a href="{{ routes.all_products_collection_url }}" class="tcg-link-subtle">← Continue shopping</a>
-        </header>
+    {%- if cart.item_count > 0 -%}
+      <span class="visually-hidden" ref="cartItemCount" data-cart-hidden-count aria-hidden="true">{{- cart.item_count -}}</span>
 
-        <form action="{{ routes.cart_url }}" method="post" id="tcg-cart-form" class="_layout_1z0wo_34" novalidate>
-          <div class="_list_1z0wo_46">
-            <div data-shopify-cart-items class="tcg-cart-items-group">
-              {%- for item in cart.items -%}
-                {%- if item.image != blank -%}
-                  {%- assign item_img = item.image | image_url: width: 240 -%}
-                {%- else -%}
-                  {%- assign item_img = 'logo-mark.png' | asset_url -%}
+      <header class="_header_1z0wo_6" data-cart-header>
+        <h1 class="_heading_1z0wo_14">
+          {{ section.settings.heading | default: 'Your cart' }}
+          <span class="_count_1z0wo_27" data-cart-header-count> ({{ cart.item_count }} {% if cart.item_count == 1 %}item{% else %}items{% endif %})</span>
+        </h1>
+        <a href="{{ routes.all_products_collection_url }}" class="tcg-link-subtle">← Continue shopping</a>
+      </header>
+
+      {%- comment %}
+        对齐参考模板 snippets/cart-products.liquid + snippets/cart-summary.liquid：
+        使用官方 <form action="{{ routes.cart_url }}" method="post" id="cart-form">
+        结账按钮使用 <button type="submit" id="checkout" name="checkout" form="cart-form"> 提交到 Shopify 官方支付流程
+      {%- endcomment -%}
+      <form
+        action="{{ routes.cart_url }}"
+        method="post"
+        id="cart-form"
+        class="_layout_1z0wo_34 cart-form"
+        data-tcg-official-cart-form
+      >
+        <div class="_list_1z0wo_46" data-shopify-cart-items>
+
+          {%- for item in cart.items -%}
+            {%- if item.image != blank -%}
+              {%- assign item_img = item.image | image_url: width: 240 -%}
+            {%- else -%}
+              {%- assign item_img = 'logo-mark.png' | asset_url -%}
+            {%- endif -%}
+
+            <div
+              class="_row_1z0wo_52"
+              ref="cartItemRows[]"
+              data-cart-row
+              data-cart-source="shopify"
+              data-line="{{ forloop.index }}"
+              data-key="{{ item.key }}"
+              data-parent-key="{{ item.parent_relationship.parent.key }}"
+              data-variant-id="{{ item.variant_id }}"
+              data-unit-price="{{ item.final_price }}"
+              data-line-price="{{ item.final_line_price }}"
+              data-quantity="{{ item.quantity }}"
+            >
+              <a href="{{ item.url }}" class="_thumb_1z0wo_62">
+                <img alt="{{ item.title | escape }}" draggable="false" src="{{ item_img }}" loading="lazy">
+              </a>
+
+              <div class="_rowInfo_1z0wo_78">
+                <a href="{{ item.url }}" class="_rowName_1z0wo_86">{{ item.product.title }}</a>
+
+                <div class="tcg-cart-meta">
+                  {%- if item.variant.title != 'Default Title' -%}
+                    <span class="_rowUnitPrice_1z0wo_94">{{ item.variant.title }}</span>
+                  {%- endif -%}
+                  {%- if item.sku != blank -%}
+                    <code class="tcg-sku-code">SKU: {{ item.sku }}</code>
+                  {%- endif -%}
+                  <span class="_rowUnitPrice_1z0wo_94">{{ item.final_price | money }} each</span>
+                </div>
+
+                {%- if item.line_level_discount_allocations.size > 0 -%}
+                  <div class="tcg-cart-discounts">
+                    {%- for allocation in item.line_level_discount_allocations -%}
+                      <span class="tcg-discount-pill">
+                        {{ allocation.discount_application.title }} (-{{ allocation.amount | money }})
+                      </span>
+                    {%- endfor -%}
+                  </div>
                 {%- endif -%}
 
-                <div
-                  class="_row_1z0wo_52"
-                  data-cart-row
-                  data-cart-source="shopify"
-                  data-line="{{ forloop.index }}"
-                  data-key="{{ item.key }}"
-                  data-variant-id="{{ item.variant_id }}"
-                  data-unit-price="{{ item.final_price }}"
-                  data-line-price="{{ item.final_line_price }}"
-                  data-quantity="{{ item.quantity }}"
-                  data-item-title="{{ item.product.title | escape }}"
-                  data-variant-title="{% if item.variant.title != 'Default Title' %}{{ item.variant.title | escape }}{% endif %}"
-                  data-item-sku="{{ item.sku | escape }}"
-                  data-item-image="{{ item_img }}"
-                  data-item-url="{{ item.url }}"
-                >
-                  <a href="{{ item.url }}" class="_thumb_1z0wo_62">
-                    <img alt="{{ item.title | escape }}" draggable="false" src="{{ item_img }}" loading="lazy">
-                  </a>
-
-                  <div class="_rowInfo_1z0wo_78">
-                    <a href="{{ item.url }}" class="_rowName_1z0wo_86">{{ item.product.title }}</a>
-
-                    <div class="tcg-cart-meta">
-                      {%- if item.variant.title != 'Default Title' -%}
-                        <span class="_rowUnitPrice_1z0wo_94">{{ item.variant.title }}</span>
-                      {%- endif -%}
-                      {%- if item.sku != blank -%}
-                        <code class="tcg-sku-code">SKU: {{ item.sku }}</code>
-                      {%- endif -%}
-                      <span class="_rowUnitPrice_1z0wo_94">{{ item.final_price | money }} each</span>
-                    </div>
-
-                    {%- if item.line_level_discount_allocations.size > 0 -%}
-                      <div class="tcg-cart-discounts">
-                        {%- for allocation in item.line_level_discount_allocations -%}
-                          <span class="tcg-discount-pill">
-                            {{ allocation.discount_application.title }} (-{{ allocation.amount | money }})
-                          </span>
-                        {%- endfor -%}
-                      </div>
-                    {%- endif -%}
-
-                    <div class="_qtyControl_1z0wo_100" data-cart-qty>
-                      <button type="button" class="_qtyBtn_1z0wo_110" data-cart-minus aria-label="Decrease quantity">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"></path></svg>
-                      </button>
-                      <input
-                        type="number"
-                        name="updates[]"
-                        value="{{ item.quantity }}"
-                        min="0"
-                        aria-label="Quantity for {{ item.title | escape }}"
-                        class="tcg-cart-qty-input"
-                        data-cart-qty-input
-                        data-line="{{ forloop.index }}"
-                      >
-                      <span class="_qtyValue_1z0wo_135" hidden>{{ item.quantity }}</span>
-                      <button type="button" class="_qtyBtn_1z0wo_110" data-cart-plus aria-label="Increase quantity">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div class="_rowEnd_1z0wo_145">
-                    {%- if item.original_line_price != item.final_line_price -%}
-                      <del class="tcg-line-compare">{{ item.original_line_price | money }}</del>
-                    {%- endif -%}
-                    <span class="_lineTotal_1z0wo_152" data-row-line-total>{{ item.final_line_price | money }}</span>
-                    <button type="button" class="_removeBtn_1z0wo_160" data-cart-remove data-line="{{ forloop.index }}">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>Remove
-                    </button>
-                  </div>
+                <div class="_qtyControl_1z0wo_100" data-cart-qty>
+                  <button
+                    type="button"
+                    name="minus"
+                    class="_qtyBtn_1z0wo_110"
+                    data-cart-minus
+                    data-line="{{ forloop.index }}"
+                    aria-label="Decrease quantity"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"></path></svg>
+                  </button>
+                  <input
+                    type="number"
+                    name="updates[]"
+                    value="{{ item.quantity }}"
+                    data-cart-quantity="{{ item.quantity }}"
+                    min="0"
+                    data-min="{{ item.variant.quantity_rule.min | default: 1 }}"
+                    {% if item.variant.quantity_rule.max %}max="{{ item.variant.quantity_rule.max }}"{% endif %}
+                    step="{{ item.variant.quantity_rule.increment | default: 1 }}"
+                    aria-label="Quantity for {{ item.title | escape }}"
+                    class="tcg-cart-qty-input"
+                    ref="quantityInput"
+                    data-cart-qty-input
+                    data-cart-line="{{ forloop.index }}"
+                    data-line="{{ forloop.index }}"
+                  >
+                  <span class="_qtyValue_1z0wo_135" hidden>{{ item.quantity }}</span>
+                  <button
+                    type="button"
+                    name="plus"
+                    class="_qtyBtn_1z0wo_110"
+                    data-cart-plus
+                    data-line="{{ forloop.index }}"
+                    aria-label="Increase quantity"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+                  </button>
                 </div>
-              {%- endfor -%}
+
+                <p class="tcg-form-error" data-cart-line-error="{{ forloop.index }}" hidden></p>
+              </div>
+
+              <div class="_rowEnd_1z0wo_145">
+                {%- if item.original_line_price != item.final_line_price -%}
+                  <del class="tcg-line-compare">{{ item.original_line_price | money }}</del>
+                {%- endif -%}
+                <span class="_lineTotal_1z0wo_152" data-row-line-total>{{ item.final_line_price | money }}</span>
+                <button
+                  type="button"
+                  class="_removeBtn_1z0wo_160"
+                  data-cart-remove
+                  data-line="{{ forloop.index }}"
+                  aria-label="Remove {{ item.title | escape }}"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>Remove
+                </button>
+              </div>
             </div>
+          {%- endfor -%}
 
-            {%- comment %} 本地兜底购物车商品渲染容器（当后台库存为 0 或本地预览时自动同步渲染） {% endcomment -%}
-            <div data-local-cart-items class="tcg-cart-items-group"></div>
+          {%- if section.settings.show_cart_note != false -%}
+            <div class="tcg-cart-note-card">
+              <label for="cart-note" class="tcg-field-label">Order note / Packing instructions</label>
+              <textarea
+                form="cart-form"
+                name="note"
+                id="cart-note"
+                class="tcg-textarea"
+                rows="3"
+                placeholder="Add special packing or delivery notes for our warehouse…"
+                data-cart-note
+              >{{ cart.note }}</textarea>
+            </div>
+          {%- endif -%}
+        </div>
 
-            {%- if section.settings.show_cart_note != false -%}
-              <div class="tcg-cart-note-card">
-                <label for="CartSpecialInstructions" class="tcg-field-label">Order note / Packing instructions</label>
-                <textarea
-                  name="note"
-                  id="CartSpecialInstructions"
-                  class="tcg-textarea"
-                  rows="3"
-                  placeholder="Add special packing or delivery notes for our warehouse…"
-                  data-cart-note
-                >{{ cart.note }}</textarea>
+        {%- comment %} 订单汇总与 Shopify 官方支付结账侧栏（参考 snippets/cart-summary.liquid） {% endcomment -%}
+        <aside class="_summary_1z0wo_183">
+          <h2 class="_summaryTitle_1z0wo_199">Order summary</h2>
+
+          <div class="_summaryRow_1z0wo_208">
+            <span>Items (<span data-summary-item-count>{{ cart.item_count }}</span>)</span>
+            <span data-summary-subtotal data-testid="cart-subtotal-value">{{ cart.original_total_price | money }}</span>
+          </div>
+
+          {%- if cart.cart_level_discount_applications.size > 0 or cart.total_discount > 0 -%}
+            <div class="_summaryRow_1z0wo_208 tcg-summary-discount" data-summary-discount-row>
+              <span>Discounts</span>
+              <span data-summary-discount>-{{ cart.total_discount | money }}</span>
+            </div>
+          {%- endif -%}
+
+          <div class="_summaryRow_1z0wo_208">
+            <span>Shipping</span>
+            <span>Calculated at checkout</span>
+          </div>
+
+          {%- if section.settings.show_discount_box != false -%}
+            {%- liquid
+              assign discount_codes = cart.cart_level_discount_applications | where: 'type', 'discount_code' | map: 'title'
+              for item in cart.items
+                for allocation in item.line_level_discount_allocations
+                  if allocation.discount_application.type == 'discount_code'
+                    assign discount_codes = item.line_level_discount_allocations | slice: forloop.index0 | map: 'discount_application' | map: 'title' | concat: discount_codes
+                  endif
+                endfor
+              endfor
+              assign discount_codes = discount_codes | uniq
+            -%}
+            <div class="tcg-discount-field" data-cart-discount-wrapper data-section-id="{{ section.id }}">
+              <label for="cart-discount" class="tcg-field-label">Discount / Promo code</label>
+              <div style="display:flex;gap:0.5rem;align-items:center;">
+                <input
+                  type="text"
+                  name="discount"
+                  id="cart-discount"
+                  class="tcg-input"
+                  placeholder="Enter promo code"
+                  data-cart-discount
+                >
+                <button
+                  type="button"
+                  class="tcg-btn-secondary"
+                  style="min-height:2.75rem;padding:0.5rem 1rem;flex-shrink:0;"
+                  data-apply-discount-btn
+                >
+                  Apply
+                </button>
+              </div>
+              <p class="tcg-form-error" data-cart-discount-error hidden style="margin-top:0.4rem;">Invalid or inapplicable discount code.</p>
+              <ul class="tcg-cart-discounts" data-cart-discount-pills style="list-style:none;padding:0;margin:0.5rem 0 0;display:flex;flex-wrap:wrap;gap:0.4rem;">
+                {%- for discount_code in discount_codes -%}
+                  <li class="tcg-discount-pill" data-discount-code="{{ discount_code | escape }}">
+                    <span>{{ discount_code }}</span>
+                    <button
+                      type="button"
+                      data-remove-discount="{{ discount_code | escape }}"
+                      aria-label="Remove discount {{ discount_code | escape }}"
+                      style="background:none;border:0;color:inherit;margin-left:0.35rem;cursor:pointer;font-weight:700;"
+                    >×</button>
+                  </li>
+                {%- endfor -%}
+              </ul>
+            </div>
+          {%- endif -%}
+
+          <div class="_summaryTotal_1z0wo_221">
+            <span>Estimated total</span>
+            <span data-summary-total data-testid="cart-total-value" data-cart-subtotal>{{ cart.total_price | money }}</span>
+          </div>
+
+          {%- if settings.show_installments -%}
+            <div class="cart-totals__installments" style="font-size:0.8125rem;color:#a1a1aa;">
+              {{ form | payment_terms }}
+            </div>
+          {%- endif -%}
+
+          {%- comment %}
+            核心：与参考模板 snippets/cart-summary.liquid 完全一致的官方 Checkout 提交按钮
+            点击后通过 POST /cart (带 name="checkout") 由 Shopify 服务端创建/恢复 Checkout 会话并 302 跳转至 Shopify 官方支付页面
+          {%- endcomment -%}
+          <div class="cart__ctas" style="display:grid;gap:0.6rem;width:100%;">
+            <button
+              type="submit"
+              id="checkout"
+              name="checkout"
+              form="cart-form"
+              class="_checkoutBtn_1z0wo_241 cart__checkout-button button"
+              data-official-checkout-submit
+              {% if cart == empty %}disabled{% endif %}
+            >
+              <span class="button-text">
+                {{ section.settings.checkout_label | default: 'Go to checkout' }}
+              </span>
+            </button>
+
+            {%- if additional_checkout_buttons and settings.show_accelerated_checkout_buttons != false -%}
+              <div class="additional-checkout-buttons additional-checkout-buttons--vertical tcg-additional-checkout">
+                {{ content_for_additional_checkout_buttons }}
               </div>
             {%- endif -%}
           </div>
 
-          {%- comment %} 订单汇总与结账侧栏 {% endcomment -%}
-          <aside class="_summary_1z0wo_183">
-            <h2 class="_summaryTitle_1z0wo_199">Order summary</h2>
+          <p class="_summaryNote_1z0wo_291">
+            {{ section.settings.security_note | default: 'Secure payment via Shopify Checkout. Taxes and shipping calculated before payment.' }}
+          </p>
+        </aside>
+      </form>
 
-            <div class="_summaryRow_1z0wo_208">
-              <span>Items (<span data-summary-item-count>{{ cart.item_count }}</span>)</span>
-              <span data-summary-subtotal data-server-subtotal="{{ cart.original_total_price | default: 0 }}">{{ cart.original_total_price | default: 0 | money }}</span>
-            </div>
-
-            {%- if cart.total_discount > 0 -%}
-              <div class="_summaryRow_1z0wo_208 tcg-summary-discount" data-summary-discount-row>
-                <span>Discounts</span>
-                <span data-summary-discount>-{{ cart.total_discount | money }}</span>
-              </div>
-            {%- endif -%}
-
-            <div class="_summaryRow_1z0wo_208">
-              <span>Shipping</span>
-              <span>Calculated at checkout</span>
-            </div>
-
-            {%- if section.settings.show_discount_box != false -%}
-              <div class="tcg-discount-field">
-                <label for="CartDiscountInput" class="tcg-field-label">Discount / Promo code</label>
-                <input
-                  type="text"
-                  name="discount"
-                  id="CartDiscountInput"
-                  class="tcg-input"
-                  placeholder="Enter promo code (applied at checkout)"
-                  data-cart-discount
-                >
-              </div>
-            {%- endif -%}
-
-            <div class="_summaryTotal_1z0wo_221">
-              <span>Estimated total</span>
-              <span data-summary-total data-server-total="{{ cart.total_price | default: 0 }}">{{ cart.total_price | default: 0 | money }}</span>
-            </div>
-
-            <button type="button" name="checkout" class="_checkoutBtn_1z0wo_241" data-proceed-checkout>
-              {{ section.settings.checkout_label | default: 'Go to checkout' }}
-            </button>
-
-            <p class="_summaryNote_1z0wo_291">
-              {{ section.settings.security_note | default: 'Secure payment via Shopify Checkout. Taxes and shipping calculated before payment.' }}
-            </p>
-          </aside>
-        </form>
-      </div>
+    {%- else -%}
 
       {%- comment %} 空购物车状态 {% endcomment -%}
-      <div class="_empty_1z0wo_298" data-cart-empty-view {% if cart.item_count > 0 %}hidden{% endif %}>
+      <div class="_empty_1z0wo_298" data-cart-empty-view>
         <span class="_emptyIcon_1z0wo_311">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path></svg>
         </span>
         <h2 class="_emptyTitle_1z0wo_326">Your cart is empty</h2>
         <p class="_emptyText_1z0wo_334">Browse the newest sealed products and singles, then add them here.</p>
-        <a href="{{ routes.all_products_collection_url }}" class="_emptyCta_1z0wo_340">Start shopping</a>
+        <a href="{{ settings.empty_cart_button_link | default: routes.all_products_collection_url }}" class="_emptyCta_1z0wo_340">Start shopping</a>
       </div>
-    </div>
 
-    {%- comment %} ================= STEP 2: CHECKOUT & PAYMENT 视图 ================= {% endcomment -%}
-    <div data-cart-step-panel="checkout" hidden>
-      <header class="_header_1z0wo_6">
-        <div>
-          <h1 class="_heading_1z0wo_14">Checkout &amp; Payment</h1>
-          <p class="tcg-subtext">Review your shipping details, choose a payment method, and complete your order.</p>
-        </div>
-        <button type="button" class="tcg-link-subtle button-unstyled" data-back-to-cart style="background:none;border:0;cursor:pointer;">← Back to cart</button>
-      </header>
-
-      <form class="tcg-checkout-grid" data-tcg-checkout-form novalidate>
-        <div class="tcg-checkout-main">
-          <section class="tcg-card-panel">
-            <div class="tcg-panel-head">
-              <h2>1. Customer &amp; Delivery Address</h2>
-              {%- unless customer -%}
-                <a href="{{ routes.account_login_url }}" class="tcg-link-accent">Sign in →</a>
-              {%- endunless -%}
-            </div>
-
-            <div class="tcg-form-grid-2">
-              <div class="tcg-form-row">
-                <label for="TcgCheckoutName" class="tcg-field-label">Full Name</label>
-                <input
-                  type="text"
-                  id="TcgCheckoutName"
-                  class="tcg-input"
-                  data-checkout-name
-                  value="{{ customer.name | default: 'Collector Guest' | escape }}"
-                  placeholder="Your full name"
-                  required
-                >
-              </div>
-              <div class="tcg-form-row">
-                <label for="TcgCheckoutEmail" class="tcg-field-label">Email for Order Updates</label>
-                <input
-                  type="email"
-                  id="TcgCheckoutEmail"
-                  class="tcg-input"
-                  data-checkout-email
-                  value="{{ customer.email | default: 'collector@tcghaven.store' | escape }}"
-                  placeholder="you@example.com"
-                  required
-                >
-              </div>
-            </div>
-
-            <div class="tcg-form-row" style="margin-top:0.85rem;">
-              <label for="TcgCheckoutAddress" class="tcg-field-label">Shipping Street Address</label>
-              <input
-                type="text"
-                id="TcgCheckoutAddress"
-                class="tcg-input"
-                data-checkout-address
-                value="{{ customer.default_address.address1 | default: '151 Pallet Town Blvd, Suite 10' | escape }}"
-                placeholder="Street address, apartment, suite"
-                required
-              >
-            </div>
-
-            <div class="tcg-form-grid-2" style="margin-top:0.85rem;">
-              <div class="tcg-form-row">
-                <label for="TcgCheckoutCity" class="tcg-field-label">City</label>
-                <input
-                  type="text"
-                  id="TcgCheckoutCity"
-                  class="tcg-input"
-                  data-checkout-city
-                  value="{{ customer.default_address.city | default: 'Utrecht' | escape }}"
-                  placeholder="City"
-                  required
-                >
-              </div>
-              <div class="tcg-form-row">
-                <label for="TcgCheckoutZip" class="tcg-field-label">Postal / ZIP Code</label>
-                <input
-                  type="text"
-                  id="TcgCheckoutZip"
-                  class="tcg-input"
-                  data-checkout-zip
-                  value="{{ customer.default_address.zip | default: '3511 AA' | escape }}"
-                  placeholder="Postal code"
-                  required
-                >
-              </div>
-            </div>
-
-            <div class="tcg-form-row" style="margin-top:0.85rem;">
-              <label for="TcgCheckoutCountry" class="tcg-field-label">Country / Region</label>
-              <input
-                type="text"
-                id="TcgCheckoutCountry"
-                class="tcg-input"
-                data-checkout-country
-                value="{{ customer.default_address.country | default: 'Netherlands / International' | escape }}"
-                placeholder="Country or region"
-                required
-              >
-            </div>
-          </section>
-
-          <section class="tcg-card-panel">
-            <h2>2. Select Payment Method</h2>
-            <p class="tcg-muted-text">256-bit SSL encrypted payment processing with buyer protection.</p>
-
-            <div class="tcg-payment-grid" data-payment-methods>
-              <label class="tcg-payment-item tcg-payment-option is-selected" data-payment-option>
-                <input type="radio" name="tcg_payment_method" value="Credit / Debit Card (Visa · Mastercard)" checked hidden>
-                <strong>Credit &amp; Debit Cards</strong>
-                <span>Visa, Mastercard, Maestro, American Express</span>
-              </label>
-              <label class="tcg-payment-item tcg-payment-option" data-payment-option>
-                <input type="radio" name="tcg_payment_method" value="Express Wallet (Shop Pay / PayPal)" hidden>
-                <strong>Express Wallets</strong>
-                <span>Shop Pay, Apple Pay, Google Pay, PayPal</span>
-              </label>
-              <label class="tcg-payment-item tcg-payment-option" data-payment-option>
-                <input type="radio" name="tcg_payment_method" value="European & Local Banking (iDEAL / Klarna)" hidden>
-                <strong>European &amp; Local Banking</strong>
-                <span>iDEAL, Bancontact, Klarna, SEPA Bank Transfer</span>
-              </label>
-            </div>
-
-            <div class="tcg-form-row" style="margin-top:1.25rem;">
-              <label for="CheckoutDiscountCode" class="tcg-field-label">Promo / Gift Card Code</label>
-              <input type="text" id="CheckoutDiscountCode" name="discount" class="tcg-input" data-checkout-discount placeholder="Enter discount code (optional)">
-            </div>
-
-            <div class="tcg-form-row" style="margin-top:1rem;">
-              <label for="CheckoutNote" class="tcg-field-label">Order / Delivery Instructions</label>
-              <textarea id="CheckoutNote" name="note" rows="2" class="tcg-textarea" data-checkout-note placeholder="Special instructions for protective card packing or shipping…">{{ cart.note }}</textarea>
-            </div>
-          </section>
-        </div>
-
-        <aside class="_summary_1z0wo_183">
-          <h2 class="_summaryTitle_1z0wo_199">Order summary (<span data-checkout-item-count>{{ cart.item_count }}</span>)</h2>
-
-          <div class="tcg-checkout-items" data-checkout-items-list></div>
-
-          <div class="_summaryRow_1z0wo_208">
-            <span>Subtotal</span>
-            <span data-checkout-subtotal>{{ cart.total_price | default: 0 | money }}</span>
-          </div>
-          <div class="_summaryRow_1z0wo_208">
-            <span>Shipping</span>
-            <span style="color:var(--tcg-accent-hover);font-weight:600;">Free Tracked</span>
-          </div>
-          <div class="_summaryTotal_1z0wo_221">
-            <span>Total due</span>
-            <span data-checkout-total>{{ cart.total_price | default: 0 | money }}</span>
-          </div>
-
-          <button type="submit" class="_checkoutBtn_1z0wo_241" data-complete-order-btn>
-            Complete Purchase
-          </button>
-
-          <a href="{{ routes.cart_checkout_url }}" class="tcg-btn-secondary" data-official-checkout-btn style="width:100%;text-align:center;margin-top:.5rem;">
-            Official Shopify Checkout →
-          </a>
-
-          <p class="_summaryNote_1z0wo_291">256-bit SSL encrypted checkout. Condition-checked &amp; sleeved before dispatch.</p>
-        </aside>
-      </form>
-    </div>
-
-    {%- comment %} ================= STEP 3: CONFIRMATION 订单完成确认视图 ================= {% endcomment -%}
-    <div data-cart-step-panel="confirmation" hidden>
-      <div class="tcg-card-panel tcg-confirmation-card">
-        <div class="tcg-confirmation-head">
-          <span class="tcg-confirmation-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
-          </span>
-          <div>
-            <span class="tcg-eyebrow">Order Confirmed</span>
-            <h1 class="_heading_1z0wo_14">Thank you for your purchase!</h1>
-            <p class="tcg-subtext">Your collector order has been placed and is being prepared in our climate-controlled vault.</p>
-          </div>
-        </div>
-
-        <div class="tcg-confirmation-meta-grid">
-          <div class="tcg-payment-item">
-            <span>Order Number</span>
-            <strong data-order-number>#TCG-849201</strong>
-          </div>
-          <div class="tcg-payment-item">
-            <span>Order Date</span>
-            <strong data-order-date>Today</strong>
-          </div>
-          <div class="tcg-payment-item">
-            <span>Payment Status</span>
-            <strong data-order-payment style="color:var(--tcg-accent-hover);">Paid · Credit / Debit Card</strong>
-          </div>
-          <div class="tcg-payment-item">
-            <span>Delivery Address</span>
-            <strong data-order-address>Utrecht, Netherlands</strong>
-          </div>
-        </div>
-
-        <div class="tcg-confirmation-items-wrap">
-          <h2 class="_summaryTitle_1z0wo_199" style="margin-bottom:0.75rem;">Purchased Items</h2>
-          <div class="tcg-checkout-items" data-order-confirmed-items></div>
-          <div class="_summaryTotal_1z0wo_221" style="margin-top:0.85rem;">
-            <span>Total Paid</span>
-            <span data-order-confirmed-total>€0.00</span>
-          </div>
-        </div>
-
-        <div class="tcg-confirmation-actions">
-          <a href="{{ routes.all_products_collection_url }}" class="_checkoutBtn_1z0wo_241" style="width:auto;padding-inline:2rem;">Continue shopping</a>
-          <a href="{{ routes.root_url }}" class="tcg-btn-secondary">Back to home</a>
-        </div>
-      </div>
-    </div>
-
+    {%- endif -%}
   </div>
 </div>
 

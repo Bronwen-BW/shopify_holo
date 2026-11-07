@@ -270,10 +270,10 @@
           </div>
         {%- endunless -%}
 
-        {%- comment %} ================= Shopify 官方商品购买表单 ================= {% endcomment -%}
+        {%- comment %} ================= Shopify 官方商品购买表单（对齐参考模板 buy-buttons.liquid + accelerated-checkout.liquid） ================= {% endcomment -%}
         {%- if product != blank -%}
-          {%- form 'product', product, id: product_form_id, class: 'tcg-product-form', data-product-form: '' -%}
-            <input type="hidden" name="id" value="{{ current_variant.id }}" data-variant-id-input>
+          {%- form 'product', product, id: product_form_id, class: 'tcg-product-form', data-type: 'add-to-cart-form', data-product-form: '' -%}
+            <input type="hidden" name="id" value="{{ current_variant.id }}" ref="variantId" data-variant-id-input>
 
             <div class="_buyArea_4xdw3_623">
               <div aria-label="Quantity" class="_quantity_4xdw3_629" data-quantity>
@@ -281,11 +281,14 @@
                 <input
                   type="number"
                   name="quantity"
-                  value="1"
-                  min="1"
-                  max="{% if current_variant.inventory_management != blank and current_variant.inventory_policy != 'continue' and current_variant.inventory_quantity > 0 %}{{ current_variant.inventory_quantity }}{% else %}999{% endif %}"
+                  value="{% if current_variant.quantity_rule.min %}{{ current_variant.quantity_rule.min }}{% else %}1{% endif %}"
+                  min="{% if current_variant.quantity_rule.min %}{{ current_variant.quantity_rule.min }}{% else %}1{% endif %}"
+                  max="{% if current_variant.inventory_management != blank and current_variant.inventory_policy != 'continue' and current_variant.inventory_quantity > 0 %}{{ current_variant.inventory_quantity }}{% elsif current_variant.quantity_rule.max %}{{ current_variant.quantity_rule.max }}{% else %}999{% endif %}"
+                  step="{{ current_variant.quantity_rule.increment | default: 1 }}"
+                  data-cart-quantity="{{ cart | item_count_for_variant: current_variant.id }}"
                   aria-label="Quantity"
                   class="tcg-qty-input"
+                  ref="quantityInput"
                   data-qty-input
                 >
                 <span aria-live="polite" data-qty-value hidden>1</span>
@@ -295,6 +298,7 @@
               <button
                 type="submit"
                 name="add"
+                ref="addToCartButton"
                 class="_primaryButton_4xdw3_673"
                 data-product-add
                 data-variant="{{ current_variant.id }}"
@@ -322,17 +326,36 @@
               </button>
             </div>
 
-            {%- comment %} 立即购买直达结账（单按钮统一交互，彻底避免 wallets/checkouts.json 422 与 Shadow DOM 禁用问题） {% endcomment -%}
+            {%- comment %} Shopify 官方动态加速支付按钮（{{ form | payment_button }}，参考 blocks/accelerated-checkout.liquid） {% endcomment -%}
             {%- if section.settings.show_buy_now != false or section.settings.show_dynamic_checkout != false -%}
+              {%- capture accelerated_checkout_button -%}
+                {%- if product != blank and form != blank -%}
+                  {{ form | payment_button }}
+                {%- endif -%}
+              {%- endcapture -%}
               <div class="tcg-buy-actions-row">
+                {%- if accelerated_checkout_button != blank -%}
+                  <div
+                    class="accelerated-checkout-block tcg-shopify-payment-btn"
+                    ref="acceleratedCheckoutButtonContainer"
+                    data-accelerated-checkout-container
+                    {% if request.visual_preview_mode %}data-shopify-visual-preview{% endif %}
+                    {% unless current_variant_available %}hidden{% endunless %}
+                  >
+                    {{ accelerated_checkout_button }}
+                  </div>
+                {%- endif -%}
                 <button
-                  type="button"
+                  type="submit"
+                  name="checkout"
+                  formaction="{{ routes.cart_url }}"
                   class="tcg-buy-now-btn"
                   data-buy-now
                   data-direct-checkout
                   data-variant="{{ current_variant.id }}"
-                  data-checkout-url="{{ routes.cart_url }}?step=checkout"
+                  data-checkout-url="{{ routes.cart_checkout_url }}"
                   data-official-checkout-url="{{ routes.cart_checkout_url }}"
+                  {% if accelerated_checkout_button != blank %}hidden{% endif %}
                   {% unless current_variant_available %}disabled{% endunless %}
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
@@ -341,7 +364,7 @@
               </div>
             {%- endif -%}
 
-            <p class="tcg-form-error" data-product-form-error hidden></p>
+            <p class="tcg-form-error" ref="addToCartTextError" data-product-form-error hidden></p>
           {%- endform -%}
         {%- else -%}
           <div class="_buyArea_4xdw3_623">
@@ -349,7 +372,7 @@
           </div>
         {%- endif -%}
 
-        {%- comment %} 加购成功反馈横幅（提供官方购物车与结账直达入口） {% endcomment -%}
+        {%- comment %} 加购成功反馈横幅（提供官方购物车与 Shopify 官方结账直达入口） {% endcomment -%}
         <div class="_addedNotice_4xdw3_750" data-added-notice hidden>
           <span class="_addedCheck_4xdw3_769" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
@@ -360,7 +383,7 @@
               <span>View cart</span>
               <span class="_viewCartCount_4xdw3_852" data-added-cart-count>{{ cart.item_count }}</span>
             </a>
-            <a href="{{ routes.cart_url }}?step=checkout" class="_checkoutNow_4xdw3_864" data-checkout-now-link>Checkout now</a>
+            <a href="{{ routes.cart_checkout_url }}" class="_checkoutNow_4xdw3_864" data-checkout-now-link>Checkout now</a>
           </div>
         </div>
 

@@ -868,6 +868,34 @@ html[data-theme="light"] ._breadcrumb_4xdw3_11 li[aria-current="page"] span {
   font-family: Rubik, sans-serif !important;
   font-weight: 700 !important;
 }
+.accelerated-checkout-block {
+  width: 100%;
+}
+.accelerated-checkout-block[hidden] {
+  display: none !important;
+}
+.accelerated-checkout-block[data-shopify-visual-preview] {
+  width: 300px;
+}
+more-payment-options-link {
+  font-size: smaller;
+}
+more-payment-options-link a {
+  --button-color: var(--tcg-accent);
+}
+more-payment-options-link a:hover {
+  --button-color: var(--tcg-accent-hover);
+}
+.shopify-payment-button__more-options[aria-hidden='true'] {
+  display: none;
+}
+.additional-checkout-buttons--vertical .additional-checkout-buttons__list,
+.tcg-additional-checkout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
 
 /* ===== 购物车、付款、登录、注册、用户中心、About、Contact、Shipping & Policy 通用组件 ===== */
 .tcg-cart-meta {
