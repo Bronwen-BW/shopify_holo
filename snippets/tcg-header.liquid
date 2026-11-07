@@ -25,18 +25,23 @@
       <ul class="_nav_1hxzp_1" data-tcg-nav-list>
         <li class="_indicator_1hxzp_122" aria-hidden="true" data-tcg-nav-indicator></li>
         {%- for block in section.blocks -%}
-          {%- assign nav_url = block.settings.url | default: routes.all_products_collection_url -%}
-          {%- assign nav_active = false -%}
-          {%- if request.path == nav_url -%}
-            {%- assign nav_active = true -%}
-          {%- elsif nav_url == '/' and request.page_type == 'index' -%}
-            {%- assign nav_active = true -%}
-          {%- elsif nav_url != '/' and nav_url != blank and request.path contains nav_url -%}
-            {%- assign nav_active = true -%}
+          {%- if block.settings.label != blank -%}
+            {%- assign nav_url = block.settings.url | default: routes.all_products_collection_url -%}
+            {%- assign sort_order = block.settings.sort_order | default: 0 | plus: 0 -%}
+            {%- assign nav_active = false -%}
+            {%- if block.settings.active == true -%}
+              {%- assign nav_active = true -%}
+            {%- elsif request.path == nav_url -%}
+              {%- assign nav_active = true -%}
+            {%- elsif nav_url == '/' and request.page_type == 'index' -%}
+              {%- assign nav_active = true -%}
+            {%- elsif nav_url != '/' and nav_url != blank and request.path contains nav_url -%}
+              {%- assign nav_active = true -%}
+            {%- endif -%}
+            <li {{ block.shopify_attributes }} data-nav-item data-sort-order="{% if sort_order > 0 %}{{ sort_order }}{% else %}{{ forloop.index }}{% endif %}" data-dom-index="{{ forloop.index }}">
+              <a class="_navLink_1hxzp_145 {% if nav_active %}_navLinkActive_1hxzp_163{% endif %}" href="{{ nav_url }}"{% if nav_active %} aria-current="page"{% endif %}{% if block.settings.open_in_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ block.settings.label | escape }}</a>
+            </li>
           {%- endif -%}
-          <li {{ block.shopify_attributes }}>
-            <a class="_navLink_1hxzp_145 {% if nav_active %}_navLinkActive_1hxzp_163{% endif %}" href="{{ nav_url }}"{% if nav_active %} aria-current="page"{% endif %}>{{ block.settings.label }}</a>
-          </li>
         {%- endfor -%}
       </ul>
     </nav>
@@ -114,9 +119,23 @@
 
   {%- comment %} 移动端下拉菜单（默认隐藏，由 JS 控制） {% endcomment -%}
   <div class="_menu_1hxzp_377" data-mobile-menu hidden>
-    <nav>
+    <nav data-tcg-mobile-nav-list>
       {%- for block in section.blocks -%}
-        <a href="{{ block.settings.url | default: routes.all_products_collection_url }}" class="_menuLink_1hxzp_409">{{ block.settings.label }}</a>
+        {%- if block.settings.label != blank -%}
+          {%- assign nav_url = block.settings.url | default: routes.all_products_collection_url -%}
+          {%- assign sort_order = block.settings.sort_order | default: 0 | plus: 0 -%}
+          {%- assign nav_active = false -%}
+          {%- if block.settings.active == true -%}
+            {%- assign nav_active = true -%}
+          {%- elsif request.path == nav_url -%}
+            {%- assign nav_active = true -%}
+          {%- elsif nav_url == '/' and request.page_type == 'index' -%}
+            {%- assign nav_active = true -%}
+          {%- elsif nav_url != '/' and nav_url != blank and request.path contains nav_url -%}
+            {%- assign nav_active = true -%}
+          {%- endif -%}
+          <a href="{{ nav_url }}" class="_menuLink_1hxzp_409 {% if nav_active %}_menuLinkActive_1hxzp_415{% endif %}" data-mobile-nav-item data-sort-order="{% if sort_order > 0 %}{{ sort_order }}{% else %}{{ forloop.index }}{% endif %}" data-dom-index="{{ forloop.index }}"{% if nav_active %} aria-current="page"{% endif %}{% if block.settings.open_in_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ block.settings.label | escape }}</a>
+        {%- endif -%}
       {%- endfor -%}
     </nav>
     <div class="_menuSecondary_1hxzp_425">

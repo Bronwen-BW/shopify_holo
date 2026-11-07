@@ -15,22 +15,17 @@
 {%- assign product_form_id = 'tcg-product-form-' | append: section.id -%}
 
 {%- comment -%}
-  统一变体库存可用性计算（兼容 Shopify 官方 available、inventory_policy == 'continue'、未开启库存追踪及 inventory_quantity > 0）
+  统一变体库存可用性计算（兼容 Shopify 官方 available、inventory_policy == 'continue'、未开启库存追踪、inventory_quantity > 0，以及未配置仓库库存时的全变体兜底可售）
 {%- endcomment -%}
 {%- assign current_variant_available = false -%}
 {%- if current_variant -%}
-  {%- if current_variant.available -%}
-    {%- assign current_variant_available = true -%}
-  {%- elsif current_variant.inventory_policy == 'continue' -%}
-    {%- assign current_variant_available = true -%}
-  {%- elsif current_variant.inventory_management == blank -%}
-    {%- assign current_variant_available = true -%}
-  {%- elsif current_variant.inventory_quantity > 0 -%}
+  {%- if current_variant.available or current_variant.inventory_policy == 'continue' or current_variant.inventory_management == blank or current_variant.inventory_quantity > 0 -%}
     {%- assign current_variant_available = true -%}
   {%- endif -%}
 {%- endif -%}
 
 {%- assign available_variants_count = 0 -%}
+{%- assign first_eff_avail_variant = nil -%}
 {%- for v_item in product.variants -%}
   {%- assign v_item_ok = false -%}
   {%- if v_item.available or v_item.inventory_policy == 'continue' or v_item.inventory_management == blank or v_item.inventory_quantity > 0 -%}
@@ -38,10 +33,20 @@
   {%- endif -%}
   {%- if v_item_ok -%}
     {%- assign available_variants_count = available_variants_count | plus: 1 -%}
+    {%- if first_eff_avail_variant == nil -%}
+      {%- assign first_eff_avail_variant = v_item -%}
+    {%- endif -%}
   {%- endif -%}
 {%- endfor -%}
-{%- if available_variants_count == 0 and product.variants.size > 0 and current_variant_available -%}
+
+{%- assign force_all_variants_available = false -%}
+{%- if available_variants_count == 0 and product.variants.size > 0 -%}
+  {%- assign force_all_variants_available = true -%}
+  {%- assign current_variant_available = true -%}
   {%- assign available_variants_count = product.variants.size -%}
+{%- elsif available_variants_count > 0 and current_variant_available == false and first_eff_avail_variant != nil -%}
+  {%- assign current_variant = first_eff_avail_variant -%}
+  {%- assign current_variant_available = true -%}
 {%- endif -%}
 
 {%- assign main_img_obj = current_variant.featured_image | default: product.featured_image -%}
@@ -200,7 +205,7 @@
                     {%- for value in option.values -%}
                       <button
                         type="button"
-                        class="tcg-option-pill {% if selected_opt_val == value %}is-selected{% endif %}{% if value.available == false %} is-soldout{% endif %}"
+                        class="tcg-option-pill {% if selected_opt_val == value %}is-selected{% endif %}{% if value.available == false and force_all_variants_available == false %} is-soldout{% endif %}"
                         data-option-btn
                         data-option-position="{{ option.position }}"
                         data-option-value="{{ value | escape }}"
@@ -227,7 +232,7 @@
                   {%- assign v_title = product.title -%}
                 {%- endif -%}
                 {%- assign v_is_avail = false -%}
-                {%- if variant.available or variant.inventory_policy == 'continue' or variant.inventory_management == blank or variant.inventory_quantity > 0 -%}
+                {%- if force_all_variants_available or variant.available or variant.inventory_policy == 'continue' or variant.inventory_management == blank or variant.inventory_quantity > 0 -%}
                   {%- assign v_is_avail = true -%}
                 {%- endif -%}
 
@@ -293,6 +298,15 @@
                 class="_primaryButton_4xdw3_673"
                 data-product-add
                 data-variant="{{ current_variant.id }}"
+                data-product-id="{{ product.id }}"
+                data-product-handle="{{ product.handle | escape }}"
+                data-product-title="{{ product.title | escape }}"
+                data-variant-title="{% if current_variant.title != 'Default Title' %}{{ current_variant.title | escape }}{% endif %}"
+                data-variant-sku="{{ current_variant.sku | escape }}"
+                data-variant-price="{{ current_variant.price | default: product.price | default: 0 }}"
+                data-variant-price-formatted="{{ current_variant.price | default: product.price | money | escape }}"
+                data-product-url="{{ product.url }}"
+                data-product-image="{{ main_img_src }}"
                 data-preorder="{{ is_preorder }}"
                 {% unless current_variant_available %}disabled{% endunless %}
               >
@@ -308,12 +322,22 @@
               </button>
             </div>
 
-            {%- comment %} Shopify 官方动态加速结账按钮（已去除冗余的 Buy it now 按钮） {% endcomment -%}
-            {%- if section.settings.show_dynamic_checkout != false -%}
+            {%- comment %} 立即购买直达结账（单按钮统一交互，彻底避免 wallets/checkouts.json 422 与 Shadow DOM 禁用问题） {% endcomment -%}
+            {%- if section.settings.show_buy_now != false or section.settings.show_dynamic_checkout != false -%}
               <div class="tcg-buy-actions-row">
-                <div class="tcg-shopify-payment-btn" data-direct-checkout data-checkout-url="{{ routes.cart_checkout_url }}">
-                  {{ form | payment_button }}
-                </div>
+                <button
+                  type="button"
+                  class="tcg-buy-now-btn"
+                  data-buy-now
+                  data-direct-checkout
+                  data-variant="{{ current_variant.id }}"
+                  data-checkout-url="{{ routes.cart_url }}?step=checkout"
+                  data-official-checkout-url="{{ routes.cart_checkout_url }}"
+                  {% unless current_variant_available %}disabled{% endunless %}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                  <span data-buy-now-text>Buy it now</span>
+                </button>
               </div>
             {%- endif -%}
 
@@ -325,7 +349,7 @@
           </div>
         {%- endif -%}
 
-        {%- comment %} 加购成功反馈横幅（提供官方购物车与官方结账直达入口） {% endcomment -%}
+        {%- comment %} 加购成功反馈横幅（提供官方购物车与结账直达入口） {% endcomment -%}
         <div class="_addedNotice_4xdw3_750" data-added-notice hidden>
           <span class="_addedCheck_4xdw3_769" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
@@ -336,7 +360,7 @@
               <span>View cart</span>
               <span class="_viewCartCount_4xdw3_852" data-added-cart-count>{{ cart.item_count }}</span>
             </a>
-            <a href="{{ routes.cart_checkout_url }}" class="_checkoutNow_4xdw3_864">Checkout now</a>
+            <a href="{{ routes.cart_url }}?step=checkout" class="_checkoutNow_4xdw3_864" data-checkout-now-link>Checkout now</a>
           </div>
         </div>
 
@@ -425,7 +449,7 @@
       {%- for variant in product.variants -%}
         {%- assign v_img = variant.featured_image | default: product.featured_image -%}
         {%- assign v_avail = false -%}
-        {%- if variant.available or variant.inventory_policy == 'continue' or variant.inventory_management == blank or variant.inventory_quantity > 0 -%}
+        {%- if force_all_variants_available or variant.available or variant.inventory_policy == 'continue' or variant.inventory_management == blank or variant.inventory_quantity > 0 -%}
           {%- assign v_avail = true -%}
         {%- endif -%}
         {

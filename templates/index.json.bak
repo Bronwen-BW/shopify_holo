@@ -10,7 +10,7 @@
         "slide_1": {
           "type": "slide",
           "settings": {
-            "image_url": "card-charizard.png",
+            "image_url": "https://images.pokemontcg.io/sv3/223.png",
             "eyebrow": "Pokémon TCG",
             "title": "Scarlet & Violet 151",
             "text": "经典初代回归，单卡、整盒与评级卡同步上架。",
@@ -18,53 +18,20 @@
             "theme": "#7a3828"
           }
         },
-        "btn_1": {
-          "type": "hero_button",
-          "settings": {
-            "slide_id": "slide_1",
-            "label": "立即选购",
-            "url": "/collections/pokemon",
-            "position": "bottom-left",
-            "style": "primary",
-            "target": "_self"
-          }
-        },
-        "btn_2": {
-          "type": "hero_button",
-          "settings": {
-            "slide_id": "slide_1",
-            "label": "查看完整系列",
-            "url": "/pages/pokemon-151",
-            "position": "bottom-right",
-            "style": "secondary",
-            "target": "_blank"
-          }
-        },
         "slide_2": {
           "type": "slide",
           "settings": {
-            "image_url": "card-umbreon.png",
+            "image_url": "https://images.pokemontcg.io/swsh7/215.png",
             "eyebrow": "Yu-Gi-Oh!",
             "title": "Moonlit rarities",
             "text": "高罕贵卡与复古补充包，数量有限。",
             "theme": "#4c1d95"
           }
         },
-        "btn_3": {
-          "type": "hero_button",
-          "settings": {
-            "slide_id": "slide_2",
-            "label": "浏览高罕卡",
-            "url": "/collections/rares",
-            "position": "center",
-            "style": "light",
-            "target": "_self"
-          }
-        },
         "slide_3": {
           "type": "slide",
           "settings": {
-            "image_url": "card-palkia.png",
+            "image_url": "https://images.pokemontcg.io/cel25/8.png",
             "eyebrow": "Pre-order",
             "title": "下一弹现已开放预购",
             "text": "提前锁定首发批次，发售日优先发货。",
@@ -72,24 +39,12 @@
             "theme": "#155e75"
           }
         },
-        "btn_4": {
-          "type": "hero_button",
-          "settings": {
-            "slide_id": "slide_3",
-            "label": "加入购物车",
-            "url": "/products/preorder-bundle",
-            "position": "bottom-left",
-            "style": "ghost",
-            "target": "add_to_cart",
-            "variant_id": ""
-          }
-        },
         "hot_1": {
           "type": "hot_product",
           "settings": {
             "product": "",
             "title": "Charizard ex 特别收藏盒",
-            "image": "card-charizard.png",
+            "image": "https://images.pokemontcg.io/sv3/223.png",
             "subtitle": "Pokémon · Sealed",
             "badge": "HOT",
             "link": "/collections/pokemon"
@@ -100,7 +55,7 @@
           "settings": {
             "product": "",
             "title": "Umbreon VMAX 高罕单卡",
-            "image": "card-umbreon.png",
+            "image": "https://images.pokemontcg.io/swsh7/215.png",
             "subtitle": "Pokémon · Singles",
             "badge": "RARE",
             "link": "/collections/singles"
@@ -111,7 +66,7 @@
           "settings": {
             "product": "",
             "title": "Blastoise 经典复刻",
-            "image": "card-blastoise.png",
+            "image": "https://images.pokemontcg.io/base1/2.png",
             "subtitle": "Pokémon · Graded",
             "link": "/collections/graded"
           }
@@ -121,7 +76,7 @@
           "settings": {
             "product": "",
             "title": "Venusaur 礼盒",
-            "image": "card-venusaur.png",
+            "image": "https://images.pokemontcg.io/base1/15.png",
             "subtitle": "Pokémon · Gift box",
             "link": "/collections/gifts"
           }
@@ -131,41 +86,139 @@
           "settings": {
             "product": "",
             "title": "Palkia 主题套装",
-            "image": "card-palkia.png",
+            "image": "https://images.pokemontcg.io/cel25/8.png",
             "subtitle": "Pokémon · Bundle",
             "link": "/collections/bundles"
           }
         }
       },
       "block_order": [
-        "slide_1", "btn_1", "btn_2",
-        "slide_2", "btn_3",
-        "slide_3", "btn_4",
-        "hot_1", "hot_2", "hot_3", "hot_4", "hot_5"
+        "slide_1",
+        "slide_2",
+        "slide_3",
+        "hot_1",
+        "hot_2",
+        "hot_3",
+        "hot_4",
+        "hot_5"
       ]
     },
     "games": {
       "type": "tcg-games",
       "blocks": {
-        "g1": { "type": "game", "settings": { "name": "Pokémon", "tagline": "Singles, sealed, and graded rares", "frame_color": "#2ed39a" } },
-        "g2": { "type": "game", "settings": { "name": "Yu-Gi-Oh!", "tagline": "Old favourites and the newest sets", "frame_color": "#a78bfa" } },
-        "g3": { "type": "game", "settings": { "name": "Magic: The Gathering", "tagline": "Commander, Standard, and more", "frame_color": "#f28753" } },
-        "g4": { "type": "game", "settings": { "name": "Disney Lorcana", "tagline": "Enchanted cards and new Disney sets", "frame_color": "#c084fc" } },
-        "g5": { "type": "game", "settings": { "name": "Riftbound", "tagline": "League of Legends comes to the tabletop", "frame_color": "#7dd3fc" } },
-        "g6": { "type": "game", "settings": { "name": "Digimon", "tagline": "Tamers, alternate arts, and sealed sets", "frame_color": "#60a5fa" } },
-        "g7": { "type": "game", "settings": { "name": "Cyberpunk", "tagline": "Cards and releases from Night City", "frame_color": "#facc15" } }
+        "g1": {
+          "type": "game",
+          "settings": {
+            "name": "Pokémon",
+            "tagline": "Singles, sealed, and graded rares",
+            "frame_color": "#2ed39a"
+          }
+        },
+        "g2": {
+          "type": "game",
+          "settings": {
+            "name": "Yu-Gi-Oh!",
+            "tagline": "Old favourites and the newest sets",
+            "frame_color": "#a78bfa"
+          }
+        },
+        "g3": {
+          "type": "game",
+          "settings": {
+            "name": "Magic: The Gathering",
+            "tagline": "Commander, Standard, and more",
+            "frame_color": "#f28753"
+          }
+        },
+        "g4": {
+          "type": "game",
+          "settings": {
+            "name": "Disney Lorcana",
+            "tagline": "Enchanted cards and new Disney sets",
+            "frame_color": "#c084fc"
+          }
+        },
+        "g5": {
+          "type": "game",
+          "settings": {
+            "name": "Riftbound",
+            "tagline": "League of Legends comes to the tabletop",
+            "frame_color": "#7dd3fc"
+          }
+        },
+        "g6": {
+          "type": "game",
+          "settings": {
+            "name": "Digimon",
+            "tagline": "Tamers, alternate arts, and sealed sets",
+            "frame_color": "#60a5fa"
+          }
+        },
+        "g7": {
+          "type": "game",
+          "settings": {
+            "name": "Cyberpunk",
+            "tagline": "Cards and releases from Night City",
+            "frame_color": "#facc15"
+          }
+        }
       },
-      "block_order": ["g1", "g2", "g3", "g4", "g5", "g6", "g7"],
+      "block_order": [
+        "g1",
+        "g2",
+        "g3",
+        "g4",
+        "g5",
+        "g6",
+        "g7"
+      ],
       "settings": {}
     },
     "sets": {
       "type": "tcg-sets",
       "blocks": {
-        "s1": { "type": "set", "settings": { "game_label": "Pokémon", "frame_color": "#2ed39a" } },
-        "s2": { "type": "set", "settings": { "game_label": "Magic: The Gathering", "frame_color": "#f28753" } }
+        "s1": {
+          "type": "set",
+          "settings": {
+            "game_label": "Pokémon",
+            "title": "Scarlet & Violet — 151",
+            "frame_color": "#2ed39a"
+          }
+        },
+        "s2": {
+          "type": "set",
+          "settings": {
+            "game_label": "Magic: The Gathering",
+            "title": "Modern Horizons & Commander",
+            "frame_color": "#f28753"
+          }
+        },
+        "s3": {
+          "type": "set",
+          "settings": {
+            "game_label": "Pokémon",
+            "title": "Prismatic Evolutions",
+            "frame_color": "#a78bfa"
+          }
+        },
+        "s4": {
+          "type": "set",
+          "settings": {
+            "game_label": "Collectors",
+            "title": "Collectors Vault",
+            "frame_color": "#60a5fa"
+          }
+        }
       },
-      "block_order": ["s1", "s2"],
-      "settings": {}
+      "block_order": [
+        "s1",
+        "s2",
+        "s3",
+        "s4"
+      ],
+      "settings": {
+        "columns_desktop": 4
+      }
     },
     "upcoming": {
       "type": "tcg-product-grid",

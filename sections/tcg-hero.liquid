@@ -81,9 +81,17 @@
                 <p class="_blurb_n65qd_124">{{ block.settings.text }}</p>
               {%- endif -%}
 
-              {%- if has_slide_buttons == false and block.settings.link != blank -%}
+              {%- assign slide_target_url = block.settings.link | default: '' | strip -%}
+              {%- if slide_target_url contains '/collections/' and slide_target_url != '/collections/all' -%}
+                {%- assign col_seg = slide_target_url | split: '/collections/' | last | split: '?' | first | split: '/' | first -%}
+                {%- if collections[col_seg] == blank -%}
+                  {%- assign slide_target_url = routes.all_products_collection_url -%}
+                {%- endif -%}
+              {%- endif -%}
+
+              {%- if has_slide_buttons == false and slide_target_url != blank -%}
                 <div class="_actions_n65qd_137" style="position:relative;z-index:5;">
-                  <a href="{{ block.settings.link | escape }}" class="_primaryCta_n65qd_145">Shop collection</a>
+                  <a href="{{ slide_target_url | escape }}" class="_primaryCta_n65qd_145">Shop collection</a>
                 </div>
               {%- endif -%}
             </div>
@@ -109,7 +117,10 @@
 
                   {%- if behavior == 'add_to_cart' -%}
                     <button type="button" class="_heroBtn_tcg1 _heroBtn_{{ btn_style }}" data-add
-                      data-variant="{{ btn.settings.variant_id }}" aria-label="{{ btn_label | escape }}">
+                      data-variant="{{ btn.settings.variant_id }}"
+                      data-product-title="{{ block.settings.title | default: btn_label | escape }}"
+                      data-product-image="{{ slide_img }}"
+                      aria-label="{{ btn_label | escape }}">
                       {{ btn_label }}
                     </button>
                   {%- elsif behavior == 'scroll' -%}
@@ -126,8 +137,8 @@
               </div>
             {%- endfor -%}
 
-            {%- if block.settings.link != blank -%}
-              <a class="_heroSlideLink_tcg1" href="{{ block.settings.link | escape }}" aria-label="{{ block.settings.title | default: '查看' | escape }}"></a>
+            {%- if slide_target_url != blank -%}
+              <a class="_heroSlideLink_tcg1" href="{{ slide_target_url | escape }}" aria-label="{{ block.settings.title | default: '查看' | escape }}"></a>
             {%- endif -%}
 
             {%- assign slide_index = slide_index | plus: 1 -%}
@@ -219,14 +230,28 @@
           {%- assign hot_idx = 0 -%}
           {%- for block in section.blocks -%}
             {%- if block.type != 'hot_product' -%}{%- continue -%}{%- endif -%}
-            {%- assign p = all_products[block.settings.product] -%}
-            {%- if p == blank and shelf_products[hot_idx] != blank -%}
+            {%- assign p = block.settings.product -%}
+            {%- if p.id == blank and block.settings.product != blank -%}
+              {%- assign p = all_products[block.settings.product] -%}
+            {%- endif -%}
+            {%- if p.id == blank and shelf_products[hot_idx] != blank -%}
               {%- assign p = shelf_products[hot_idx] -%}
+            {%- endif -%}
+            {%- if p.id == blank and hero_collection.products.size > 0 -%}
+              {%- assign fb_p_idx = hot_idx | modulo: hero_collection.products.size -%}
+              {%- assign p = hero_collection.products[fb_p_idx] -%}
             {%- endif -%}
             {%- assign hot_idx = hot_idx | plus: 1 -%}
             {%- assign item_title = block.settings.title | default: p.title | default: '商品' -%}
             {%- assign item_sub = block.settings.subtitle | default: p.type -%}
-            {%- assign item_link = p.url | default: block.settings.link | default: routes.all_products_collection_url -%}
+            {%- assign raw_link = block.settings.link | default: '' | strip -%}
+            {%- if raw_link contains '/collections/' and raw_link != '/collections/all' -%}
+              {%- assign hot_col_seg = raw_link | split: '/collections/' | last | split: '?' | first | split: '/' | first -%}
+              {%- if collections[hot_col_seg] == blank -%}
+                {%- assign raw_link = '' -%}
+              {%- endif -%}
+            {%- endif -%}
+            {%- assign item_link = p.url | default: raw_link | default: routes.all_products_collection_url -%}
 
             {%- assign raw_img = block.settings.image | default: '' | strip -%}
             {%- assign item_img = raw_img -%}
@@ -239,12 +264,14 @@
             {%- if item_img == blank -%}{%- assign item_img = 'logo-mark.png' | asset_url -%}{%- endif -%}
 
             {%- assign variant = p.selected_or_first_available_variant | default: p.first_available_variant | default: p.variants.first -%}
-            {%- assign shelf_item_avail = false -%}
-            {%- if p.available -%}
-              {%- assign shelf_item_avail = true -%}
-            {%- elsif variant and (variant.available or variant.inventory_policy == 'continue' or variant.inventory_management == blank or variant.inventory_quantity > 0) -%}
-              {%- assign shelf_item_avail = true -%}
-            {%- endif -%}
+            {%- for v_cand in p.variants -%}
+              {%- if v_cand.available or v_cand.inventory_policy == 'continue' or v_cand.inventory_management == blank or v_cand.inventory_quantity > 0 -%}
+                {%- assign variant = v_cand -%}
+                {%- break -%}
+              {%- endif -%}
+            {%- endfor -%}
+            {%- assign hot_variant_id = variant.id | default: p.id | default: block.id -%}
+            {%- assign hot_price_cents = variant.price | default: p.price | default: 4995 -%}
             <li class="_shelfItem_n65qd_449" data-motion-card="10" {{ block.shopify_attributes }}>
               <a href="{{ item_link }}" class="_shelfLink_n65qd_462">
                 <span class="_thumb_n65qd_476">
@@ -256,49 +283,70 @@
                 <span class="_itemInfo_n65qd_493">
                   <span class="_itemName_n65qd_500">{{ item_title }}</span>
                   {%- if item_sub != blank -%}<span class="_itemSet_n65qd_513">{{ item_sub }}</span>{%- endif -%}
-                  {%- if p.price -%}<span class="_itemPrice_n65qd_521">{{ p.price | money }}</span>{%- endif -%}
+                  <span class="_itemPrice_n65qd_521">{{ hot_price_cents | money }}</span>
                 </span>
               </a>
-              {%- if variant and shelf_item_avail -%}
-                <button type="button" class="_addBtn_n65qd_530" data-add data-variant="{{ variant.id }}"
-                  aria-label="Add {{ item_title | escape }} to cart">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
-                </button>
-              {%- else -%}
-                <a href="{{ item_link }}" class="_addBtn_n65qd_530" aria-label="View {{ item_title | escape }}">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
-                </a>
-              {%- endif -%}
+              <button
+                type="button"
+                class="_addBtn_n65qd_530"
+                data-add
+                data-variant="{{ hot_variant_id }}"
+                data-product-id="{{ p.id | default: block.id }}"
+                data-product-title="{{ item_title | escape }}"
+                data-variant-title="{% if variant.title != blank and variant.title != 'Default Title' %}{{ variant.title | escape }}{% endif %}"
+                data-variant-sku="{{ variant.sku | escape }}"
+                data-variant-price="{{ hot_price_cents }}"
+                data-variant-price-formatted="{{ hot_price_cents | money | escape }}"
+                data-product-url="{{ item_link }}"
+                data-product-image="{{ item_img }}"
+                aria-label="Add {{ item_title | escape }} to cart"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+              </button>
             </li>
           {%- endfor -%}
         {%- else -%}
           {%- comment %} ---------- 回退：集合前 5 个商品 ---------- {% endcomment -%}
           {%- for product in shelf_products -%}
             {%- assign variant = product.selected_or_first_available_variant | default: product.first_available_variant | default: product.variants.first -%}
-            {%- assign shelf_fallback_avail = false -%}
-            {%- if product.available -%}
-              {%- assign shelf_fallback_avail = true -%}
-            {%- elsif variant and (variant.available or variant.inventory_policy == 'continue' or variant.inventory_management == blank or variant.inventory_quantity > 0) -%}
-              {%- assign shelf_fallback_avail = true -%}
+            {%- for v_cand in product.variants -%}
+              {%- if v_cand.available or v_cand.inventory_policy == 'continue' or v_cand.inventory_management == blank or v_cand.inventory_quantity > 0 -%}
+                {%- assign variant = v_cand -%}
+                {%- break -%}
+              {%- endif -%}
+            {%- endfor -%}
+            {%- if product.featured_image -%}
+              {%- assign fb_shelf_img = product.featured_image | image_url: width: 200 -%}
+            {%- else -%}
+              {%- assign fb_shelf_img = 'logo-mark.png' | asset_url -%}
             {%- endif -%}
+            {%- assign fb_price_cents = variant.price | default: product.price | default: 0 -%}
             <li class="_shelfItem_n65qd_449" data-motion-card="10">
               <a href="{{ product.url }}" class="_shelfLink_n65qd_462">
                 <span class="_thumb_n65qd_476">
-                  {%- if product.featured_image -%}
-                    <img data-motion-art src="{{ product.featured_image | image_url: width: 200 }}" alt="" draggable="false" loading="eager" decoding="async">
-                  {%- else -%}
-                    <img data-motion-art src="{{ 'logo-mark.png' | asset_url }}" alt="" draggable="false">
-                  {%- endif -%}
+                  <img data-motion-art src="{{ fb_shelf_img }}" alt="{{ product.title | escape }}" draggable="false" loading="eager" decoding="async">
                 </span>
                 <span class="_itemInfo_n65qd_493">
                   <span class="_itemName_n65qd_500">{{ product.title }}</span>
                   <span class="_itemSet_n65qd_513">{{ product.type }}</span>
-                  <span class="_itemPrice_n65qd_521">{{ product.price | money }}</span>
+                  <span class="_itemPrice_n65qd_521">{{ fb_price_cents | money }}</span>
                 </span>
               </a>
-              <button type="button" class="_addBtn_n65qd_530" data-add data-variant="{{ variant.id }}"
-                {% unless shelf_fallback_avail %}disabled{% endunless %}
-                aria-label="Add {{ product.title | escape }} to cart">
+              <button
+                type="button"
+                class="_addBtn_n65qd_530"
+                data-add
+                data-variant="{{ variant.id | default: product.id }}"
+                data-product-id="{{ product.id }}"
+                data-product-title="{{ product.title | escape }}"
+                data-variant-title="{% if variant.title != 'Default Title' %}{{ variant.title | escape }}{% endif %}"
+                data-variant-sku="{{ variant.sku | escape }}"
+                data-variant-price="{{ fb_price_cents }}"
+                data-variant-price-formatted="{{ fb_price_cents | money | escape }}"
+                data-product-url="{{ product.url }}"
+                data-product-image="{{ fb_shelf_img }}"
+                aria-label="Add {{ product.title | escape }} to cart"
+              >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
               </button>
             </li>

@@ -1,0 +1,73 @@
+{
+  "type": "header",
+  "name": "Header",
+  "sections": {
+    "tcg_navigation": {
+      "type": "tcg-nav",
+      "blocks": {
+        "nav_home": {
+          "type": "nav_item",
+          "settings": {
+            "label": "Home",
+            "url": "/",
+            "sort_order": 1,
+            "active": false
+          }
+        },
+        "nav_shop": {
+          "type": "nav_item",
+          "settings": {
+            "label": "Shop",
+            "url": "/collections/all",
+            "sort_order": 2,
+            "active": false
+          }
+        },
+        "nav_games": {
+          "type": "nav_item",
+          "settings": {
+            "label": "Collections",
+            "url": "/collections",
+            "sort_order": 3,
+            "active": false
+          }
+        },
+        "nav_about": {
+          "type": "nav_item",
+          "settings": {
+            "label": "About us",
+            "url": "/pages/about",
+            "sort_order": 4,
+            "active": false
+          }
+        },
+        "nav_contact": {
+          "type": "nav_item",
+          "settings": {
+            "label": "Contact",
+            "url": "/pages/contact",
+            "sort_order": 5,
+            "active": false
+          }
+        }
+      },
+      "block_order": [
+        "nav_home",
+        "nav_shop",
+        "nav_games",
+        "nav_about",
+        "nav_contact"
+      ],
+      "settings": {
+        "brand_prefix": "TCG",
+        "brand_accent": "Haven",
+        "search_placeholder": "Search cards, sets, sealed…",
+        "enable_theme_toggle": true,
+        "default_theme_mode": "dark"
+      }
+    }
+  },
+  "order": [
+    "tcg_navigation"
+  ]
+}

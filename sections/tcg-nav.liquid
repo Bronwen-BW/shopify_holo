@@ -9,7 +9,7 @@
   "name": "TCG 导航",
   "tag": "section",
   "class": "tcg-nav-section",
-  "max_blocks": 12,
+  "max_blocks": 24,
   "settings": [
     {
       "type": "text",
@@ -49,23 +49,70 @@
   "blocks": [
     {
       "type": "nav_item",
-      "name": "导航项",
+      "name": "导航项 / 自定义标签",
       "settings": [
         {
           "type": "text",
           "id": "label",
-          "label": "导航名称",
+          "label": "标签名称",
           "default": "Home"
         },
         {
           "type": "url",
           "id": "url",
-          "label": "导航链接"
+          "label": "跳转链接"
+        },
+        {
+          "type": "number",
+          "id": "sort_order",
+          "label": "排序序号 (越小越靠前，0 表示按列表默认顺序)",
+          "default": 0
         },
         {
           "type": "checkbox",
           "id": "active",
           "label": "始终高亮（当前页也会自动高亮）",
+          "default": false
+        },
+        {
+          "type": "checkbox",
+          "id": "open_in_new_tab",
+          "label": "在新窗口打开链接",
+          "default": false
+        }
+      ]
+    },
+    {
+      "type": "custom_tab",
+      "name": "自定义标签",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "标签名称",
+          "default": "Custom Tab"
+        },
+        {
+          "type": "url",
+          "id": "url",
+          "label": "跳转链接"
+        },
+        {
+          "type": "number",
+          "id": "sort_order",
+          "label": "排序序号 (越小越靠前，0 表示按列表默认顺序)",
+          "default": 0
+        },
+        {
+          "type": "checkbox",
+          "id": "active",
+          "label": "始终高亮（当前页也会自动高亮）",
+          "default": false
+        },
+        {
+          "type": "checkbox",
+          "id": "open_in_new_tab",
+          "label": "在新窗口打开链接",
           "default": false
         }
       ]

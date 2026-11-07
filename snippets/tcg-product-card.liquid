@@ -4,9 +4,11 @@
   支持展示多 SKU 数量标识、原价对比及 Shopify 官方 AJAX 加购
 {%- endcomment -%}
 {%- assign is_preorder = false -%}
+{%- assign is_explicit_soldout = false -%}
 {%- for tag in product.tags -%}
   {%- assign tag_down = tag | downcase -%}
   {%- if tag_down contains 'pre' -%}{%- assign is_preorder = true -%}{%- endif -%}
+  {%- if tag_down == 'soldout' or tag_down == 'sold-out' -%}{%- assign is_explicit_soldout = true -%}{%- endif -%}
 {%- endfor -%}
 {%- assign current_variant = product.selected_or_first_available_variant | default: product.first_available_variant | default: product.variants.first -%}
 {%- assign card_available = false -%}
@@ -26,6 +28,16 @@
     {%- endif -%}
   {%- endfor -%}
 {%- endif -%}
+{%- if card_available == false and is_explicit_soldout == false and current_variant != blank -%}
+  {%- assign card_available = true -%}
+{%- endif -%}
+{%- assign card_img_obj = current_variant.featured_image | default: product.featured_image -%}
+{%- if card_img_obj != blank -%}
+  {%- assign card_thumb_url = card_img_obj | image_url: width: 240 -%}
+{%- else -%}
+  {%- assign card_thumb_url = 'logo-mark.png' | asset_url -%}
+{%- endif -%}
+{%- assign card_variant_price = current_variant.price | default: product.price | default: 0 -%}
 
 <article data-motion-card="8" class="_card_36e53_65 _cardFill_36e53_74" data-reveal>
   {%- comment %} 媒体区（整卡可点击） {% endcomment -%}
@@ -82,12 +94,21 @@
         </span>
       </span>
 
-      {%- comment %} 加购按钮（使用 Shopify 官方 /cart/add.js 接口） {% endcomment -%}
+      {%- comment %} 加购按钮（使用 Shopify 官方 /cart/add.js 接口 + 本地购物车兜底同步） {% endcomment -%}
       <button
         type="button"
         class="_addBtn_36e53_338"
         data-add
-        data-variant="{{ current_variant.id }}"
+        data-variant="{{ current_variant.id | default: product.id }}"
+        data-product-id="{{ product.id }}"
+        data-product-handle="{{ product.handle | escape }}"
+        data-product-title="{{ product.title | escape }}"
+        data-variant-title="{% if current_variant.title != 'Default Title' %}{{ current_variant.title | escape }}{% endif %}"
+        data-variant-sku="{{ current_variant.sku | escape }}"
+        data-variant-price="{{ card_variant_price }}"
+        data-variant-price-formatted="{{ card_variant_price | money | escape }}"
+        data-product-url="{{ product.url | default: routes.all_products_collection_url }}"
+        data-product-image="{{ card_thumb_url }}"
         {% unless card_available %}disabled{% endunless %}
         aria-label="Add {{ product.title | escape }} to cart"
       >

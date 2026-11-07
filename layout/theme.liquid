@@ -13,16 +13,19 @@
           document.documentElement.setAttribute('data-theme', mode);
         } catch (e) {}
       })();
-      window.Shopify = window.Shopify || {};
-      window.Shopify.routes = {
+      window.TCG_ROUTES = {
         root: {{ routes.root_url | default: '/' | json }},
         cart_url: {{ routes.cart_url | default: '/cart' | json }},
         cart_add_url: {{ routes.cart_add_url | default: '/cart/add' | json }},
         cart_change_url: {{ routes.cart_change_url | default: '/cart/change' | json }},
         cart_update_url: {{ routes.cart_update_url | default: '/cart/update' | json }},
+        cart_clear_url: {{ routes.cart_clear_url | default: '/cart/clear' | json }},
         cart_checkout_url: {{ routes.cart_checkout_url | default: '/checkout' | json }},
+        all_products_collection_url: {{ routes.all_products_collection_url | default: '/collections/all' | json }},
         search_url: {{ routes.search_url | default: '/search' | json }}
       };
+      window.Shopify = window.Shopify || {};
+      window.Shopify.routes = Object.assign({}, window.Shopify.routes || {}, window.TCG_ROUTES);
     </script>
 
     {%- if settings.favicon != blank -%}
@@ -51,6 +54,11 @@
     {%- endif -%}
 
     {{ content_for_header }}
+    <script>
+      window.Shopify = window.Shopify || {};
+      window.Shopify.routes = Object.assign({}, window.Shopify.routes || {}, window.TCG_ROUTES || {});
+    </script>
+    <script type="application/json" id="tcg-initial-cart-json">{{ cart | json }}</script>
     {% # theme-check-enable RemoteAsset %}
   </head>
 
