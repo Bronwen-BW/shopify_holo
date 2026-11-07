@@ -318,9 +318,23 @@
   }
 
   var SF_CART_STORAGE_KEY = 'tcg-sf-cart-v1';
+  var BUY_NOW_CART_STORAGE_KEY = 'tcg-buy-now-cart-v1';
   var LOCAL_NOTE_KEY = 'tcg-order-note-v1';
   var LOCAL_DISCOUNTS_KEY = 'tcg-discount-codes-v1';
   var DEFAULT_SF_ACCESS_TOKEN = '62beeb8383e9513ae4ae60d687c2ac8b';
+
+  function isBuyNowIntermediatePage() {
+    try {
+      var searchStr = (window.location && window.location.search) ? String(window.location.search) : '';
+      return /(?:^\?|&)buy_now=1(?:&|$)/.test(searchStr);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function getActiveStorefrontStorageKey() {
+    return isBuyNowIntermediatePage() ? BUY_NOW_CART_STORAGE_KEY : SF_CART_STORAGE_KEY;
+  }
 
   function loadSavedOrderNote() {
     try { return localStorage.getItem(LOCAL_NOTE_KEY) || ''; } catch (e) { return ''; }
@@ -407,9 +421,10 @@
     return idx >= 0 ? s.slice(idx + 1) : s;
   }
 
-  function loadSavedStorefrontCart() {
+  function loadSavedStorefrontCart(storageKeyOverride) {
+    var key = storageKeyOverride || getActiveStorefrontStorageKey();
     try {
-      var raw = localStorage.getItem(SF_CART_STORAGE_KEY);
+      var raw = localStorage.getItem(key);
       if (!raw) return null;
       var parsed = JSON.parse(raw);
       return (parsed && parsed.id) ? parsed : null;
@@ -418,13 +433,14 @@
     }
   }
 
-  function saveStorefrontCart(cartObj) {
+  function saveStorefrontCart(cartObj, storageKeyOverride) {
+    var key = storageKeyOverride || getActiveStorefrontStorageKey();
     try {
       if (!cartObj || !cartObj.id) {
-        localStorage.removeItem(SF_CART_STORAGE_KEY);
+        localStorage.removeItem(key);
         return;
       }
-      localStorage.setItem(SF_CART_STORAGE_KEY, JSON.stringify(cartObj));
+      localStorage.setItem(key, JSON.stringify(cartObj));
     } catch (e) {}
   }
 
@@ -487,7 +503,7 @@
     });
   }
 
-  function normalizeStorefrontCart(sfCart) {
+  function normalizeStorefrontCart(sfCart, storageKeyOverride) {
     if (!sfCart || !sfCart.id) return null;
     var lines = (sfCart.lines && Array.isArray(sfCart.lines.nodes)) ? sfCart.lines.nodes : [];
     var rawSubtotalCents = 0;
@@ -583,7 +599,7 @@
       total_price: finalTotalCents,
       items: items
     };
-    saveStorefrontCart(normalized);
+    saveStorefrontCart(normalized, storageKeyOverride);
     return normalized;
   }
 
@@ -664,7 +680,8 @@
 
   /**
    * 立即购买（Buy it now）专属：创建仅包含当前商品与数量的单品独立官方支付会话（Single-item Checkout Session）
-   * 绝不把当前商品追加到已有购物车，也绝不把购物车内已有的其他商品带入本次立即购买的支付结算页
+   * 保存在 BUY_NOW_CART_STORAGE_KEY，并引导用户进入与购物车同款界面的单品确认中间页（/cart?buy_now=1），支持输入备注、折扣码、增减数量后再跳转至官方支付收银台
+   * 绝不把当前商品追加到已有购物车，也绝不把购物车内已有的其他商品带入本次立即购买
    */
   function createBuyNowStandaloneCheckoutUrl(variantId, quantity) {
     var qty = Math.max(1, parseInt(quantity, 10) || 1);
@@ -686,29 +703,18 @@
       cartInput.discountCodes = savedDiscounts;
     }
 
-    var createMut = [
-      'mutation BuyNowSingleCheckout($input: CartInput!) {',
-      '  cartCreate(input: $input) {',
-      '    cart {',
-      '      id',
-      '      checkoutUrl',
-      '    }',
-      '    userErrors { field message code }',
-      '  }',
-      '}'
-    ].join('\n');
+    var createMut = SF_CART_FRAGMENT + '\nmutation BuyNowSingleCheckout($input: CartInput!) {\n  cartCreate(input: $input) {\n    cart { ...CartFields }\n    userErrors { field message code }\n  }\n}';
+    var intermediateUrl = apiUrl('cart?buy_now=1');
 
     return executeStorefrontGraphql(createMut, { input: cartInput }).then(function (res) {
       var payload = res && res.data && res.data.cartCreate;
-      if (payload && payload.cart && payload.cart.checkoutUrl) {
-        var finalUrl = buildCheckoutUrlWithNoteAndDiscount(
-          payload.cart.checkoutUrl,
-          savedNote,
-          savedDiscounts
-        );
+      if (payload && payload.cart && payload.cart.id) {
+        var norm = normalizeStorefrontCart(payload.cart, BUY_NOW_CART_STORAGE_KEY);
         return {
           ok: true,
-          checkoutUrl: finalUrl,
+          intermediateUrl: intermediateUrl,
+          checkoutUrl: norm ? norm.checkoutUrl : payload.cart.checkoutUrl,
+          cart: norm,
           cartId: payload.cart.id
         };
       }
@@ -716,11 +722,13 @@
       return {
         ok: false,
         message: uErr,
+        intermediateUrl: intermediateUrl,
         checkoutUrl: buildCheckoutUrlWithNoteAndDiscount(apiUrl('cart/' + variantId + ':' + qty), savedNote, savedDiscounts)
       };
     }).catch(function () {
       return {
         ok: true,
+        intermediateUrl: intermediateUrl,
         checkoutUrl: buildCheckoutUrlWithNoteAndDiscount(apiUrl('cart/' + variantId + ':' + qty), savedNote, savedDiscounts)
       };
     });
@@ -1549,6 +1557,145 @@
 
       selectVariantById(initialId, false);
     }
+
+    // 6) 缩略图单行横向滑动控制（左右按钮 + 滚轮横向滚动 + 选中缩略图自动平滑居中）
+    var thumbsTrack = section.querySelector('[data-thumbs-track]');
+    if (thumbsTrack) {
+      on('[data-thumbs-prev]', 'click', function (e) {
+        if (e.preventDefault) e.preventDefault();
+        if (typeof thumbsTrack.scrollBy === 'function') {
+          thumbsTrack.scrollBy({ left: -240, behavior: 'smooth' });
+        } else {
+          thumbsTrack.scrollLeft = Math.max(0, (thumbsTrack.scrollLeft || 0) - 240);
+        }
+      }, section);
+
+      on('[data-thumbs-next]', 'click', function (e) {
+        if (e.preventDefault) e.preventDefault();
+        if (typeof thumbsTrack.scrollBy === 'function') {
+          thumbsTrack.scrollBy({ left: 240, behavior: 'smooth' });
+        } else {
+          thumbsTrack.scrollLeft = (thumbsTrack.scrollLeft || 0) + 240;
+        }
+      }, section);
+
+      thumbsTrack.addEventListener('wheel', function (e) {
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+          if (e.preventDefault) e.preventDefault();
+          thumbsTrack.scrollLeft = (thumbsTrack.scrollLeft || 0) + e.deltaY;
+        }
+      }, { passive: false });
+    }
+
+    // 7) 主图点击放大高清灯箱（Lightbox Modal：支持打开/关闭、2× 倍率缩放、上一张/下一张切换、键盘 ESC/方向键）
+    var lightbox = section.querySelector('[data-image-lightbox]') || document.querySelector('[data-image-lightbox]');
+    if (lightbox) {
+      var lbImg = lightbox.querySelector('[data-lightbox-image]');
+      var lbWrap = lightbox.querySelector('[data-lightbox-img-wrap]');
+      var lbCaption = lightbox.querySelector('[data-lightbox-caption]');
+      var lbScaleLabel = lightbox.querySelector('[data-lightbox-scale-label]');
+
+      function getGalleryImageUrls() {
+        var urls = [];
+        section.querySelectorAll('[data-thumb]').forEach(function (t) {
+          var u = t.getAttribute('data-full');
+          if (u && urls.indexOf(u) === -1) urls.push(u);
+        });
+        if (!urls.length && mainImg) {
+          var mSrc = mainImg.getAttribute('src') || mainImg.src;
+          if (mSrc) urls.push(mSrc);
+        }
+        return urls;
+      }
+
+      function setLightboxScale2x(enable) {
+        if (!lbWrap) return;
+        lbWrap.classList.toggle('is-zoomed-2x', Boolean(enable));
+        if (lbScaleLabel) {
+          lbScaleLabel.textContent = enable ? 'Reset 1×' : 'Zoom 2×';
+        }
+      }
+
+      function openLightbox(srcOverride) {
+        var curSrc = srcOverride || (mainImg && (mainImg.getAttribute('src') || mainImg.src)) || '';
+        if (lbImg && curSrc) {
+          lbImg.setAttribute('src', curSrc);
+          lbImg.src = curSrc;
+        }
+        if (lbCaption) {
+          var h1 = section.querySelector('h1');
+          lbCaption.textContent = (h1 && h1.textContent) ? h1.textContent.trim() : '';
+        }
+        setLightboxScale2x(false);
+        lightbox.removeAttribute('hidden');
+        lightbox.hidden = false;
+      }
+
+      function closeLightbox() {
+        setLightboxScale2x(false);
+        lightbox.setAttribute('hidden', '');
+        lightbox.hidden = true;
+      }
+
+      function stepLightboxImage(delta) {
+        var urls = getGalleryImageUrls();
+        if (urls.length <= 1 || !lbImg) return;
+        var cur = lbImg.getAttribute('src') || lbImg.src || '';
+        var idx = urls.indexOf(cur);
+        if (idx === -1) idx = 0;
+        var nextIdx = (idx + delta + urls.length) % urls.length;
+        var nextUrl = urls[nextIdx];
+        lbImg.setAttribute('src', nextUrl);
+        lbImg.src = nextUrl;
+        setLightboxScale2x(false);
+      }
+
+      on('[data-zoom-trigger]', 'click', function (e) {
+        if (e.preventDefault) e.preventDefault();
+        openLightbox();
+      }, section);
+
+      on('[data-zoom-trigger]', 'keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          if (e.preventDefault) e.preventDefault();
+          openLightbox();
+        }
+      }, section);
+
+      on('[data-lightbox-close]', 'click', function (e) {
+        if (e.preventDefault) e.preventDefault();
+        closeLightbox();
+      }, lightbox);
+
+      on('[data-lightbox-prev]', 'click', function (e) {
+        if (e.preventDefault) e.preventDefault();
+        stepLightboxImage(-1);
+      }, lightbox);
+
+      on('[data-lightbox-next]', 'click', function (e) {
+        if (e.preventDefault) e.preventDefault();
+        stepLightboxImage(1);
+      }, lightbox);
+
+      on('[data-lightbox-toggle-scale]', 'click', function (e) {
+        if (e.preventDefault) e.preventDefault();
+        var isZoomed = lbWrap && lbWrap.classList.contains('is-zoomed-2x');
+        setLightboxScale2x(!isZoomed);
+      }, lightbox);
+
+      on('[data-lightbox-img-wrap]', 'click', function (e) {
+        if (e.target && e.target.closest && e.target.closest('button')) return;
+        var isZoomed = lbWrap && lbWrap.classList.contains('is-zoomed-2x');
+        setLightboxScale2x(!isZoomed);
+      }, lightbox);
+
+      window.addEventListener('keydown', function (e) {
+        if (lightbox.hasAttribute('hidden')) return;
+        if (e.key === 'Escape') closeLightbox();
+        else if (e.key === 'ArrowLeft') stepLightboxImage(-1);
+        else if (e.key === 'ArrowRight') stepLightboxImage(1);
+      });
+    }
   })();
 
   /* -------------------------------------------------------------------
@@ -1593,7 +1740,9 @@
       directBtn.setAttribute('disabled', '');
       createBuyNowStandaloneCheckoutUrl(directVid, directQty)
         .then(function (res) {
-          if (res && res.checkoutUrl) {
+          if (res && res.intermediateUrl) {
+            window.location.href = res.intermediateUrl;
+          } else if (res && res.checkoutUrl) {
             window.location.href = res.checkoutUrl;
           } else {
             window.location.href = apiUrl('cart/' + directVid + ':' + directQty);
@@ -1688,14 +1837,16 @@
     directWrap.style.pointerEvents = 'none';
     directWrap.style.opacity = '0.7';
 
-    // 立即购买（Buy it now）：仅创建包含当前选中 SKU 与数量的独立单品结账会话，既不修改用户已有购物车，也不把购物车其他商品带入支付页
+    // 立即购买（Buy it now）：创建仅包含当前选中 SKU 与数量的独立单品结账会话，并跳转到与购物车同款的立即购买确认中间页（/cart?buy_now=1），支持输入备注、折扣码后再进入官方收银台
     createBuyNowStandaloneCheckoutUrl(variantId, quantity)
       .then(function (res) {
-        if (res && res.ok && res.checkoutUrl) {
-          window.location.href = res.checkoutUrl;
+        if (res && res.ok && res.intermediateUrl) {
+          window.location.href = res.intermediateUrl;
         } else if (formErrorEl && res && res.message) {
           formErrorEl.textContent = res.message;
           formErrorEl.removeAttribute('hidden');
+        } else if (res && res.intermediateUrl) {
+          window.location.href = res.intermediateUrl;
         } else if (res && res.checkoutUrl) {
           window.location.href = res.checkoutUrl;
         } else {
@@ -1799,6 +1950,8 @@
     if (!cartSection) return;
 
     var sfContainer = cartSection.querySelector('[data-storefront-cart-items]');
+    var serverContainer = cartSection.querySelector('[data-shopify-cart-items]');
+    var buyNowMode = isBuyNowIntermediatePage();
     var sfCart = loadSavedStorefrontCart();
     var seenServerVids = {};
     var serverCount = 0;
@@ -1806,27 +1959,45 @@
     var serverFinalSubtotalCents = 0;
     var serverLineDiscountCents = 0;
 
-    cartSection.querySelectorAll('[data-cart-row][data-cart-source="shopify"]').forEach(function (row) {
-      var vid = row.getAttribute('data-variant-id');
-      if (vid) seenServerVids[String(vid)] = true;
-      var q = parseInt(row.getAttribute('data-quantity'), 10) || 0;
-      var origUnitAttr = parseInt(row.getAttribute('data-original-unit-price'), 10);
-      var finalUnitAttr = parseInt(row.getAttribute('data-unit-price'), 10);
-      var unitOrig = !isNaN(origUnitAttr) && origUnitAttr >= 0 ? origUnitAttr : (!isNaN(finalUnitAttr) ? finalUnitAttr : 0);
-      var unitFinal = !isNaN(finalUnitAttr) && finalUnitAttr >= 0 ? finalUnitAttr : unitOrig;
+    if (buyNowMode) {
+      if (serverContainer) {
+        serverContainer.setAttribute('hidden', '');
+        serverContainer.hidden = true;
+      }
+      var headingTitleEl = cartSection.querySelector('[data-cart-heading-title]');
+      if (headingTitleEl) headingTitleEl.textContent = 'Buy it now · Order Review';
+      var exitBuyNowLink = cartSection.querySelector('[data-exit-buy-now-link]');
+      if (exitBuyNowLink) {
+        exitBuyNowLink.removeAttribute('hidden');
+        exitBuyNowLink.hidden = false;
+      }
+    } else {
+      if (serverContainer) {
+        serverContainer.removeAttribute('hidden');
+        serverContainer.hidden = false;
+      }
+      cartSection.querySelectorAll('[data-cart-row][data-cart-source="shopify"]').forEach(function (row) {
+        var vid = row.getAttribute('data-variant-id');
+        if (vid) seenServerVids[String(vid)] = true;
+        var q = parseInt(row.getAttribute('data-quantity'), 10) || 0;
+        var origUnitAttr = parseInt(row.getAttribute('data-original-unit-price'), 10);
+        var finalUnitAttr = parseInt(row.getAttribute('data-unit-price'), 10);
+        var unitOrig = !isNaN(origUnitAttr) && origUnitAttr >= 0 ? origUnitAttr : (!isNaN(finalUnitAttr) ? finalUnitAttr : 0);
+        var unitFinal = !isNaN(finalUnitAttr) && finalUnitAttr >= 0 ? finalUnitAttr : unitOrig;
 
-      var origLineAttr = parseInt(row.getAttribute('data-original-line-price'), 10);
-      var finalLineAttr = parseInt(row.getAttribute('data-line-price'), 10);
-      var lineOrig = !isNaN(origLineAttr) && origLineAttr >= 0 ? origLineAttr : (unitOrig * q);
-      var lineFinal = !isNaN(finalLineAttr) && finalLineAttr >= 0 ? finalLineAttr : (unitFinal * q);
-      var lineDiscAttr = parseInt(row.getAttribute('data-line-discount'), 10);
-      var lineDisc = !isNaN(lineDiscAttr) && lineDiscAttr >= 0 ? lineDiscAttr : Math.max(0, lineOrig - lineFinal);
+        var origLineAttr = parseInt(row.getAttribute('data-original-line-price'), 10);
+        var finalLineAttr = parseInt(row.getAttribute('data-line-price'), 10);
+        var lineOrig = !isNaN(origLineAttr) && origLineAttr >= 0 ? origLineAttr : (unitOrig * q);
+        var lineFinal = !isNaN(finalLineAttr) && finalLineAttr >= 0 ? finalLineAttr : (unitFinal * q);
+        var lineDiscAttr = parseInt(row.getAttribute('data-line-discount'), 10);
+        var lineDisc = !isNaN(lineDiscAttr) && lineDiscAttr >= 0 ? lineDiscAttr : Math.max(0, lineOrig - lineFinal);
 
-      serverCount += q;
-      serverOrigSubtotalCents += lineOrig;
-      serverFinalSubtotalCents += lineFinal;
-      serverLineDiscountCents += lineDisc;
-    });
+        serverCount += q;
+        serverOrigSubtotalCents += lineOrig;
+        serverFinalSubtotalCents += lineFinal;
+        serverLineDiscountCents += lineDisc;
+      });
+    }
 
     // 若服务端购物车已包含某商品，同步清理本地 Storefront 备份中的同变体重复项，杜绝数量或金额叠加
     if (sfCart && Array.isArray(sfCart.items) && sfCart.items.length > 0 && Object.keys(seenServerVids).length > 0) {
@@ -1980,7 +2151,9 @@
       }
     }
 
-    updateCartCount(combinedCount, false);
+    if (!buyNowMode) {
+      updateCartCount(combinedCount, false);
+    }
     var hiddenCountEl = cartSection.querySelector('[data-cart-hidden-count]');
     if (hiddenCountEl) hiddenCountEl.textContent = String(combinedCount);
 
@@ -2365,7 +2538,7 @@
     var serverRows = form.querySelectorAll('[data-cart-row][data-cart-source="shopify"]');
     var sfCart = loadSavedStorefrontCart();
 
-    if (serverRows.length === 0 && sfCart && sfCart.id && Array.isArray(sfCart.items) && sfCart.items.length > 0) {
+    if ((isBuyNowIntermediatePage() || serverRows.length === 0) && sfCart && sfCart.id && Array.isArray(sfCart.items) && sfCart.items.length > 0) {
       if (e.preventDefault) e.preventDefault();
       var submitBtn = form.querySelector('[data-official-checkout-submit]');
       if (submitBtn) submitBtn.disabled = true;

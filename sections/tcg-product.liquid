@@ -73,9 +73,17 @@
 
     <section class="_hero_4xdw3_131 {% if is_single %}{% else %}_sealedHero_4xdw3_1314{% endif %}">
 
-      {%- comment %} ================= 左侧：主图 + 全部媒体与 SKU 缩略图画廊 ================= {% endcomment -%}
+      {%- comment %} ================= 左侧：主图（支持点击放大） + 单行横向滑动缩略图画廊 ================= {% endcomment -%}
       <div class="_mediaPanel_4xdw3_138">
-        <div class="_productMedia_4xdw3_145">
+        <div
+          class="_productMedia_4xdw3_145 tcg-zoomable-media"
+          data-main-media-stage
+          data-zoom-trigger
+          role="button"
+          tabindex="0"
+          aria-label="Click to zoom product image"
+          title="Click to zoom in"
+        >
           <span aria-hidden="true" class="_floor_4xdw3_183"></span>
           {%- if is_single -%}
             <div class="_interactiveCard_4xdw3_176" data-tilt-card>
@@ -84,8 +92,8 @@
                 data-main-image
                 src="{{ main_img_src }}"
                 alt="{{ current_variant.title | default: product.title | escape }}"
-                width="1000"
-                height="1000"
+                width="1200"
+                height="1200"
               >
             </div>
           {%- else -%}
@@ -94,34 +102,47 @@
               data-main-image
               src="{{ main_img_src }}"
               alt="{{ current_variant.title | default: product.title | escape }}"
-              width="1000"
-              height="1000"
+              width="1200"
+              height="1200"
             >
           {%- endif -%}
+          <span class="tcg-zoom-hint-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.35-4.35M11 8v6M8 11h6"></path></svg>
+            <span>Click to zoom</span>
+          </span>
         </div>
 
         {%- if product.media.size > 0 -%}
-          <div class="_thumbs_4xdw3_201 tcg-thumbs-wrap" role="list" aria-label="Product media thumbnails">
-            {%- for media in product.media -%}
-              {%- assign thumb_src = media.preview_image | image_url: width: 240 -%}
-              {%- assign full_src = media.preview_image | image_url: width: 1400 -%}
-              {%- assign is_active_thumb = false -%}
-              {%- if current_variant.featured_media and current_variant.featured_media.id == media.id -%}
-                {%- assign is_active_thumb = true -%}
-              {%- elsif current_variant.featured_media == blank and forloop.first -%}
-                {%- assign is_active_thumb = true -%}
-              {%- endif -%}
-              <button
-                type="button"
-                class="_thumb_4xdw3_201 {% if is_active_thumb %}_thumbActive_4xdw3_239{% endif %}"
-                data-thumb
-                data-media-id="{{ media.id }}"
-                data-full="{{ full_src }}"
-                aria-label="Preview image {{ forloop.index }}"
-              >
-                <img src="{{ thumb_src }}" alt="{{ media.alt | default: product.title | escape }}" loading="lazy">
-              </button>
-            {%- endfor -%}
+          <div class="tcg-thumbs-slider-bar" data-thumbs-slider>
+            <button type="button" class="tcg-thumbs-nav-btn" data-thumbs-prev aria-label="Scroll thumbnails left">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+            </button>
+            <div class="_thumbs_4xdw3_201 tcg-thumbs-wrap" data-thumbs-track role="list" aria-label="Product media thumbnails">
+              {%- for media in product.media -%}
+                {%- assign thumb_src = media.preview_image | image_url: width: 240 -%}
+                {%- assign full_src = media.preview_image | image_url: width: 1600 -%}
+                {%- assign is_active_thumb = false -%}
+                {%- if current_variant.featured_media and current_variant.featured_media.id == media.id -%}
+                  {%- assign is_active_thumb = true -%}
+                {%- elsif current_variant.featured_media == blank and forloop.first -%}
+                  {%- assign is_active_thumb = true -%}
+                {%- endif -%}
+                <button
+                  type="button"
+                  class="_thumb_4xdw3_201 {% if is_active_thumb %}_thumbActive_4xdw3_239{% endif %}"
+                  data-thumb
+                  data-thumb-index="{{ forloop.index0 }}"
+                  data-media-id="{{ media.id }}"
+                  data-full="{{ full_src }}"
+                  aria-label="Preview image {{ forloop.index }}"
+                >
+                  <img src="{{ thumb_src }}" alt="{{ media.alt | default: product.title | escape }}" loading="lazy">
+                </button>
+              {%- endfor -%}
+            </div>
+            <button type="button" class="tcg-thumbs-nav-btn" data-thumbs-next aria-label="Scroll thumbnails right">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+            </button>
           </div>
         {%- endif -%}
       </div>
@@ -275,7 +296,7 @@
           {%- form 'product', product, id: product_form_id, class: 'tcg-product-form', data-type: 'add-to-cart-form', data-product-form: '' -%}
             <input type="hidden" name="id" value="{{ current_variant.id }}" ref="variantId" data-variant-id-input>
 
-            <div class="_buyArea_4xdw3_623">
+            <div class="_buyArea_4xdw3_623 tcg-buy-area-inline">
               <div aria-label="Quantity" class="_quantity_4xdw3_629" data-quantity>
                 <button type="button" aria-label="Decrease quantity" data-qty-minus disabled>−</button>
                 <input
@@ -295,78 +316,67 @@
                 <button type="button" aria-label="Increase quantity" data-qty-plus>+</button>
               </div>
 
-              <button
-                type="submit"
-                name="add"
-                ref="addToCartButton"
-                class="_primaryButton_4xdw3_673"
-                data-product-add
-                data-variant="{{ current_variant.id }}"
-                data-product-id="{{ product.id }}"
-                data-product-handle="{{ product.handle | escape }}"
-                data-product-title="{{ product.title | escape }}"
-                data-variant-title="{% if current_variant.title != 'Default Title' %}{{ current_variant.title | escape }}{% endif %}"
-                data-variant-sku="{{ current_variant.sku | escape }}"
-                data-variant-price="{{ current_variant.price | default: product.price | default: 0 }}"
-                data-variant-price-formatted="{{ current_variant.price | default: product.price | money | escape }}"
-                data-product-url="{{ product.url }}"
-                data-product-image="{{ main_img_src }}"
-                data-preorder="{{ is_preorder }}"
-                {% unless current_variant_available %}disabled{% endunless %}
-              >
-                <span data-product-add-text>
-                  {%- if current_variant_available == false -%}
-                    Sold out
-                  {%- elsif is_preorder -%}
-                    Pre-order
-                  {%- else -%}
-                    Add to cart
-                  {%- endif -%}
-                </span>
-              </button>
-            </div>
-
-            {%- comment %} Shopify 官方动态加速支付按钮（{{ form | payment_button }}，参考 blocks/accelerated-checkout.liquid） {% endcomment -%}
-            {%- if section.settings.show_buy_now != false or section.settings.show_dynamic_checkout != false -%}
-              {%- capture accelerated_checkout_button -%}
-                {%- if product != blank and form != blank -%}
-                  {{ form | payment_button }}
-                {%- endif -%}
-              {%- endcapture -%}
-              <div class="tcg-buy-actions-row">
-                {%- if accelerated_checkout_button != blank -%}
-                  <div
-                    class="accelerated-checkout-block tcg-shopify-payment-btn"
-                    ref="acceleratedCheckoutButtonContainer"
-                    data-accelerated-checkout-container
-                    data-direct-checkout
-                    data-variant="{{ current_variant.id }}"
-                    data-checkout-url="{{ routes.cart_checkout_url }}"
-                    data-official-checkout-url="{{ routes.cart_checkout_url }}"
-                    {% if request.visual_preview_mode %}data-shopify-visual-preview{% endif %}
-                    {% unless current_variant_available %}hidden{% endunless %}
-                  >
-                    {{ accelerated_checkout_button }}
-                  </div>
-                {%- endif -%}
+              <div class="tcg-dual-action-btns">
                 <button
                   type="submit"
-                  name="checkout"
-                  formaction="{{ routes.cart_url }}"
-                  class="tcg-buy-now-btn"
-                  data-buy-now
-                  data-direct-checkout
+                  name="add"
+                  ref="addToCartButton"
+                  class="_primaryButton_4xdw3_673 tcg-compact-action-btn"
+                  data-product-add
                   data-variant="{{ current_variant.id }}"
-                  data-checkout-url="{{ routes.cart_checkout_url }}"
-                  data-official-checkout-url="{{ routes.cart_checkout_url }}"
-                  {% if accelerated_checkout_button != blank %}hidden{% endif %}
+                  data-product-id="{{ product.id }}"
+                  data-product-handle="{{ product.handle | escape }}"
+                  data-product-title="{{ product.title | escape }}"
+                  data-variant-title="{% if current_variant.title != 'Default Title' %}{{ current_variant.title | escape }}{% endif %}"
+                  data-variant-sku="{{ current_variant.sku | escape }}"
+                  data-variant-price="{{ current_variant.price | default: product.price | default: 0 }}"
+                  data-variant-price-formatted="{{ current_variant.price | default: product.price | money | escape }}"
+                  data-product-url="{{ product.url }}"
+                  data-product-image="{{ main_img_src }}"
+                  data-preorder="{{ is_preorder }}"
                   {% unless current_variant_available %}disabled{% endunless %}
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
-                  <span data-buy-now-text>Buy it now</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:1.05rem;height:1.05rem;flex-shrink:0;"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                  <span data-product-add-text>
+                    {%- if current_variant_available == false -%}
+                      Sold out
+                    {%- elsif is_preorder -%}
+                      Pre-order
+                    {%- else -%}
+                      Add to cart
+                    {%- endif -%}
+                  </span>
                 </button>
+
+                {%- if section.settings.show_buy_now != false or section.settings.show_dynamic_checkout != false -%}
+                  <button
+                    type="button"
+                    class="tcg-buy-now-btn tcg-compact-action-btn"
+                    data-buy-now
+                    data-direct-checkout
+                    data-variant="{{ current_variant.id }}"
+                    data-product-id="{{ product.id }}"
+                    data-product-handle="{{ product.handle | escape }}"
+                    data-product-title="{{ product.title | escape }}"
+                    data-variant-title="{% if current_variant.title != 'Default Title' %}{{ current_variant.title | escape }}{% endif %}"
+                    data-variant-sku="{{ current_variant.sku | escape }}"
+                    data-variant-price="{{ current_variant.price | default: product.price | default: 0 }}"
+                    data-variant-price-formatted="{{ current_variant.price | default: product.price | money | escape }}"
+                    data-product-url="{{ product.url }}"
+                    data-product-image="{{ main_img_src }}"
+                    data-checkout-url="{{ routes.cart_url }}?buy_now=1"
+                    data-official-checkout-url="{{ routes.cart_checkout_url }}"
+                    {% unless current_variant_available %}disabled{% endunless %}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:1.05rem;height:1.05rem;flex-shrink:0;"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                    <span data-buy-now-text>Buy it now</span>
+                  </button>
+                {%- endif -%}
               </div>
-            {%- endif -%}
+            </div>
+
+            {%- comment %} 保留隐藏的加速结账容器引用以兼容 Shopify 动态结账检测 {% endcomment -%}
+            <div ref="acceleratedCheckoutButtonContainer" data-accelerated-checkout-container hidden></div>
 
             <p class="tcg-form-error" ref="addToCartTextError" data-product-form-error hidden></p>
           {%- endform -%}
@@ -469,6 +479,40 @@
       </section>
     </div>
   {%- endif -%}
+
+  {%- comment %} ================= 主图点击放大高清灯箱（Lightbox Modal） ================= {% endcomment -%}
+  <div class="tcg-lightbox" data-image-lightbox role="dialog" aria-modal="true" aria-label="Product image zoom preview" hidden>
+    <div class="tcg-lightbox-backdrop" data-lightbox-close></div>
+    <div class="tcg-lightbox-dialog">
+      <button type="button" class="tcg-lightbox-close" data-lightbox-close aria-label="Close zoom preview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="tcg-lightbox-stage">
+        <button type="button" class="tcg-lightbox-nav tcg-lightbox-prev" data-lightbox-prev aria-label="Previous image">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+        </button>
+
+        <div class="tcg-lightbox-img-wrap" data-lightbox-img-wrap>
+          <img data-lightbox-image src="{{ main_img_src }}" alt="{{ product.title | escape }}">
+        </div>
+
+        <button type="button" class="tcg-lightbox-nav tcg-lightbox-next" data-lightbox-next aria-label="Next image">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+        </button>
+      </div>
+
+      <div class="tcg-lightbox-bar">
+        <span class="tcg-lightbox-caption" data-lightbox-caption>{{ product.title }}</span>
+        <div class="tcg-lightbox-tools">
+          <button type="button" class="tcg-lightbox-tool-btn" data-lightbox-toggle-scale aria-label="Toggle 2x zoom">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.35-4.35M11 8v6M8 11h6"></path></svg>
+            <span data-lightbox-scale-label>Zoom 2×</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   {%- comment %} 变体 JSON 数据供前端无刷新切换 SKU 图、价格、库存与 URL 参数 {% endcomment -%}
   <script type="application/json" data-product-variants-json>

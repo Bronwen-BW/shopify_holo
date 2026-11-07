@@ -40,10 +40,13 @@
     <div data-cart-filled-view {% if cart.item_count == 0 %}hidden{% endif %}>
       <header class="_header_1z0wo_6" data-cart-header>
         <h1 class="_heading_1z0wo_14">
-          {{ section.settings.heading | default: 'Your cart' }}
+          <span data-cart-heading-title>{{ section.settings.heading | default: 'Your cart' }}</span>
           <span class="_count_1z0wo_27" data-cart-header-count> ({{ cart.item_count }} {% if cart.item_count == 1 %}item{% else %}items{% endif %})</span>
         </h1>
-        <a href="{{ routes.all_products_collection_url }}" class="tcg-link-subtle">← Continue shopping</a>
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <a href="{{ routes.cart_url }}" class="tcg-link-accent" data-exit-buy-now-link hidden>View full cart →</a>
+          <a href="{{ routes.all_products_collection_url }}" class="tcg-link-subtle" data-continue-shopping-link>← Continue shopping</a>
+        </div>
       </header>
 
       {%- comment %}

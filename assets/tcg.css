@@ -633,14 +633,14 @@ html[data-theme="light"] .tcg-theme-toggle .tcg-icon-sun {
   text-decoration: line-through;
 }
 
-/* ===== 商品页主图 1:1 正方形显示、左右两栏整齐对齐与详情区全宽 ===== */
+/* ===== 商品页主图放大平衡、单行横向滑动缩略图、点击放大灯箱与双并排操作按钮 ===== */
 @media (min-width: 1024px) {
   ._hero_4xdw3_131,
   ._hero_4xdw3_131._sealedHero_4xdw3_1314 {
     display: grid !important;
-    grid-template-columns: minmax(0, 34rem) minmax(0, 1fr) !important;
+    grid-template-columns: minmax(28rem, 43rem) minmax(24rem, 1fr) !important;
     align-items: start !important;
-    gap: clamp(2rem, 4vw, 3.5rem) !important;
+    gap: clamp(2rem, 3.8vw, 3.5rem) !important;
   }
 }
 ._purchase_4xdw3_269 {
@@ -688,7 +688,7 @@ html[data-theme="light"] .tcg-theme-toggle .tcg-icon-sun {
   align-items: stretch !important;
   min-width: 0;
   width: 100%;
-  gap: 0.9rem !important;
+  gap: 0.85rem !important;
 }
 ._productMedia_4xdw3_145 {
   position: relative;
@@ -699,11 +699,12 @@ html[data-theme="light"] .tcg-theme-toggle .tcg-icon-sun {
   max-width: 100% !important;
   aspect-ratio: 1 / 1 !important;
   height: auto !important;
-  min-height: 0 !important;
-  padding: clamp(0.85rem, 2vw, 1.35rem) !important;
+  min-height: clamp(27rem, 48vw, 41rem) !important;
+  padding: clamp(0.45rem, 1vw, 0.75rem) !important;
   border-radius: 1.25rem;
   overflow: hidden !important;
   box-sizing: border-box;
+  cursor: zoom-in;
 }
 ._floor_4xdw3_183 {
   display: none !important;
@@ -725,31 +726,116 @@ html[data-theme="light"] .tcg-theme-toggle .tcg-icon-sun {
   max-height: 100% !important;
   object-fit: contain !important;
   border-radius: 0.75rem;
-  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.22)) !important;
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.28)) !important;
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+._productMedia_4xdw3_145:hover > img,
+._productMedia_4xdw3_145:hover > ._interactiveCard_4xdw3_176 img {
+  transform: scale(1.02);
 }
 html[data-theme="light"] ._productMedia_4xdw3_145 > img,
 html[data-theme="light"] ._productMedia_4xdw3_145 > ._interactiveCard_4xdw3_176 img {
   filter: drop-shadow(0 6px 18px rgba(15, 23, 42, 0.08)) !important;
 }
+.tcg-zoom-hint-badge {
+  position: absolute;
+  z-index: 4;
+  right: 0.9rem;
+  bottom: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.32rem 0.7rem;
+  border-radius: 9999px;
+  background: rgba(24, 24, 27, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #e4e4e7;
+  font-family: Rubik, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  opacity: 0.82;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+._productMedia_4xdw3_145:hover .tcg-zoom-hint-badge {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+.tcg-zoom-hint-badge svg {
+  width: 0.92rem;
+  height: 0.92rem;
+  color: #34d399;
+}
+
+/* 单行横向滑动缩略图条 */
+.tcg-thumbs-slider-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  min-width: 0;
+}
+.tcg-thumbs-nav-btn {
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+  color: var(--tcg-text-muted);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.tcg-thumbs-nav-btn:hover {
+  background: var(--tcg-surface-hover);
+  border-color: var(--tcg-accent);
+  color: var(--tcg-text);
+}
+.tcg-thumbs-nav-btn svg {
+  width: 1rem;
+  height: 1rem;
+}
 ._thumbs_4xdw3_201 {
   display: flex !important;
-  flex-wrap: wrap !important;
+  flex-wrap: nowrap !important;
   justify-content: flex-start !important;
-  gap: 0.6rem !important;
+  gap: 0.55rem !important;
   width: 100%;
-  padding: 0.15rem 0 !important;
+  min-width: 0;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity;
+  padding: 0.2rem 0.1rem !important;
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(16, 185, 129, 0.35) transparent;
+}
+._thumbs_4xdw3_201::-webkit-scrollbar {
+  height: 4px;
+  display: block;
+}
+._thumbs_4xdw3_201::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.35);
+  border-radius: 9999px;
 }
 ._thumb_4xdw3_201 {
   display: flex !important;
   align-items: center;
   justify-content: center;
-  width: 4.75rem !important;
-  height: 4.75rem !important;
+  flex: 0 0 auto !important;
+  flex-shrink: 0 !important;
+  width: 4.85rem !important;
+  height: 4.85rem !important;
   aspect-ratio: 1 / 1 !important;
-  padding: 0.3rem !important;
+  padding: 0.28rem !important;
   border-radius: 0.75rem !important;
   overflow: hidden;
+  scroll-snap-align: start;
   box-sizing: border-box;
 }
 ._thumb_4xdw3_201 img {
@@ -757,6 +843,198 @@ html[data-theme="light"] ._productMedia_4xdw3_145 > ._interactiveCard_4xdw3_176 
   height: 100% !important;
   object-fit: contain !important;
   border-radius: 0.45rem;
+}
+
+/* 主图点击放大全屏灯箱（Lightbox） */
+.tcg-lightbox {
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 3vw, 2.5rem);
+}
+.tcg-lightbox[hidden] {
+  display: none !important;
+}
+.tcg-lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(9, 11, 16, 0.88);
+  backdrop-filter: blur(12px);
+}
+.tcg-lightbox-dialog {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: min(92vw, 68rem);
+  max-height: 92dvh;
+  padding: 1.25rem;
+  border-radius: 1.35rem;
+  background: var(--tcg-surface);
+  border: 1px solid var(--tcg-border-strong);
+  box-shadow: 0 32px 64px -16px rgba(0, 0, 0, 0.85);
+}
+.tcg-lightbox-close {
+  position: absolute;
+  z-index: 3;
+  top: 1rem;
+  right: 1rem;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: rgba(24, 24, 27, 0.85);
+  border: 1px solid var(--tcg-border-strong);
+  color: #f9fafb;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.tcg-lightbox-close:hover {
+  background: var(--tcg-accent);
+  color: var(--tcg-accent-fg);
+}
+.tcg-lightbox-close svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+.tcg-lightbox-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: min(68dvh, 44rem);
+  max-height: 76dvh;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: radial-gradient(ellipse 60% 55% at 50% 50%, rgba(16, 185, 129, 0.14), transparent 72%), #111317;
+}
+.tcg-lightbox-img-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  max-height: 74dvh;
+  overflow: auto;
+  cursor: zoom-in;
+}
+.tcg-lightbox-img-wrap.is-zoomed-2x {
+  cursor: zoom-out;
+}
+.tcg-lightbox-img-wrap img {
+  max-width: 100%;
+  max-height: 72dvh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 0.75rem;
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tcg-lightbox-img-wrap.is-zoomed-2x img {
+  transform: scale(1.75);
+  transform-origin: center center;
+}
+.tcg-lightbox-nav {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: rgba(24, 24, 27, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #f9fafb;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.tcg-lightbox-nav:hover {
+  background: var(--tcg-accent);
+  color: var(--tcg-accent-fg);
+}
+.tcg-lightbox-prev { left: 0.9rem; }
+.tcg-lightbox-next { right: 0.9rem; }
+.tcg-lightbox-nav svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.tcg-lightbox-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.85rem;
+  padding-inline: 0.25rem;
+}
+.tcg-lightbox-caption {
+  color: var(--tcg-text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tcg-lightbox-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+  color: var(--tcg-text);
+  font-family: Rubik, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tcg-lightbox-tool-btn:hover {
+  border-color: var(--tcg-accent);
+  color: var(--tcg-accent-hover);
+}
+.tcg-lightbox-tool-btn svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+/* 并排紧凑双按钮（Add to cart + Buy it now） */
+.tcg-buy-area-inline {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 0.65rem !important;
+}
+.tcg-dual-action-btns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  flex: 1 1 18rem;
+  align-items: center;
+  gap: 0.65rem;
+}
+.tcg-compact-action-btn {
+  width: 100% !important;
+  min-height: 2.95rem !important;
+  height: 2.95rem !important;
+  padding: 0 1.1rem !important;
+  font-size: 0.92rem !important;
+  font-weight: 700 !important;
+  border-radius: 9999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.45rem !important;
+  white-space: nowrap !important;
+  box-sizing: border-box !important;
+}
+@media (max-width: 520px) {
+  .tcg-dual-action-btns {
+    grid-template-columns: 1fr;
+  }
 }
 html[data-theme="light"] ._breadcrumb_4xdw3_11 a,
 html[data-theme="light"] ._crumbBack_4xdw3_69 {
