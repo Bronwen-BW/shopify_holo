@@ -271,28 +271,16 @@
               </button>
             </div>
 
-            {%- comment %} 立即购买（Shopify 官方 /checkout 直达） + Shopify 动态加速结账按钮 {% endcomment -%}
-            <div class="tcg-buy-actions-row">
-              {%- if section.settings.show_buy_now != false -%}
-                <button
-                  type="button"
-                  class="tcg-buy-now-btn"
-                  data-buy-now
-                  data-variant="{{ current_variant.id }}"
-                  data-checkout-url="{{ routes.cart_checkout_url }}"
-                  {% unless current_variant.available %}disabled{% endunless %}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
-                  <span>Buy it now</span>
-                </button>
-              {%- endif -%}
-
-              {%- if section.settings.show_dynamic_checkout != false -%}
-                <div class="tcg-shopify-payment-btn">
+            {%- comment %} Shopify 官方动态加速结账按钮（已去除冗余的 Buy it now 按钮） {% endcomment -%}
+            {%- if section.settings.show_dynamic_checkout != false -%}
+              <div class="tcg-buy-actions-row">
+                <div class="tcg-shopify-payment-btn" data-direct-checkout data-checkout-url="{{ routes.cart_checkout_url }}">
                   {{ form | payment_button }}
                 </div>
-              {%- endif -%}
-            </div>
+              </div>
+            {%- endif -%}
+
+            <p class="tcg-form-error" data-product-form-error hidden></p>
           {%- endform -%}
         {%- else -%}
           <div class="_buyArea_4xdw3_623">
@@ -305,7 +293,7 @@
           <span class="_addedCheck_4xdw3_769" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
           </span>
-          <span class="_addedText_4xdw3_784">Added to cart</span>
+          <span class="_addedText_4xdw3_784" data-added-notice-text>Added to cart</span>
           <div class="_addedActions_4xdw3_791">
             <a href="{{ routes.cart_url }}" class="_viewCart_4xdw3_797">
               <span>View cart</span>
@@ -333,7 +321,7 @@
       </aside>
     </section>
 
-    {%- comment %} 详情区：About + 规格表 {% endcomment -%}
+    {%- comment %} 详情区：About（已去除右侧 6 格规格表 _specifications_4xdw3_1149） {% endcomment -%}
     <section id="product-story" class="_detailsSection_4xdw3_1140">
       <div class="_detailsIntro_4xdw3_1148">
         <h2>{% if is_single %}About this card{% else %}About this product{% endif %}</h2>
@@ -345,15 +333,6 @@
           {%- endif -%}
         </div>
       </div>
-
-      <dl class="_specifications_4xdw3_1149">
-        <div><dt>Game / Brand</dt><dd>{{ game_title }}</dd></div>
-        <div><dt>Category</dt><dd>{{ product.type | default: 'Trading Cards' }}</dd></div>
-        <div><dt>SKU Code</dt><dd data-variant-sku>{{ current_variant.sku | default: '—' }}</dd></div>
-        <div><dt>Selected Variant</dt><dd data-variant-title>{% if current_variant.title != 'Default Title' %}{{ current_variant.title }}{% else %}Standard{% endif %}</dd></div>
-        <div><dt>Total SKUs</dt><dd>{{ product.variants.size }}</dd></div>
-        <div><dt>Condition</dt><dd>{% if section.settings.default_condition != blank %}{{ section.settings.default_condition }}{% elsif is_single %}Near Mint{% else %}Factory Sealed{% endif %}</dd></div>
-      </dl>
     </section>
 
     {%- comment %} 服务带（4 项保障信息） {% endcomment -%}

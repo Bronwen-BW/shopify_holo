@@ -115,6 +115,29 @@ h1, h2, h3, h4, h5, h6 {
   padding-top: 1rem;
   pointer-events: none;
 }
+/* 除主页外，其他所有页面取消导航栏漂浮效果，固定在页面最前面 */
+body:not(.template-index) #app {
+  padding-top: 0 !important;
+}
+body:not(.template-index) ._navbar_1hxzp_1 {
+  position: relative !important;
+  z-index: 40;
+  top: auto !important;
+  left: auto !important;
+  height: auto !important;
+  padding: 1rem 0 0.25rem !important;
+  pointer-events: auto !important;
+}
+body:not(.template-index) ._inner_1hxzp_10,
+body:not(.template-index) ._compact_1hxzp_41 {
+  width: min(110rem, 100% - clamp(2rem, 4vw, 3rem)) !important;
+  box-shadow: inset 0 0 0 1px var(--tcg-border) !important;
+}
+body:not(.template-index) ._logoText_1hxzp_32 {
+  max-width: 14rem !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
 ._inner_1hxzp_10 {
   position: relative;
   display: flex;
@@ -577,14 +600,55 @@ html[data-theme="light"] .tcg-theme-toggle .tcg-icon-sun {
   color: var(--tcg-accent-hover);
 }
 
-/* ===== 商品页主图 1:1 正方形显示与缩略图对齐 ===== */
+/* ===== 商品页主图 1:1 正方形显示、左右两栏整齐对齐与详情区全宽 ===== */
 @media (min-width: 1024px) {
   ._hero_4xdw3_131,
   ._hero_4xdw3_131._sealedHero_4xdw3_1314 {
-    grid-template-columns: minmax(0, 1fr) minmax(22rem, 1fr) !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 34rem) minmax(0, 1fr) !important;
     align-items: start !important;
-    gap: clamp(2rem, 4vw, 3.75rem) !important;
+    gap: clamp(2rem, 4vw, 3.5rem) !important;
   }
+}
+._purchase_4xdw3_269 {
+  position: relative !important;
+  top: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  padding-top: 0 !important;
+  gap: 1.25rem !important;
+  box-sizing: border-box;
+}
+._detailsSection_4xdw3_1140 {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+._detailsIntro_4xdw3_1148 {
+  width: 100% !important;
+  box-sizing: border-box;
+}
+._detailsIntro_4xdw3_1148 p {
+  max-width: 100% !important;
+}
+._specifications_4xdw3_1149,
+.tcg-buy-now-btn {
+  display: none !important;
+}
+.tcg-form-error {
+  margin: 0;
+  padding: 0.65rem 0.9rem;
+  border-radius: 0.75rem;
+  background: rgba(248, 113, 113, 0.14);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  color: var(--tcg-danger);
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.4;
 }
 ._mediaPanel_4xdw3_138 {
   display: flex !important;

@@ -88,13 +88,18 @@
   })();
 
   /* -------------------------------------------------------------------
-   * 3. 滚动时导航收缩 + 阴影
+   * 3. 滚动时导航收缩 + 阴影（仅主页保留漂浮收缩效果，其他页面固定在页面最前面）
    * ----------------------------------------------------------------- */
   (function scrollHeader() {
     var header = document.querySelector('[data-tcg-header]');
     if (!header) return;
     var inner = header.querySelector('._inner_1hxzp_10');
     if (!inner) return;
+    var isHome = document.body && document.body.classList.contains('template-index');
+    if (!isHome) {
+      inner.classList.remove('_scrolled_1hxzp_27', '_compact_1hxzp_41');
+      return;
+    }
     function onScroll() {
       var scrolled = window.scrollY > 24;
       inner.classList.toggle('_scrolled_1hxzp_27', scrolled);
@@ -288,29 +293,99 @@
     }, 1600);
   }
 
+  function addVariantToCart(variantId, quantity, formEl) {
+    var qty = Math.max(1, parseInt(quantity, 10) || 1);
+    var vidNum = Number(variantId);
+    var payload = !isNaN(vidNum) && vidNum > 0
+      ? { items: [{ id: vidNum, quantity: qty }] }
+      : { id: variantId, quantity: qty };
+
+    return fetch(apiUrl('cart/add.js'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify(payload)
+    })
+      .then(function (r) {
+        if (r.ok) {
+          return fetch(apiUrl('cart.js'))
+            .then(function (cr) { return cr.json(); })
+            .then(function (cart) {
+              updateCartCount(cart.item_count);
+              return { ok: true, cart: cart };
+            });
+        }
+        return r.json().catch(function () { return {}; }).then(function (errData) {
+          if (formEl) {
+            var fd = new FormData(formEl);
+            fd.set('id', String(variantId));
+            fd.set('quantity', String(qty));
+            return fetch(apiUrl('cart/add.js'), {
+              method: 'POST',
+              headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+              },
+              body: fd
+            }).then(function (r2) {
+              if (r2.ok) {
+                return fetch(apiUrl('cart.js'))
+                  .then(function (cr) { return cr.json(); })
+                  .then(function (cart) {
+                    updateCartCount(cart.item_count);
+                    return { ok: true, cart: cart };
+                  });
+              }
+              return fetch(apiUrl('cart.js'))
+                .then(function (cr) { return cr.json(); })
+                .then(function (cart) {
+                  if (cart && typeof cart.item_count === 'number') {
+                    updateCartCount(cart.item_count);
+                  }
+                  return {
+                    ok: false,
+                    alreadyInCart: Boolean(cart && cart.item_count > 0),
+                    cart: cart,
+                    message: (errData && (errData.description || errData.message)) || 'Unable to add item'
+                  };
+                });
+            });
+          }
+          return fetch(apiUrl('cart.js'))
+            .then(function (cr) { return cr.json(); })
+            .then(function (cart) {
+              if (cart && typeof cart.item_count === 'number') {
+                updateCartCount(cart.item_count);
+              }
+              return {
+                ok: false,
+                alreadyInCart: Boolean(cart && cart.item_count > 0),
+                cart: cart,
+                message: (errData && (errData.description || errData.message)) || 'Unable to add item'
+              };
+            });
+        });
+      });
+  }
+
   on('[data-add]', 'click', function (e, btn) {
+    e.preventDefault();
+    e.stopPropagation();
     if (btn.disabled) return;
     var variantId = btn.getAttribute('data-variant');
     if (!variantId) return;
     btn.setAttribute('disabled', '');
 
-    fetch(apiUrl('cart/add.js'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ id: Number(variantId), quantity: 1 })
-    })
-      .then(function (r) {
-        if (!r.ok) throw new Error('add failed');
-        return fetch(apiUrl('cart.js'));
+    addVariantToCart(variantId, 1, null)
+      .then(function (res) {
+        if (res && (res.ok || res.alreadyInCart)) {
+          flashSuccess(btn);
+        }
       })
-      .then(function (r) { return r.json(); })
-      .then(function (cart) {
-        updateCartCount(cart.item_count);
-        flashSuccess(btn);
-      })
-      .catch(function () {
-        window.location.href = apiUrl('cart');
-      })
+      .catch(function () {})
       .finally(function () {
         btn.removeAttribute('disabled');
       });
@@ -367,31 +442,36 @@
     var plus = qty.querySelector('[data-qty-plus]');
     var n = 1;
 
-    function render() {
+    function render(fireChange) {
       if (n < 1 || isNaN(n)) n = 1;
-      if (input) input.value = String(n);
+      if (input) {
+        input.value = String(n);
+        if (fireChange) {
+          try { input.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+        }
+      }
       if (valueSpan) valueSpan.textContent = String(n);
       if (minus) minus.disabled = n <= 1;
     }
 
     if (minus) {
       minus.addEventListener('click', function () {
-        if (n > 1) { n--; render(); }
+        if (n > 1) { n--; render(true); }
       });
     }
     if (plus) {
       plus.addEventListener('click', function () {
         n++;
-        render();
+        render(true);
       });
     }
     if (input) {
       input.addEventListener('change', function () {
         n = parseInt(input.value, 10) || 1;
-        render();
+        render(false);
       });
     }
-    render();
+    render(false);
   })();
 
   /* -------------------------------------------------------------------
@@ -410,7 +490,8 @@
     var idInput = section.querySelector('[data-variant-id-input]');
     var addBtn = section.querySelector('[data-product-add]');
     var addBtnText = section.querySelector('[data-product-add-text]');
-    var buyNowBtn = section.querySelector('[data-buy-now]');
+    var directCheckoutWrap = section.querySelector('[data-direct-checkout]');
+    var formErrorEl = section.querySelector('[data-product-form-error]');
     var mainImg = section.querySelector('[data-main-image]');
     var selectEl = section.querySelector('[data-variant-select]');
     var priceEl = section.querySelector('[data-variant-price]');
@@ -430,10 +511,17 @@
         }
       }
 
-      // 同步表单 hidden input 与按钮属性
-      if (idInput) idInput.value = idStr;
+      if (formErrorEl) {
+        formErrorEl.textContent = '';
+        formErrorEl.setAttribute('hidden', '');
+      }
+
+      // 同步表单 hidden input 与按钮属性，并触发原生 change 事件供 Shopify 官方组件感知
+      if (idInput) {
+        idInput.value = idStr;
+        try { idInput.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+      }
       if (addBtn) addBtn.setAttribute('data-variant', idStr);
-      if (buyNowBtn) buyNowBtn.setAttribute('data-variant', idStr);
       if (selectEl && selectEl.value !== idStr) selectEl.value = idStr;
 
       // 同步 SKU 卡片选中态
@@ -501,8 +589,9 @@
         var labelTarget = addBtnText || addBtn;
         labelTarget.textContent = !isAvailable ? 'Sold out' : (isPreorder ? 'Pre-order' : 'Add to cart');
       }
-      if (buyNowBtn) {
-        buyNowBtn.disabled = !isAvailable;
+      if (directCheckoutWrap) {
+        directCheckoutWrap.style.pointerEvents = isAvailable ? '' : 'none';
+        directCheckoutWrap.style.opacity = isAvailable ? '1' : '0.45';
       }
 
       // 同步多维属性胶囊高亮
@@ -552,7 +641,7 @@
       });
     }
 
-    // 3) 点击多维属性按钮（按 options 组合查找匹配 variant）
+    // 3) 点击多维属性按钮（按 options 组合查找匹配 variant，若组合稀疏则回退匹配当前点击维度）
     on('[data-option-btn]', 'click', function (e, btn) {
       var group = btn.closest('.tcg-option-group');
       if (!group) return;
@@ -564,6 +653,8 @@
         var active = grp.querySelector('[data-option-btn].is-selected');
         selectedOptions.push(active ? active.getAttribute('data-option-value') : '');
       });
+
+      var matchedVariant = null;
       for (var i = 0; i < variants.length; i++) {
         var v = variants[i];
         if (!Array.isArray(v.options)) continue;
@@ -571,9 +662,25 @@
           return !opt || v.options[idx] === opt;
         });
         if (allMatch) {
-          selectVariantById(v.id);
+          matchedVariant = v;
           break;
         }
+      }
+
+      if (!matchedVariant) {
+        var clickedPos = parseInt(btn.getAttribute('data-option-position'), 10) - 1;
+        var clickedVal = btn.getAttribute('data-option-value');
+        for (var j = 0; j < variants.length; j++) {
+          var cand = variants[j];
+          if (Array.isArray(cand.options) && cand.options[clickedPos] === clickedVal) {
+            matchedVariant = cand;
+            break;
+          }
+        }
+      }
+
+      if (matchedVariant) {
+        selectVariantById(matchedVariant.id);
       }
     }, section);
 
@@ -599,7 +706,7 @@
   })();
 
   /* -------------------------------------------------------------------
-   * 13. 商品页官方表单 AJAX 加购 + 立即购买（Buy it now 直达官方 Checkout）
+   * 13. 商品页官方表单 AJAX 加购 + 官方立即购买结账（确保加购与购买零报错）
    * ----------------------------------------------------------------- */
   function getProductQuantity() {
     var qtyInput = document.querySelector('[data-qty-input]');
@@ -615,68 +722,113 @@
     return 1;
   }
 
+  function getCheckoutUrl(el) {
+    if (el && el.getAttribute && el.getAttribute('data-checkout-url')) {
+      return el.getAttribute('data-checkout-url');
+    }
+    if (window.Shopify && window.Shopify.routes && window.Shopify.routes.cart_checkout_url) {
+      return window.Shopify.routes.cart_checkout_url;
+    }
+    return apiUrl('checkout');
+  }
+
   on('[data-product-form]', 'submit', function (e, form) {
     e.preventDefault();
     var btn = form.querySelector('[data-product-add]');
     if (!btn || btn.disabled) return;
     var idInput = form.querySelector('[data-variant-id-input]');
     var variantId = (idInput && idInput.value) || btn.getAttribute('data-variant');
+    if (!variantId) return;
+
     var quantity = getProductQuantity();
     var textEl = btn.querySelector('[data-product-add-text]') || btn;
     var originalText = textEl.textContent;
+    var formErrorEl = form.querySelector('[data-product-form-error]');
+    if (formErrorEl) {
+      formErrorEl.textContent = '';
+      formErrorEl.setAttribute('hidden', '');
+    }
+
     btn.setAttribute('disabled', '');
 
-    fetch(apiUrl('cart/add.js'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ id: Number(variantId), quantity: quantity })
-    })
-      .then(function (r) {
-        if (!r.ok) throw new Error('add failed');
-        return fetch(apiUrl('cart.js'));
-      })
-      .then(function (r) { return r.json(); })
-      .then(function (cart) {
-        updateCartCount(cart.item_count);
-        btn.classList.add('_primaryButtonDone_4xdw3_728');
-        textEl.innerHTML = CHECK_ICON;
+    addVariantToCart(variantId, quantity, form)
+      .then(function (res) {
         var notice = document.querySelector('[data-added-notice]');
-        if (notice) notice.removeAttribute('hidden');
-        setTimeout(function () {
-          btn.classList.remove('_primaryButtonDone_4xdw3_728');
-          textEl.textContent = originalText;
-        }, 1600);
+        var noticeText = document.querySelector('[data-added-notice-text]');
+        if (res && (res.ok || res.alreadyInCart)) {
+          btn.classList.add('_primaryButtonDone_4xdw3_728');
+          textEl.innerHTML = CHECK_ICON;
+          if (noticeText) {
+            noticeText.textContent = res.ok ? 'Added to cart' : 'Item ready in cart';
+          }
+          if (notice) notice.removeAttribute('hidden');
+          setTimeout(function () {
+            btn.classList.remove('_primaryButtonDone_4xdw3_728');
+            textEl.textContent = originalText;
+          }, 1600);
+        } else if (formErrorEl) {
+          formErrorEl.textContent = (res && res.message) ? res.message : 'Unable to add item to cart.';
+          formErrorEl.removeAttribute('hidden');
+        }
       })
       .catch(function () {
-        // 回退使用原生表单提交到 Shopify 官方 /cart/add
-        form.submit();
+        if (formErrorEl) {
+          formErrorEl.textContent = 'Network error while adding to cart. Please try again.';
+          formErrorEl.removeAttribute('hidden');
+        }
       })
       .finally(function () {
         btn.removeAttribute('disabled');
       });
   });
 
-  on('[data-buy-now]', 'click', function (e, btn) {
-    if (btn.disabled) return;
-    var idInput = document.querySelector('[data-variant-id-input]');
-    var variantId = (idInput && idInput.value) || btn.getAttribute('data-variant');
-    var quantity = getProductQuantity();
-    var checkoutUrl = btn.getAttribute('data-checkout-url') || apiUrl('checkout');
-    if (!variantId) return;
+  // 捕获点击“购买 / 立即購買”按钮：统一通过官方 /cart/add.js 加购并直达官方 /checkout，彻底避免 wallets/checkouts.json 报错
+  window.addEventListener('click', function (e) {
+    var path = e.composedPath ? e.composedPath() : [];
+    var directWrap = null;
+    for (var i = 0; i < path.length; i++) {
+      var node = path[i];
+      if (node && node.getAttribute && node.hasAttribute('data-direct-checkout')) {
+        directWrap = node;
+        break;
+      }
+    }
+    if (!directWrap && e.target && e.target.closest) {
+      directWrap = e.target.closest('[data-direct-checkout]');
+    }
+    if (!directWrap) return;
 
-    btn.setAttribute('disabled', '');
-    fetch(apiUrl('cart/add.js'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ id: Number(variantId), quantity: quantity })
-    })
-      .then(function () {
-        window.location.href = checkoutUrl;
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+
+    var form = directWrap.closest('form') || document.querySelector('[data-product-form]');
+    var idInput = (form && form.querySelector('[data-variant-id-input]')) || document.querySelector('[data-variant-id-input]');
+    var addBtn = (form && form.querySelector('[data-product-add]')) || document.querySelector('[data-product-add]');
+    var variantId = (idInput && idInput.value) || (addBtn && addBtn.getAttribute('data-variant'));
+    if (!variantId || (addBtn && addBtn.disabled)) return;
+
+    var quantity = getProductQuantity();
+    var checkoutUrl = getCheckoutUrl(directWrap);
+    directWrap.style.pointerEvents = 'none';
+    directWrap.style.opacity = '0.7';
+
+    addVariantToCart(variantId, quantity, form)
+      .then(function (res) {
+        if (res && (res.ok || res.alreadyInCart)) {
+          window.location.href = checkoutUrl;
+        } else {
+          window.location.href = apiUrl('cart/' + variantId + ':' + quantity);
+        }
       })
       .catch(function () {
         window.location.href = apiUrl('cart/' + variantId + ':' + quantity);
+      })
+      .finally(function () {
+        directWrap.style.pointerEvents = '';
+        directWrap.style.opacity = '';
       });
-  });
+  }, true);
 
   /* -------------------------------------------------------------------
    * 14. 单卡 3D 倾斜与收藏切换
