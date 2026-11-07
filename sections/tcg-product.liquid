@@ -339,6 +339,10 @@
                     class="accelerated-checkout-block tcg-shopify-payment-btn"
                     ref="acceleratedCheckoutButtonContainer"
                     data-accelerated-checkout-container
+                    data-direct-checkout
+                    data-variant="{{ current_variant.id }}"
+                    data-checkout-url="{{ routes.cart_checkout_url }}"
+                    data-official-checkout-url="{{ routes.cart_checkout_url }}"
                     {% if request.visual_preview_mode %}data-shopify-visual-preview{% endif %}
                     {% unless current_variant_available %}hidden{% endunless %}
                   >

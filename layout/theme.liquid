@@ -24,7 +24,9 @@
         cart_checkout_url: {{ routes.cart_checkout_url | default: '/checkout' | json }},
         predictive_search_url: {{ routes.predictive_search_url | json }},
         all_products_collection_url: {{ routes.all_products_collection_url | json }},
-        search_url: {{ routes.search_url | json }}
+        search_url: {{ routes.search_url | json }},
+        storefront_graphql_url: '/api/2024-10/graphql.json',
+        storefront_access_token: '62beeb8383e9513ae4ae60d687c2ac8b'
       };
       window.Theme = window.Theme || {};
       window.Theme.routes = Object.assign({}, window.Theme.routes || {}, {

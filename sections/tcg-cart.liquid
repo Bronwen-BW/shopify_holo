@@ -35,9 +35,9 @@
       </li>
     </ol>
 
-    {%- if cart.item_count > 0 -%}
-      <span class="visually-hidden" ref="cartItemCount" data-cart-hidden-count aria-hidden="true">{{- cart.item_count -}}</span>
+    <span class="visually-hidden" ref="cartItemCount" data-cart-hidden-count aria-hidden="true">{{- cart.item_count -}}</span>
 
+    <div data-cart-filled-view {% if cart.item_count == 0 %}hidden{% endif %}>
       <header class="_header_1z0wo_6" data-cart-header>
         <h1 class="_heading_1z0wo_14">
           {{ section.settings.heading | default: 'Your cart' }}
@@ -58,8 +58,8 @@
         class="_layout_1z0wo_34 cart-form"
         data-tcg-official-cart-form
       >
-        <div class="_list_1z0wo_46" data-shopify-cart-items>
-
+        <div class="_list_1z0wo_46">
+          <div data-shopify-cart-items class="tcg-cart-items-group">
           {%- for item in cart.items -%}
             {%- if item.image != blank -%}
               {%- assign item_img = item.image | image_url: width: 240 -%}
@@ -167,6 +167,9 @@
               </div>
             </div>
           {%- endfor -%}
+          </div>
+
+          <div data-storefront-cart-items class="tcg-cart-items-group"></div>
 
           {%- if section.settings.show_cart_note != false -%}
             <div class="tcg-cart-note-card">
@@ -296,20 +299,17 @@
           </p>
         </aside>
       </form>
+    </div>
 
-    {%- else -%}
-
-      {%- comment %} 空购物车状态 {% endcomment -%}
-      <div class="_empty_1z0wo_298" data-cart-empty-view>
-        <span class="_emptyIcon_1z0wo_311">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path></svg>
-        </span>
-        <h2 class="_emptyTitle_1z0wo_326">Your cart is empty</h2>
-        <p class="_emptyText_1z0wo_334">Browse the newest sealed products and singles, then add them here.</p>
-        <a href="{{ settings.empty_cart_button_link | default: routes.all_products_collection_url }}" class="_emptyCta_1z0wo_340">Start shopping</a>
-      </div>
-
-    {%- endif -%}
+    {%- comment %} 空购物车状态 {% endcomment -%}
+    <div class="_empty_1z0wo_298" data-cart-empty-view {% if cart.item_count > 0 %}hidden{% endif %}>
+      <span class="_emptyIcon_1z0wo_311">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path></svg>
+      </span>
+      <h2 class="_emptyTitle_1z0wo_326">Your cart is empty</h2>
+      <p class="_emptyText_1z0wo_334">Browse the newest sealed products and singles, then add them here.</p>
+      <a href="{{ settings.empty_cart_button_link | default: routes.all_products_collection_url }}" class="_emptyCta_1z0wo_340">Start shopping</a>
+    </div>
   </div>
 </div>
 

@@ -132,16 +132,14 @@
       <aside class="_summary_1z0wo_183">
         <h2 class="_summaryTitle_1z0wo_199">Order summary (<span data-summary-item-count>{{ cart.item_count }}</span>)</h2>
 
-        {%- if cart.item_count > 0 -%}
-          <div class="tcg-checkout-items">
-            {%- for item in cart.items -%}
-              <div class="tcg-checkout-item">
-                <span>{{ item.quantity }}× {{ item.product.title }}{% if item.variant.title != 'Default Title' %} ({{ item.variant.title }}){% endif %}</span>
-                <strong>{{ item.final_line_price | money }}</strong>
-              </div>
-            {%- endfor -%}
-          </div>
-        {%- endif -%}
+        <div class="tcg-checkout-items" data-checkout-summary-items>
+          {%- for item in cart.items -%}
+            <div class="tcg-checkout-item">
+              <span>{{ item.quantity }}× {{ item.product.title }}{% if item.variant.title != 'Default Title' %} ({{ item.variant.title }}){% endif %}</span>
+              <strong>{{ item.final_line_price | money }}</strong>
+            </div>
+          {%- endfor -%}
+        </div>
 
         <div class="_summaryRow_1z0wo_208">
           <span>Subtotal</span>
