@@ -293,6 +293,18 @@
     }, 1600);
   }
 
+  function findCartItem(cart, variantId) {
+    if (!cart || !Array.isArray(cart.items)) return null;
+    var idStr = String(variantId);
+    for (var i = 0; i < cart.items.length; i++) {
+      var item = cart.items[i];
+      if (item && (String(item.variant_id) === idStr || String(item.id) === idStr)) {
+        return item;
+      }
+    }
+    return null;
+  }
+
   function addVariantToCart(variantId, quantity, formEl) {
     var qty = Math.max(1, parseInt(quantity, 10) || 1);
     var vidNum = Number(variantId);
@@ -345,9 +357,11 @@
                   if (cart && typeof cart.item_count === 'number') {
                     updateCartCount(cart.item_count);
                   }
+                  var matchedItem = findCartItem(cart, variantId);
                   return {
                     ok: false,
-                    alreadyInCart: Boolean(cart && cart.item_count > 0),
+                    alreadyInCart: Boolean(matchedItem && matchedItem.quantity > 0),
+                    cartQuantity: matchedItem ? matchedItem.quantity : 0,
                     cart: cart,
                     message: (errData && (errData.description || errData.message)) || 'Unable to add item'
                   };
@@ -360,9 +374,11 @@
               if (cart && typeof cart.item_count === 'number') {
                 updateCartCount(cart.item_count);
               }
+              var matchedItem = findCartItem(cart, variantId);
               return {
                 ok: false,
-                alreadyInCart: Boolean(cart && cart.item_count > 0),
+                alreadyInCart: Boolean(matchedItem && matchedItem.quantity > 0),
+                cartQuantity: matchedItem ? matchedItem.quantity : 0,
                 cart: cart,
                 message: (errData && (errData.description || errData.message)) || 'Unable to add item'
               };
@@ -442,8 +458,15 @@
     var plus = qty.querySelector('[data-qty-plus]');
     var n = 1;
 
+    function getMaxAllowed() {
+      var m = input ? parseInt(input.getAttribute('max'), 10) : 999;
+      return (!isNaN(m) && m > 0) ? m : 999;
+    }
+
     function render(fireChange) {
+      var maxVal = getMaxAllowed();
       if (n < 1 || isNaN(n)) n = 1;
+      if (n > maxVal) n = maxVal;
       if (input) {
         input.value = String(n);
         if (fireChange) {
@@ -452,6 +475,7 @@
       }
       if (valueSpan) valueSpan.textContent = String(n);
       if (minus) minus.disabled = n <= 1;
+      if (plus) plus.disabled = n >= maxVal;
     }
 
     if (minus) {
@@ -461,8 +485,7 @@
     }
     if (plus) {
       plus.addEventListener('click', function () {
-        n++;
-        render(true);
+        if (n < getMaxAllowed()) { n++; render(true); }
       });
     }
     if (input) {
@@ -477,6 +500,36 @@
   /* -------------------------------------------------------------------
    * 12. 商品页完整 SKU / 多规格切换与主图、价格、库存、URL 实时联动
    * ----------------------------------------------------------------- */
+  function isVariantEffectiveAvailable(v, cardEl) {
+    if (v && typeof v === 'object') {
+      if (v.available === true || v.available === 'true') return true;
+      if (v.raw_available === true || v.raw_available === 'true') return true;
+      var policy = String(v.inventory_policy || '').toLowerCase();
+      if (policy === 'continue') return true;
+      var mgmt = String(v.inventory_management || '').trim();
+      if (!mgmt) return true;
+      var qty = Number(v.inventory_quantity);
+      if (!isNaN(qty) && qty > 0) return true;
+      return false;
+    }
+    if (cardEl && cardEl.getAttribute) {
+      var attrAvail = cardEl.getAttribute('data-variant-available');
+      if (attrAvail === 'true') return true;
+      var attrPolicy = String(cardEl.getAttribute('data-variant-policy') || '').toLowerCase();
+      if (attrPolicy === 'continue') return true;
+      var attrTracked = String(cardEl.getAttribute('data-variant-tracked') || '').trim();
+      if (!attrTracked) return true;
+      var attrQty = Number(cardEl.getAttribute('data-variant-qty') || 0);
+      if (!isNaN(attrQty) && attrQty > 0) return true;
+      return false;
+    }
+    return true;
+  }
+
+  function normalizeOptionText(val) {
+    return String(val == null ? '' : val).trim();
+  }
+
   (function productSkuSystem() {
     var section = document.querySelector('[data-tcg-product-section]');
     if (!section) return;
@@ -500,8 +553,47 @@
     var stockText = section.querySelector('[data-variant-stock-text]');
     var summaryStock = section.querySelector('[data-variant-summary-stock]');
     var kickerSkuWrap = section.querySelector('[data-kicker-sku-wrap]');
+    var qtyInput = section.querySelector('[data-qty-input]');
+    var skuHeaderLabel = section.querySelector('[data-sku-header-label]');
 
-    function selectVariantById(variantId) {
+    function refreshOptionPillsAvailability(currentOptions) {
+      if (!variants.length) return;
+      var groups = Array.prototype.slice.call(section.querySelectorAll('.tcg-option-group'));
+      groups.forEach(function (grp, groupIdx) {
+        grp.querySelectorAll('[data-option-btn]').forEach(function (btn) {
+          var candidateVal = normalizeOptionText(btn.getAttribute('data-option-value'));
+          // 检查在当前其他维度固定时，该选项值是否存在可用变体；若无，再检查全局是否有任意包含该值的可用变体
+          var hasExactAvailable = false;
+          var hasAnyAvailable = false;
+          for (var i = 0; i < variants.length; i++) {
+            var v = variants[i];
+            if (!Array.isArray(v.options)) continue;
+            if (normalizeOptionText(v.options[groupIdx]) !== candidateVal) continue;
+            var vAvail = isVariantEffectiveAvailable(v, null);
+            if (vAvail) {
+              hasAnyAvailable = true;
+              var otherMatch = true;
+              for (var k = 0; k < groups.length; k++) {
+                if (k === groupIdx) continue;
+                var curOpt = normalizeOptionText(currentOptions && currentOptions[k]);
+                if (curOpt && normalizeOptionText(v.options[k]) !== curOpt) {
+                  otherMatch = false;
+                  break;
+                }
+              }
+              if (otherMatch) {
+                hasExactAvailable = true;
+                break;
+              }
+            }
+          }
+          btn.classList.toggle('is-soldout', !hasAnyAvailable);
+          btn.classList.toggle('is-combination-soldout', hasAnyAvailable && !hasExactAvailable);
+        });
+      });
+    }
+
+    function selectVariantById(variantId, updateHistory) {
       var idStr = String(variantId);
       var variant = null;
       for (var i = 0; i < variants.length; i++) {
@@ -519,6 +611,7 @@
       // 同步表单 hidden input 与按钮属性，并触发原生 change 事件供 Shopify 官方组件感知
       if (idInput) {
         idInput.value = idStr;
+        idInput.setAttribute('value', idStr);
         try { idInput.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
       }
       if (addBtn) addBtn.setAttribute('data-variant', idStr);
@@ -538,11 +631,23 @@
       var titleText = variant ? (variant.title === 'Default Title' ? 'Standard' : variant.title) : (activeCard ? activeCard.getAttribute('data-variant-title') : '');
       var priceFormatted = variant ? variant.price_formatted : (activeCard ? activeCard.getAttribute('data-variant-price') : '');
       var compareFormatted = variant ? variant.compare_at_price_formatted : (activeCard ? activeCard.getAttribute('data-variant-compare') : '');
-      var isAvailable = variant ? Boolean(variant.available) : (activeCard ? activeCard.getAttribute('data-variant-available') === 'true' : true);
+      var isAvailable = isVariantEffectiveAvailable(variant, activeCard);
       var invQty = variant ? Number(variant.inventory_quantity || 0) : (activeCard ? Number(activeCard.getAttribute('data-variant-qty') || 0) : 0);
-      var tracked = variant ? Boolean(variant.inventory_management) : (activeCard ? Boolean(activeCard.getAttribute('data-variant-tracked')) : false);
+      var invPolicy = variant ? String(variant.inventory_policy || 'deny').toLowerCase() : (activeCard ? String(activeCard.getAttribute('data-variant-policy') || 'deny').toLowerCase() : 'deny');
+      var tracked = variant ? Boolean(String(variant.inventory_management || '').trim()) : (activeCard ? Boolean(String(activeCard.getAttribute('data-variant-tracked') || '').trim()) : false);
       var imgUrl = variant ? variant.featured_image_url : (activeCard ? activeCard.getAttribute('data-variant-image') : '');
       var mediaId = variant && variant.featured_media_id ? String(variant.featured_media_id) : (activeCard ? activeCard.getAttribute('data-variant-media-id') : '');
+
+      // 同步数量选择器上限（防止超过当前变体可用库存导致 Shopify 返回 422 报错）
+      if (qtyInput) {
+        var maxQty = (tracked && invPolicy !== 'continue' && invQty > 0) ? invQty : 999;
+        qtyInput.setAttribute('max', String(maxQty));
+        var curQty = parseInt(qtyInput.value, 10) || 1;
+        if (curQty > maxQty) {
+          qtyInput.value = String(maxQty);
+          try { qtyInput.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+        }
+      }
 
       // 更新所有 SKU 编码与规格名称节点
       section.querySelectorAll('[data-variant-sku]').forEach(function (el) {
@@ -586,6 +691,8 @@
       }
       if (addBtn) {
         addBtn.disabled = !isAvailable;
+        if (isAvailable) addBtn.removeAttribute('disabled');
+        else addBtn.setAttribute('disabled', '');
         var labelTarget = addBtnText || addBtn;
         labelTarget.textContent = !isAvailable ? 'Sold out' : (isPreorder ? 'Pre-order' : 'Add to cart');
       }
@@ -595,16 +702,27 @@
       }
 
       // 同步多维属性胶囊高亮
+      var currentOptions = [];
       if (variant && Array.isArray(variant.options)) {
+        currentOptions = variant.options.slice();
         section.querySelectorAll('.tcg-option-group').forEach(function (grp, idx) {
-          var val = variant.options[idx];
+          var val = normalizeOptionText(variant.options[idx]);
           if (!val) return;
           var selValEl = grp.querySelector('[data-option-selected-val]');
           if (selValEl) selValEl.textContent = val;
           grp.querySelectorAll('[data-option-btn]').forEach(function (btn) {
-            btn.classList.toggle('is-selected', btn.getAttribute('data-option-value') === val);
+            btn.classList.toggle('is-selected', normalizeOptionText(btn.getAttribute('data-option-value')) === val);
           });
         });
+      }
+      refreshOptionPillsAvailability(currentOptions);
+
+      if (skuHeaderLabel && variants.length > 0) {
+        var availCount = 0;
+        for (var c = 0; c < variants.length; c++) {
+          if (isVariantEffectiveAvailable(variants[c], null)) availCount++;
+        }
+        skuHeaderLabel.textContent = 'Select SKU / Variant (' + (availCount > 0 ? availCount : variants.length) + ' available)';
       }
 
       // 更新主图与对应缩略图高亮
@@ -619,7 +737,7 @@
       }
 
       // 同步浏览器 URL ?variant= 参数（Shopify 官方商品页约定）
-      if (window.history && window.history.replaceState) {
+      if (updateHistory !== false && window.history && window.history.replaceState) {
         try {
           var url = new URL(window.location.href);
           url.searchParams.set('variant', idStr);
@@ -631,17 +749,17 @@
     // 1) 点击 SKU 卡片
     on('[data-sku-card]', 'click', function (e, card) {
       var vid = card.getAttribute('data-variant-id');
-      if (vid) selectVariantById(vid);
+      if (vid) selectVariantById(vid, true);
     }, section);
 
     // 2) 切换 SKU 下拉菜单
     if (selectEl) {
       selectEl.addEventListener('change', function () {
-        selectVariantById(selectEl.value);
+        selectVariantById(selectEl.value, true);
       });
     }
 
-    // 3) 点击多维属性按钮（按 options 组合查找匹配 variant，若组合稀疏则回退匹配当前点击维度）
+    // 3) 点击多维属性按钮（优先匹配有库存的组合；若精确组合缺货但所点维度在其他组合有货，也优先精确组合并如实反映该组合状态）
     on('[data-option-btn]', 'click', function (e, btn) {
       var group = btn.closest('.tcg-option-group');
       if (!group) return;
@@ -651,40 +769,51 @@
       var selectedOptions = [];
       section.querySelectorAll('.tcg-option-group').forEach(function (grp) {
         var active = grp.querySelector('[data-option-btn].is-selected');
-        selectedOptions.push(active ? active.getAttribute('data-option-value') : '');
+        selectedOptions.push(active ? normalizeOptionText(active.getAttribute('data-option-value')) : '');
       });
 
-      var matchedVariant = null;
+      var exactAvailableVariant = null;
+      var exactAnyVariant = null;
       for (var i = 0; i < variants.length; i++) {
         var v = variants[i];
         if (!Array.isArray(v.options)) continue;
         var allMatch = selectedOptions.every(function (opt, idx) {
-          return !opt || v.options[idx] === opt;
+          return !opt || normalizeOptionText(v.options[idx]) === opt;
         });
         if (allMatch) {
-          matchedVariant = v;
-          break;
-        }
-      }
-
-      if (!matchedVariant) {
-        var clickedPos = parseInt(btn.getAttribute('data-option-position'), 10) - 1;
-        var clickedVal = btn.getAttribute('data-option-value');
-        for (var j = 0; j < variants.length; j++) {
-          var cand = variants[j];
-          if (Array.isArray(cand.options) && cand.options[clickedPos] === clickedVal) {
-            matchedVariant = cand;
+          if (!exactAnyVariant) exactAnyVariant = v;
+          if (isVariantEffectiveAvailable(v, null)) {
+            exactAvailableVariant = v;
             break;
           }
         }
       }
 
+      var matchedVariant = exactAvailableVariant || exactAnyVariant;
+
+      if (!matchedVariant) {
+        var clickedPos = parseInt(btn.getAttribute('data-option-position'), 10) - 1;
+        var clickedVal = normalizeOptionText(btn.getAttribute('data-option-value'));
+        var fallbackAny = null;
+        for (var j = 0; j < variants.length; j++) {
+          var cand = variants[j];
+          if (Array.isArray(cand.options) && normalizeOptionText(cand.options[clickedPos]) === clickedVal) {
+            if (!fallbackAny) fallbackAny = cand;
+            if (isVariantEffectiveAvailable(cand, null)) {
+              matchedVariant = cand;
+              break;
+            }
+          }
+        }
+        if (!matchedVariant) matchedVariant = fallbackAny;
+      }
+
       if (matchedVariant) {
-        selectVariantById(matchedVariant.id);
+        selectVariantById(matchedVariant.id, true);
       }
     }, section);
 
-    // 4) 点击缩略图时，同时检查是否有绑定该 media_id 的 SKU
+    // 4) 点击缩略图时，同时检查是否有绑定该 media_id 的 SKU（优先选择该图下有货的变体）
     on('[data-thumb]', 'click', function (e, thumb) {
       var full = thumb.getAttribute('data-full');
       var mediaId = thumb.getAttribute('data-media-id');
@@ -695,14 +824,66 @@
       thumb.classList.add('_thumbActive_4xdw3_239');
 
       if (mediaId && variants.length > 1) {
+        var firstMediaVariant = null;
+        var availMediaVariant = null;
         for (var i = 0; i < variants.length; i++) {
           if (String(variants[i].featured_media_id) === String(mediaId)) {
-            selectVariantById(variants[i].id);
+            if (!firstMediaVariant) firstMediaVariant = variants[i];
+            if (isVariantEffectiveAvailable(variants[i], null)) {
+              availMediaVariant = variants[i];
+              break;
+            }
+          }
+        }
+        var targetMediaVariant = availMediaVariant || firstMediaVariant;
+        if (targetMediaVariant) {
+          selectVariantById(targetMediaVariant.id, true);
+        }
+      }
+    }, section);
+
+    // 5) 页面初始化同步：确保 URL ?variant= 或默认首个可用变体与胶囊、hidden input、价格、库存状态 100% 一致
+    if (variants.length > 0) {
+      var initialId = null;
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var urlVid = params.get('variant');
+        if (urlVid) {
+          for (var u = 0; u < variants.length; u++) {
+            if (String(variants[u].id) === String(urlVid)) {
+              initialId = variants[u].id;
+              break;
+            }
+          }
+        }
+      } catch (e) {}
+
+      if (!initialId && idInput && idInput.value) {
+        for (var k = 0; k < variants.length; k++) {
+          if (String(variants[k].id) === String(idInput.value)) {
+            if (isVariantEffectiveAvailable(variants[k], null)) {
+              initialId = variants[k].id;
+            }
             break;
           }
         }
       }
-    }, section);
+
+      if (!initialId) {
+        for (var m = 0; m < variants.length; m++) {
+          if (isVariantEffectiveAvailable(variants[m], null)) {
+            initialId = variants[m].id;
+            break;
+          }
+        }
+      }
+
+      if (!initialId) {
+        initialId = (idInput && idInput.value) ? idInput.value : variants[0].id;
+      }
+
+      selectVariantById(initialId, false);
+    }
   })();
 
   /* -------------------------------------------------------------------
@@ -805,8 +986,14 @@
     var form = directWrap.closest('form') || document.querySelector('[data-product-form]');
     var idInput = (form && form.querySelector('[data-variant-id-input]')) || document.querySelector('[data-variant-id-input]');
     var addBtn = (form && form.querySelector('[data-product-add]')) || document.querySelector('[data-product-add]');
+    var formErrorEl = (form && form.querySelector('[data-product-form-error]')) || document.querySelector('[data-product-form-error]');
     var variantId = (idInput && idInput.value) || (addBtn && addBtn.getAttribute('data-variant'));
     if (!variantId || (addBtn && addBtn.disabled)) return;
+
+    if (formErrorEl) {
+      formErrorEl.textContent = '';
+      formErrorEl.setAttribute('hidden', '');
+    }
 
     var quantity = getProductQuantity();
     var checkoutUrl = getCheckoutUrl(directWrap);
@@ -817,6 +1004,9 @@
       .then(function (res) {
         if (res && (res.ok || res.alreadyInCart)) {
           window.location.href = checkoutUrl;
+        } else if (formErrorEl) {
+          formErrorEl.textContent = (res && res.message) ? res.message : 'Unable to process checkout for this item.';
+          formErrorEl.removeAttribute('hidden');
         } else {
           window.location.href = apiUrl('cart/' + variantId + ':' + quantity);
         }

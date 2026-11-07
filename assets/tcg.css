@@ -599,6 +599,14 @@ html[data-theme="light"] .tcg-theme-toggle .tcg-icon-sun {
   border-color: var(--tcg-accent);
   color: var(--tcg-accent-hover);
 }
+.tcg-option-pill.is-combination-soldout {
+  border-style: dashed;
+  opacity: 0.78;
+}
+.tcg-option-pill.is-soldout {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
 
 /* ===== 商品页主图 1:1 正方形显示、左右两栏整齐对齐与详情区全宽 ===== */
 @media (min-width: 1024px) {

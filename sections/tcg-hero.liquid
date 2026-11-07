@@ -238,7 +238,13 @@
             {%- endif -%}
             {%- if item_img == blank -%}{%- assign item_img = 'logo-mark.png' | asset_url -%}{%- endif -%}
 
-            {%- assign variant = p.selected_or_first_available_variant -%}
+            {%- assign variant = p.selected_or_first_available_variant | default: p.first_available_variant | default: p.variants.first -%}
+            {%- assign shelf_item_avail = false -%}
+            {%- if p.available -%}
+              {%- assign shelf_item_avail = true -%}
+            {%- elsif variant and (variant.available or variant.inventory_policy == 'continue' or variant.inventory_management == blank or variant.inventory_quantity > 0) -%}
+              {%- assign shelf_item_avail = true -%}
+            {%- endif -%}
             <li class="_shelfItem_n65qd_449" data-motion-card="10" {{ block.shopify_attributes }}>
               <a href="{{ item_link }}" class="_shelfLink_n65qd_462">
                 <span class="_thumb_n65qd_476">
@@ -253,7 +259,7 @@
                   {%- if p.price -%}<span class="_itemPrice_n65qd_521">{{ p.price | money }}</span>{%- endif -%}
                 </span>
               </a>
-              {%- if variant and variant.available -%}
+              {%- if variant and shelf_item_avail -%}
                 <button type="button" class="_addBtn_n65qd_530" data-add data-variant="{{ variant.id }}"
                   aria-label="Add {{ item_title | escape }} to cart">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
@@ -268,7 +274,13 @@
         {%- else -%}
           {%- comment %} ---------- 回退：集合前 5 个商品 ---------- {% endcomment -%}
           {%- for product in shelf_products -%}
-            {%- assign variant = product.selected_or_first_available_variant -%}
+            {%- assign variant = product.selected_or_first_available_variant | default: product.first_available_variant | default: product.variants.first -%}
+            {%- assign shelf_fallback_avail = false -%}
+            {%- if product.available -%}
+              {%- assign shelf_fallback_avail = true -%}
+            {%- elsif variant and (variant.available or variant.inventory_policy == 'continue' or variant.inventory_management == blank or variant.inventory_quantity > 0) -%}
+              {%- assign shelf_fallback_avail = true -%}
+            {%- endif -%}
             <li class="_shelfItem_n65qd_449" data-motion-card="10">
               <a href="{{ product.url }}" class="_shelfLink_n65qd_462">
                 <span class="_thumb_n65qd_476">
@@ -285,7 +297,7 @@
                 </span>
               </a>
               <button type="button" class="_addBtn_n65qd_530" data-add data-variant="{{ variant.id }}"
-                {% unless variant.available %}disabled{% endunless %}
+                {% unless shelf_fallback_avail %}disabled{% endunless %}
                 aria-label="Add {{ product.title | escape }} to cart">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
               </button>

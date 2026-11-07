@@ -8,7 +8,24 @@
   {%- assign tag_down = tag | downcase -%}
   {%- if tag_down contains 'pre' -%}{%- assign is_preorder = true -%}{%- endif -%}
 {%- endfor -%}
-{%- assign current_variant = product.selected_or_first_available_variant -%}
+{%- assign current_variant = product.selected_or_first_available_variant | default: product.first_available_variant | default: product.variants.first -%}
+{%- assign card_available = false -%}
+{%- if product.available -%}
+  {%- assign card_available = true -%}
+{%- elsif current_variant -%}
+  {%- if current_variant.available or current_variant.inventory_policy == 'continue' or current_variant.inventory_management == blank or current_variant.inventory_quantity > 0 -%}
+    {%- assign card_available = true -%}
+  {%- endif -%}
+{%- endif -%}
+{%- if card_available == false -%}
+  {%- for v_item in product.variants -%}
+    {%- if v_item.available or v_item.inventory_policy == 'continue' or v_item.inventory_management == blank or v_item.inventory_quantity > 0 -%}
+      {%- assign current_variant = v_item -%}
+      {%- assign card_available = true -%}
+      {%- break -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
 
 <article data-motion-card="8" class="_card_36e53_65 _cardFill_36e53_74" data-reveal>
   {%- comment %} 媒体区（整卡可点击） {% endcomment -%}
@@ -71,10 +88,10 @@
         class="_addBtn_36e53_338"
         data-add
         data-variant="{{ current_variant.id }}"
-        {% unless current_variant.available %}disabled{% endunless %}
+        {% unless card_available %}disabled{% endunless %}
         aria-label="Add {{ product.title | escape }} to cart"
       >
-        <span>{% if current_variant.available == false %}Sold out{% elsif is_preorder %}Pre-order{% else %}Add{% endif %}</span>
+        <span>{% if card_available == false %}Sold out{% elsif is_preorder %}Pre-order{% else %}Add{% endif %}</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
       </button>
     </div>

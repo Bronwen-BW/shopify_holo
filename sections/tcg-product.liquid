@@ -6,13 +6,43 @@
   3. 完整展示所有 SKU（含 SKU 缩略图、完整规格名、完整 SKU 编码、价格、库存状态），彻底解决 SKU 显示不全或被截断的问题
 {%- endcomment -%}
 
-{%- assign current_variant = product.selected_or_first_available_variant -%}
+{%- assign current_variant = product.selected_or_first_available_variant | default: product.variants.first -%}
 {%- assign is_preorder = false -%}
 {%- if product.tags contains 'pre' or product.tags contains 'preorder' -%}{%- assign is_preorder = true -%}{%- endif -%}
 {%- assign is_single = false -%}
 {%- if product.type contains 'Single' or product.tags contains 'single' -%}{%- assign is_single = true -%}{%- endif -%}
 {%- assign game_title = product.collections.first.title | default: product.vendor | default: 'TCG' -%}
 {%- assign product_form_id = 'tcg-product-form-' | append: section.id -%}
+
+{%- comment -%}
+  统一变体库存可用性计算（兼容 Shopify 官方 available、inventory_policy == 'continue'、未开启库存追踪及 inventory_quantity > 0）
+{%- endcomment -%}
+{%- assign current_variant_available = false -%}
+{%- if current_variant -%}
+  {%- if current_variant.available -%}
+    {%- assign current_variant_available = true -%}
+  {%- elsif current_variant.inventory_policy == 'continue' -%}
+    {%- assign current_variant_available = true -%}
+  {%- elsif current_variant.inventory_management == blank -%}
+    {%- assign current_variant_available = true -%}
+  {%- elsif current_variant.inventory_quantity > 0 -%}
+    {%- assign current_variant_available = true -%}
+  {%- endif -%}
+{%- endif -%}
+
+{%- assign available_variants_count = 0 -%}
+{%- for v_item in product.variants -%}
+  {%- assign v_item_ok = false -%}
+  {%- if v_item.available or v_item.inventory_policy == 'continue' or v_item.inventory_management == blank or v_item.inventory_quantity > 0 -%}
+    {%- assign v_item_ok = true -%}
+  {%- endif -%}
+  {%- if v_item_ok -%}
+    {%- assign available_variants_count = available_variants_count | plus: 1 -%}
+  {%- endif -%}
+{%- endfor -%}
+{%- if available_variants_count == 0 and product.variants.size > 0 and current_variant_available -%}
+  {%- assign available_variants_count = product.variants.size -%}
+{%- endif -%}
 
 {%- assign main_img_obj = current_variant.featured_image | default: product.featured_image -%}
 {%- if main_img_obj != blank -%}
@@ -122,15 +152,15 @@
           </div>
 
           <div
-            class="_stockLine_4xdw3_501 {% if is_preorder %}_stockLinePreorder_4xdw3_520{% elsif current_variant.available == false %}_stockLineOut_4xdw3_525{% endif %}"
+            class="_stockLine_4xdw3_501 {% if is_preorder %}_stockLinePreorder_4xdw3_520{% elsif current_variant_available == false %}_stockLineOut_4xdw3_525{% endif %}"
             data-variant-stock-badge
           >
             <span></span>
             <strong data-variant-stock-text>
-              {%- if is_preorder -%}
+              {%- if is_preorder and current_variant_available -%}
                 Pre-order
-              {%- elsif current_variant.available -%}
-                In stock{% if current_variant.inventory_management and current_variant.inventory_quantity > 0 %} ({{ current_variant.inventory_quantity }}){% endif %}
+              {%- elsif current_variant_available -%}
+                In stock{% if current_variant.inventory_management != blank and current_variant.inventory_quantity > 0 %} ({{ current_variant.inventory_quantity }}){% endif %}
               {%- else -%}
                 Out of stock
               {%- endif -%}
@@ -152,8 +182,8 @@
         {%- unless product.has_only_default_variant -%}
           <div class="_variantPicker_4xdw3_548 tcg-sku-section" data-sku-picker>
             <div class="tcg-sku-header">
-              <span class="tcg-sku-label">
-                Select SKU / Variant ({{ product.variants.size }} available)
+              <span class="tcg-sku-label" data-sku-header-label data-total-variants="{{ product.variants.size }}" data-available-variants="{{ available_variants_count }}">
+                Select SKU / Variant ({{ available_variants_count }} available)
               </span>
               <span class="tcg-sku-current-code" hidden>
                 SKU: <strong data-variant-sku>{{ current_variant.sku | default: 'Standard' }}</strong>
@@ -162,13 +192,15 @@
 
             <div class="tcg-option-groups" data-option-groups>
               {%- for option in product.options_with_values -%}
-                <div class="tcg-option-group" data-option-index="{{ forloop.index0 }}">
-                  <span class="tcg-option-name">{{ option.name }}: <strong data-option-selected-val>{{ option.selected_value }}</strong></span>
+                {%- assign opt_idx0 = forloop.index0 -%}
+                {%- assign selected_opt_val = current_variant.options[opt_idx0] | default: option.selected_value -%}
+                <div class="tcg-option-group" data-option-index="{{ opt_idx0 }}">
+                  <span class="tcg-option-name">{{ option.name }}: <strong data-option-selected-val>{{ selected_opt_val }}</strong></span>
                   <div class="tcg-option-values">
                     {%- for value in option.values -%}
                       <button
                         type="button"
-                        class="tcg-option-pill {% if option.selected_value == value %}is-selected{% endif %}"
+                        class="tcg-option-pill {% if selected_opt_val == value %}is-selected{% endif %}{% if value.available == false %} is-soldout{% endif %}"
                         data-option-btn
                         data-option-position="{{ option.position }}"
                         data-option-value="{{ value | escape }}"
@@ -194,6 +226,10 @@
                 {%- if v_title == 'Default Title' -%}
                   {%- assign v_title = product.title -%}
                 {%- endif -%}
+                {%- assign v_is_avail = false -%}
+                {%- if variant.available or variant.inventory_policy == 'continue' or variant.inventory_management == blank or variant.inventory_quantity > 0 -%}
+                  {%- assign v_is_avail = true -%}
+                {%- endif -%}
 
                 <button
                   type="button"
@@ -204,8 +240,9 @@
                   data-variant-sku="{{ variant.sku | default: '—' | escape }}"
                   data-variant-price="{{ variant.price | money | escape }}"
                   data-variant-compare="{% if variant.compare_at_price > variant.price %}{{ variant.compare_at_price | money | escape }}{% endif %}"
-                  data-variant-available="{{ variant.available }}"
+                  data-variant-available="{{ v_is_avail }}"
                   data-variant-qty="{{ variant.inventory_quantity | default: 0 }}"
+                  data-variant-policy="{{ variant.inventory_policy | default: 'deny' | escape }}"
                   data-variant-tracked="{{ variant.inventory_management | escape }}"
                   data-variant-image="{{ v_full }}"
                   data-variant-media-id="{{ variant.featured_media.id }}"
@@ -241,7 +278,7 @@
                   name="quantity"
                   value="1"
                   min="1"
-                  max="999"
+                  max="{% if current_variant.inventory_management != blank and current_variant.inventory_policy != 'continue' and current_variant.inventory_quantity > 0 %}{{ current_variant.inventory_quantity }}{% else %}999{% endif %}"
                   aria-label="Quantity"
                   class="tcg-qty-input"
                   data-qty-input
@@ -257,10 +294,10 @@
                 data-product-add
                 data-variant="{{ current_variant.id }}"
                 data-preorder="{{ is_preorder }}"
-                {% unless current_variant.available %}disabled{% endunless %}
+                {% unless current_variant_available %}disabled{% endunless %}
               >
                 <span data-product-add-text>
-                  {%- if current_variant.available == false -%}
+                  {%- if current_variant_available == false -%}
                     Sold out
                   {%- elsif is_preorder -%}
                     Pre-order
@@ -387,14 +424,20 @@
     [
       {%- for variant in product.variants -%}
         {%- assign v_img = variant.featured_image | default: product.featured_image -%}
+        {%- assign v_avail = false -%}
+        {%- if variant.available or variant.inventory_policy == 'continue' or variant.inventory_management == blank or variant.inventory_quantity > 0 -%}
+          {%- assign v_avail = true -%}
+        {%- endif -%}
         {
           "id": {{ variant.id | json }},
           "title": {{ variant.title | json }},
           "sku": {{ variant.sku | default: '' | json }},
           "barcode": {{ variant.barcode | default: '' | json }},
-          "available": {{ variant.available | json }},
+          "available": {{ v_avail | json }},
+          "raw_available": {{ variant.available | json }},
           "inventory_quantity": {{ variant.inventory_quantity | default: 0 | json }},
           "inventory_management": {{ variant.inventory_management | default: '' | json }},
+          "inventory_policy": {{ variant.inventory_policy | default: 'deny' | json }},
           "price": {{ variant.price | json }},
           "price_formatted": {{ variant.price | money | json }},
           "compare_at_price": {{ variant.compare_at_price | default: 0 | json }},
