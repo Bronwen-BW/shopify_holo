@@ -97,6 +97,8 @@
                 type="text"
                 id="CheckoutDiscountCode"
                 name="discount"
+                value=""
+                autocomplete="off"
                 class="tcg-input"
                 placeholder="Enter discount code to apply at Shopify Checkout"
                 data-cart-discount
@@ -124,10 +126,11 @@
               id="CheckoutNote"
               name="note"
               rows="3"
+              autocomplete="off"
               class="tcg-textarea"
               placeholder="Special instructions for protective card packing or shipping…"
               data-cart-note
-            >{{ cart.note }}</textarea>
+            ></textarea>
           </div>
         </section>
       </div>
@@ -150,9 +153,9 @@
           <span data-summary-subtotal>{{ cart.original_total_price | money }}</span>
         </div>
 
-        <div class="_summaryRow_1z0wo_208 tcg-summary-discount" data-summary-discount-row {% unless cart.total_discount > 0 %}hidden{% endunless %}>
+        <div class="_summaryRow_1z0wo_208 tcg-summary-discount" data-summary-discount-row hidden>
           <span>Discounts</span>
-          <span data-summary-discount>-{{ cart.total_discount | money }}</span>
+          <span data-summary-discount>-$0.00</span>
         </div>
 
         <div class="_summaryRow_1z0wo_208">
@@ -162,7 +165,7 @@
 
         <div class="_summaryTotal_1z0wo_221">
           <span>Total due</span>
-          <span data-summary-total data-testid="cart-total-value" data-cart-subtotal>{{ cart.total_price | money }}</span>
+          <span data-summary-total data-testid="cart-total-value" data-cart-subtotal>{{ cart.original_total_price | money }}</span>
         </div>
 
         <div class="cart__ctas" style="display:grid;gap:0.6rem;width:100%;">

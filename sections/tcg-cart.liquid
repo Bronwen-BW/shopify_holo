@@ -13,8 +13,8 @@
 >
   <div class="_wide_4xdw3_6">
 
-    {%- comment %} 结账步骤进度条（点击第 2 步直达 Shopify 官方结账 routes.cart_checkout_url） {% endcomment -%}
-    <ol class="_steps_16l9l_44" aria-label="Checkout progress" style="margin-bottom:clamp(1.5rem,4vh,2.5rem);width:fit-content;">
+    {%- comment %} 购物车模式：保留 1. Cart -> 2. Checkout & Payment -> 3. Confirmation 三步进度条 {% endcomment -%}
+    <ol class="_steps_16l9l_44" data-cart-steps-bar aria-label="Checkout progress" style="margin-bottom:clamp(1.5rem,4vh,2.5rem);width:fit-content;">
       <li class="_stepCurrent_16l9l_96" aria-current="step">
         <a href="{{ routes.cart_url }}" class="_stepLink_16l9l_54">
           <span class="_stepDot_16l9l_76" aria-hidden="true">1</span>
@@ -30,6 +30,22 @@
       <li>
         <span class="_stepLink_16l9l_54">
           <span class="_stepDot_16l9l_76" aria-hidden="true">3</span>
+          <span class="_stepLabel_16l9l_225">Confirmation</span>
+        </span>
+      </li>
+    </ol>
+
+    {%- comment %} 立即购买（Buy it now）中间界面专属：仅保留 1. Checkout & Payment -> 2. Confirmation 两步进度条 {% endcomment -%}
+    <ol class="_steps_16l9l_44" data-buy-now-steps-bar aria-label="Buy it now progress" style="margin-bottom:clamp(1.5rem,4vh,2.5rem);width:fit-content;" hidden>
+      <li class="_stepCurrent_16l9l_96" aria-current="step">
+        <span class="_stepLink_16l9l_54">
+          <span class="_stepDot_16l9l_76" aria-hidden="true">1</span>
+          <span class="_stepLabel_16l9l_225">Checkout &amp; Payment</span>
+        </span>
+      </li>
+      <li>
+        <span class="_stepLink_16l9l_54">
+          <span class="_stepDot_16l9l_76" aria-hidden="true">2</span>
           <span class="_stepLabel_16l9l_225">Confirmation</span>
         </span>
       </li>
@@ -103,16 +119,6 @@
                   <span class="_rowUnitPrice_1z0wo_94" data-row-unit-price>{{ item.original_price | money }} each</span>
                 </div>
 
-                {%- if item.line_level_discount_allocations.size > 0 -%}
-                  <div class="tcg-cart-discounts">
-                    {%- for allocation in item.line_level_discount_allocations -%}
-                      <span class="tcg-discount-pill">
-                        {{ allocation.discount_application.title }} (-{{ allocation.amount | money }})
-                      </span>
-                    {%- endfor -%}
-                  </div>
-                {%- endif -%}
-
                 <div class="_qtyControl_1z0wo_100" data-cart-qty>
                   <button
                     type="button"
@@ -157,10 +163,8 @@
               </div>
 
               <div class="_rowEnd_1z0wo_145">
-                {%- if item.original_line_price != item.final_line_price -%}
-                  <del class="tcg-line-compare">{{ item.original_line_price | money }}</del>
-                {%- endif -%}
-                <span class="_lineTotal_1z0wo_152" data-row-line-total>{{ item.final_line_price | money }}</span>
+                <del class="tcg-line-compare" data-row-line-compare hidden>{{ item.original_line_price | money }}</del>
+                <span class="_lineTotal_1z0wo_152" data-row-line-total>{{ item.original_line_price | money }}</span>
                 <button
                   type="button"
                   class="_removeBtn_1z0wo_160"
@@ -189,9 +193,10 @@
                 id="cart-note"
                 class="tcg-textarea"
                 rows="3"
+                autocomplete="off"
                 placeholder="Add special packing or delivery notes for our warehouse…"
                 data-cart-note
-              >{{ cart.note }}</textarea>
+              ></textarea>
             </div>
           {%- endif -%}
         </div>
@@ -205,9 +210,9 @@
             <span data-summary-subtotal data-testid="cart-subtotal-value">{{ cart.original_total_price | money }}</span>
           </div>
 
-          <div class="_summaryRow_1z0wo_208 tcg-summary-discount" data-summary-discount-row {% unless cart.cart_level_discount_applications.size > 0 or cart.total_discount > 0 %}hidden{% endunless %}>
+          <div class="_summaryRow_1z0wo_208 tcg-summary-discount" data-summary-discount-row hidden>
             <span>Discounts</span>
-            <span data-summary-discount>-{{ cart.total_discount | money }}</span>
+            <span data-summary-discount>-$0.00</span>
           </div>
 
           <div class="_summaryRow_1z0wo_208">
@@ -216,17 +221,6 @@
           </div>
 
           {%- if section.settings.show_discount_box != false -%}
-            {%- liquid
-              assign discount_codes = cart.cart_level_discount_applications | where: 'type', 'discount_code' | map: 'title'
-              for item in cart.items
-                for allocation in item.line_level_discount_allocations
-                  if allocation.discount_application.type == 'discount_code'
-                    assign discount_codes = item.line_level_discount_allocations | slice: forloop.index0 | map: 'discount_application' | map: 'title' | concat: discount_codes
-                  endif
-                endfor
-              endfor
-              assign discount_codes = discount_codes | uniq
-            -%}
             <div class="tcg-discount-field" data-cart-discount-wrapper data-section-id="{{ section.id }}">
               <label for="cart-discount" class="tcg-field-label">Discount / Promo code</label>
               <div style="display:flex;gap:0.5rem;align-items:center;">
@@ -234,6 +228,8 @@
                   type="text"
                   name="discount"
                   id="cart-discount"
+                  value=""
+                  autocomplete="off"
                   class="tcg-input"
                   placeholder="Enter promo code"
                   data-cart-discount
@@ -248,25 +244,13 @@
                 </button>
               </div>
               <p class="tcg-form-error" data-cart-discount-error hidden style="margin-top:0.4rem;">Invalid or inapplicable discount code.</p>
-              <ul class="tcg-cart-discounts" data-cart-discount-pills style="list-style:none;padding:0;margin:0.5rem 0 0;display:flex;flex-wrap:wrap;gap:0.4rem;">
-                {%- for discount_code in discount_codes -%}
-                  <li class="tcg-discount-pill" data-discount-code="{{ discount_code | escape }}">
-                    <span>{{ discount_code }}</span>
-                    <button
-                      type="button"
-                      data-remove-discount="{{ discount_code | escape }}"
-                      aria-label="Remove discount {{ discount_code | escape }}"
-                      style="background:none;border:0;color:inherit;margin-left:0.35rem;cursor:pointer;font-weight:700;"
-                    >×</button>
-                  </li>
-                {%- endfor -%}
-              </ul>
+              <ul class="tcg-cart-discounts" data-cart-discount-pills style="list-style:none;padding:0;margin:0.5rem 0 0;display:flex;flex-wrap:wrap;gap:0.4rem;"></ul>
             </div>
           {%- endif -%}
 
           <div class="_summaryTotal_1z0wo_221">
             <span>Estimated total</span>
-            <span data-summary-total data-testid="cart-total-value" data-cart-subtotal>{{ cart.total_price | money }}</span>
+            <span data-summary-total data-testid="cart-total-value" data-cart-subtotal>{{ cart.original_total_price | money }}</span>
           </div>
 
           {%- if settings.show_installments -%}
