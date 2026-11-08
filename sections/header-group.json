@@ -81,8 +81,8 @@
         "nav_custom_6"
       ],
       "settings": {
-        "brand_prefix": "TCG",
-        "brand_accent": "Haven",
+        "brand_prefix": "Deck",
+        "brand_accent": "Lingo",
         "search_placeholder": "Search cards, sets, sealed…",
         "enable_theme_toggle": true,
         "default_theme_mode": "dark"

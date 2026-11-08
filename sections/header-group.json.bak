@@ -49,6 +49,26 @@
             "sort_order": 5,
             "active": false
           }
+        },
+        "nav_blog": {
+          "type": "nav_item",
+          "settings": {
+            "label": "Articles",
+            "url": "/blogs/news",
+            "sort_order": 6,
+            "active": false,
+            "open_in_new_tab": false
+          }
+        },
+        "nav_custom_6": {
+          "type": "nav_item",
+          "settings": {
+            "label": "宝可梦",
+            "url": "/collections/all1",
+            "sort_order": 7,
+            "active": false,
+            "open_in_new_tab": false
+          }
         }
       },
       "block_order": [
@@ -56,7 +76,9 @@
         "nav_shop",
         "nav_games",
         "nav_about",
-        "nav_contact"
+        "nav_contact",
+        "nav_blog",
+        "nav_custom_6"
       ],
       "settings": {
         "brand_prefix": "TCG",
