@@ -1,0 +1,108 @@
+{%- comment -%}
+  TCG 扩展包目录页（对应 templates/page.expansions.json）
+  复刻 https://scrydex.com/magicthegathering/expansions 的系列展示与交互逻辑，融合店铺现有 TCG 主题风格，不包含 Filters 功能。
+{%- endcomment -%}
+
+{% render 'tcg-expansions-view', section: section %}
+
+{% schema %}
+{
+  "name": "TCG 扩展包目录 (Expansions)",
+  "tag": "section",
+  "class": "tcg-expansions-section",
+  "max_blocks": 30,
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "页面主标题",
+      "default": "Magic: The Gathering"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "页面顶部简介文案",
+      "default": "Master the Multiverse. Explore the vast history of Magic: The Gathering expansions, from Alpha to the most recent planeswalking adventures."
+    },
+    {
+      "type": "select",
+      "id": "default_view_mode",
+      "label": "默认展示视图 (View Mode)",
+      "default": "grid",
+      "options": [
+        { "value": "grid", "label": "Grid 网格卡片视图" },
+        { "value": "table", "label": "Table 表格列表视图" }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "game_icon_url",
+      "label": "游戏徽标图标 URL",
+      "default": "https://scrydex.com/assets/tcgs/icon_magicthegathering-e2151698e87443ceccb0ad4b6c98dac19d1b244cce24bac76f52c506046d5833.png"
+    },
+    {
+      "type": "text",
+      "id": "header_watermark_url",
+      "label": "右侧背景水印 Logo URL",
+      "default": "https://scrydex.com/assets/tcgs/logo_mtg-a99225ad3a6ecb7c7fdc9c579a187289aee78c3eeb577f92086dcc8a57f1738e.png"
+    },
+    {
+      "type": "collection",
+      "id": "store_collection",
+      "label": "详情页底部关联店铺商品集合（可选）"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "expansion_item",
+      "name": "自定义置顶系列",
+      "settings": [
+        {
+          "type": "text",
+          "id": "name",
+          "label": "扩展包名称 (Expansion Name)",
+          "default": "Foundations"
+        },
+        {
+          "type": "text",
+          "id": "code",
+          "label": "扩展包代号 (ID)",
+          "default": "FDN"
+        },
+        {
+          "type": "number",
+          "id": "cards_count",
+          "label": "卡牌数量 (Cards)",
+          "default": 763
+        },
+        {
+          "type": "text",
+          "id": "release_date",
+          "label": "发售日期 (Release Date)",
+          "default": "2024/11/15"
+        },
+        {
+          "type": "text",
+          "id": "logo_url",
+          "label": "Logo 图片 URL（留空则按 ID 自动匹配）"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "本地上传 Logo 覆盖（可选）"
+        },
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "绑定 Shopify 集合（可选）"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "TCG 扩展包目录 (Expansions)"
+    }
+  ]
+}
+{% endschema %}

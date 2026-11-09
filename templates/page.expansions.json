@@ -1,0 +1,15 @@
+{
+  "sections": {
+    "main": {
+      "type": "tcg-expansions",
+      "settings": {
+        "heading": "Magic: The Gathering",
+        "description": "Master the Multiverse. Explore the vast history of Magic: The Gathering expansions, from Alpha to the most recent planeswalking adventures.",
+        "default_view_mode": "grid"
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

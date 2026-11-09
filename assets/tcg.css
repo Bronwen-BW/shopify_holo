@@ -2784,5 +2784,781 @@ html[data-theme="light"] ._cardBody_36e53_256 {
   font-weight: 800;
 }
 
+/* =====================================================================
+ * TCG Expansions 页面样式（复刻 Scrydex Expansions 视觉与交互，适配店铺黑夜/白天模式，不含 Filters）
+ * ===================================================================== */
+.tcg-expansions-page .hidden {
+  display: none !important;
+}
+
+/* 顶部 Header 横幅 (#expansions-header) */
+.tcg-exp-header {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(1.75rem, 3.2vw, 2.75rem);
+  border-radius: var(--tcg-radius-lg, 1.25rem);
+  background:
+    radial-gradient(ellipse 55% 80% at 85% 50%, color-mix(in srgb, #f28753 16%, transparent), transparent 72%),
+    radial-gradient(ellipse 45% 65% at 0% 100%, var(--tcg-accent-soft), transparent 70%),
+    var(--tcg-surface);
+  border: 1px solid var(--tcg-border);
+  isolation: isolate;
+  margin-bottom: 1.15rem;
+}
+
+.tcg-exp-header-bg {
+  position: absolute;
+  top: 0;
+  right: 1.5rem;
+  bottom: 0;
+  width: min(42%, 26rem);
+  opacity: 0.07;
+  filter: grayscale(1);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  z-index: 0;
+}
+
+.tcg-exp-header-bg img {
+  max-width: 100%;
+  max-height: 85%;
+  object-fit: contain;
+  object-position: right center;
+}
+
+@media (max-width: 768px) {
+  .tcg-exp-header-bg {
+    display: none;
+  }
+}
+
+.tcg-exp-header-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.tcg-exp-header-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
+}
+
+.tcg-exp-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.95rem;
+}
+
+.tcg-exp-badge-icon {
+  display: grid;
+  place-items: center;
+  width: 3.1rem;
+  height: 3.1rem;
+  border-radius: 0.85rem;
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border-strong);
+  padding: 0.45rem;
+  flex-shrink: 0;
+}
+
+.tcg-exp-badge-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.tcg-exp-title {
+  margin: 0.15rem 0 0;
+  color: var(--tcg-text);
+  font-family: Rubik, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.65rem, 2.8vw, 2.35rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+.tcg-exp-desc {
+  max-width: 58ch;
+  margin: 0;
+  color: var(--tcg-text-secondary);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.tcg-exp-meta-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 0.2rem;
+}
+
+.tcg-exp-stat-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.42rem 0.9rem;
+  border-radius: 9999px;
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+  font-size: 0.82rem;
+  color: var(--tcg-text-muted);
+}
+
+.tcg-exp-stat-pill strong {
+  color: var(--tcg-text);
+  font-family: Rubik, ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* View Mode 切换工具栏（Grid / Table） */
+.tcg-exp-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.35rem 0.4rem 0.35rem 0.85rem;
+  border-radius: 9999px;
+  background: var(--tcg-surface-elevated);
+  border: 1px solid var(--tcg-border-strong);
+}
+
+.tcg-exp-view-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--tcg-text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.tcg-exp-view-dot {
+  width: 0.25rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+  background: var(--tcg-accent);
+}
+
+.tcg-exp-view-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.18rem;
+  border-radius: 9999px;
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+}
+
+.tcg-exp-view-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  padding: 0.42rem 0.85rem;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--tcg-text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.tcg-exp-view-btn svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex-shrink: 0;
+}
+
+.tcg-exp-view-btn:hover {
+  color: var(--tcg-text);
+  background: var(--tcg-surface-hover);
+}
+
+.tcg-exp-view-btn.is-active {
+  color: var(--tcg-accent-hover);
+  background: var(--tcg-accent-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tcg-accent) 45%, transparent);
+}
+
+/* 分类快速跳转胶囊栏 */
+.tcg-exp-jump-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding: 0.55rem 0.65rem;
+  margin-bottom: 1.75rem;
+  border-radius: 1rem;
+  background: var(--tcg-surface);
+  border: 1px solid var(--tcg-border);
+  scrollbar-width: none;
+}
+
+.tcg-exp-jump-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.tcg-exp-jump-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  padding: 0.42rem 0.85rem;
+  border-radius: 9999px;
+  background: var(--tcg-surface-soft);
+  border: 1px solid transparent;
+  color: var(--tcg-text-secondary);
+  font-family: Rubik, ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.tcg-exp-jump-pill em {
+  font-style: normal;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--tcg-text-muted);
+}
+
+.tcg-exp-jump-pill:hover,
+.tcg-exp-jump-pill.is-active {
+  color: var(--tcg-text);
+  background: var(--tcg-accent-soft);
+  border-color: color-mix(in srgb, var(--tcg-accent) 45%, transparent);
+}
+
+.tcg-exp-jump-pill:hover em,
+.tcg-exp-jump-pill.is-active em {
+  color: var(--tcg-accent-hover);
+}
+
+/* 24 个系列分组区块 */
+.tcg-exp-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+}
+
+.tcg-exp-group {
+  scroll-margin-top: 1.5rem;
+}
+
+.tcg-exp-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.95rem;
+  padding-inline: 0.25rem;
+}
+
+.tcg-exp-group-head h2 {
+  margin: 0;
+  color: var(--tcg-text);
+  font-family: Rubik, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.15rem, 1.8vw, 1.35rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tcg-exp-group-badge {
+  padding: 0.22rem 0.65rem;
+  border-radius: 9999px;
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+  color: var(--tcg-text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Grid 视图卡片网格（保留 Scrydex 悬停高亮框与居中 Logo 卡片布局，融合店铺圆角与毛玻璃质感） */
+.tcg-exp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: 0.75rem;
+}
+
+@media (min-width: 1440px) {
+  .tcg-exp-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .tcg-exp-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+}
+
+.tcg-exp-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 11.25rem;
+  padding: 1.25rem 1rem 1rem;
+  border-radius: var(--tcg-radius-md, 0.875rem);
+  background: var(--tcg-surface);
+  border: 1px solid var(--tcg-border);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tcg-exp-card:hover,
+.tcg-exp-card:focus-visible {
+  background: color-mix(in srgb, var(--tcg-accent) 14%, var(--tcg-surface));
+  border-color: var(--tcg-accent);
+  box-shadow: inset 0 0 0 1.5px var(--tcg-accent), 0 12px 24px -12px rgba(0, 0, 0, 0.45);
+  transform: translateY(-2px);
+  outline: none;
+}
+
+.tcg-exp-card-inner {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  gap: 0.85rem;
+}
+
+.tcg-exp-card-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 4.5rem;
+  margin-block: auto;
+  padding-inline: 0.35rem;
+}
+
+.tcg-exp-card-logo img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
+  transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tcg-exp-card:hover .tcg-exp-card-logo img {
+  transform: scale(1.06);
+}
+
+.tcg-exp-logo-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.65rem;
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border-strong);
+  color: var(--tcg-accent-hover);
+  font-family: Rubik, ui-sans-serif, system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.tcg-exp-card-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.2rem;
+  width: 100%;
+  margin-top: auto;
+}
+
+.tcg-exp-card-name {
+  color: var(--tcg-text);
+  font-family: Rubik, ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tcg-exp-card-date {
+  color: var(--tcg-text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Table 视图表格（复刻 Scrydex 四列结构：Expansion Name / ID / Cards / Release Date） */
+.tcg-exp-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: var(--tcg-radius-lg, 1.25rem);
+  background: var(--tcg-surface);
+  border: 1px solid var(--tcg-border);
+}
+
+.tcg-exp-table {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.tcg-exp-table thead {
+  background: var(--tcg-surface-elevated);
+  border-bottom: 1px solid var(--tcg-border-strong);
+}
+
+.tcg-exp-table th {
+  padding: 0.95rem 1.5rem;
+  color: var(--tcg-text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.tcg-exp-table th.is-center,
+.tcg-exp-table td.is-center {
+  text-align: center;
+}
+
+.tcg-exp-table th.is-right,
+.tcg-exp-table td.is-right {
+  text-align: right;
+}
+
+.tcg-exp-row {
+  border-bottom: 1px solid var(--tcg-border);
+  cursor: pointer;
+  transition: background-color 0.16s ease;
+}
+
+.tcg-exp-row:last-child {
+  border-bottom: 0;
+}
+
+.tcg-exp-row:hover {
+  background: color-mix(in srgb, var(--tcg-accent) 9%, var(--tcg-surface-soft));
+}
+
+.tcg-exp-row td {
+  padding: 0.85rem 1.5rem;
+  vertical-align: middle;
+}
+
+.tcg-exp-row-Main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tcg-exp-row-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 2rem;
+  flex-shrink: 0;
+}
+
+.tcg-exp-row-logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+
+.tcg-exp-row:hover .tcg-exp-row-logo img {
+  transform: scale(1.06);
+}
+
+.tcg-exp-row-name {
+  color: var(--tcg-text);
+  font-family: Rubik, ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition: color 0.16s ease;
+}
+
+.tcg-exp-row:hover .tcg-exp-row-name {
+  color: var(--tcg-accent-hover);
+}
+
+.tcg-exp-mono-id,
+.tcg-exp-mono-cards {
+  color: var(--tcg-text-secondary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.tcg-exp-mono-date {
+  color: var(--tcg-text-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ================= 扩展包详情页舞台与卡牌预览 ================= */
+.tcg-exp-detail-hero {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(1.75rem, 3.5vw, 3rem);
+  border-radius: var(--tcg-radius-lg, 1.25rem);
+  background:
+    radial-gradient(ellipse 55% 75% at 80% 50%, color-mix(in srgb, var(--tcg-accent) 22%, transparent), transparent 70%),
+    var(--tcg-surface);
+  border: 1px solid var(--tcg-border);
+  isolation: isolate;
+  margin-bottom: 2rem;
+}
+
+.tcg-exp-detail-backdrop {
+  position: absolute;
+  top: 50%;
+  right: -2rem;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  opacity: 0.22;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.tcg-exp-detail-backdrop img {
+  width: 9.5rem;
+  border-radius: 0.6rem;
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.55);
+  margin-left: -3.2rem;
+  transform: rotate(calc((var(--fan-idx, 2) - 2) * 14deg)) translateY(calc(abs(var(--fan-idx, 2) - 2) * 8px));
+}
+
+@media (max-width: 900px) {
+  .tcg-exp-detail-backdrop {
+    opacity: 0.1;
+  }
+}
+
+.tcg-exp-detail-hero-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.75rem 2.5rem;
+}
+
+.tcg-exp-detail-logo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(11rem, 20vw, 15rem);
+  height: 6.5rem;
+  padding: 0.85rem;
+  border-radius: 1rem;
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+  flex-shrink: 0;
+}
+
+.tcg-exp-detail-logo-box img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.45));
+}
+
+.tcg-exp-detail-info {
+  display: flex;
+  flex: 1;
+  min-width: min(100%, 20rem);
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tcg-exp-detail-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tcg-exp-detail-title-row h1 {
+  margin: 0;
+  color: var(--tcg-text);
+  font-family: Rubik, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.75rem, 3.2vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+}
+
+.tcg-exp-detail-symbol-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0.35rem;
+  border-radius: 0.55rem;
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+}
+
+.tcg-exp-detail-symbol-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.tcg-exp-detail-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--tcg-text-secondary);
+  font-size: 0.92rem;
+}
+
+.tcg-exp-detail-code {
+  padding: 0.2rem 0.6rem;
+  border-radius: 0.4rem;
+  background: var(--tcg-accent-soft);
+  border: 1px solid color-mix(in srgb, var(--tcg-accent) 45%, transparent);
+  color: var(--tcg-accent-hover);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.tcg-exp-detail-type {
+  text-transform: uppercase;
+  font-family: Rubik, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--tcg-text);
+}
+
+.tcg-exp-detail-dot {
+  color: var(--tcg-text-muted);
+}
+
+.tcg-exp-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 0.35rem;
+}
+
+.tcg-exp-cards-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 960px) {
+  .tcg-exp-cards-preview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.tcg-exp-sample-card {
+  display: flex;
+  flex-direction: column;
+  padding: 0.9rem;
+  border-radius: 1rem;
+  background: var(--tcg-surface);
+  border: 1px solid var(--tcg-border);
+  text-decoration: none;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tcg-exp-sample-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--tcg-accent);
+  box-shadow: 0 14px 28px -12px rgba(0, 0, 0, 0.45);
+}
+
+.tcg-exp-sample-media {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: radial-gradient(ellipse 65% 55% at 50% 45%, rgba(255, 255, 255, 0.07), transparent 72%), var(--tcg-surface-soft);
+  overflow: hidden;
+}
+
+.tcg-exp-sample-media img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4));
+}
+
+.tcg-exp-sample-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.75rem;
+}
+
+.tcg-exp-sample-tag {
+  color: var(--tcg-accent-hover);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.tcg-exp-sample-title {
+  color: var(--tcg-text);
+  font-family: Rubik, sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.tcg-exp-sample-sub {
+  color: var(--tcg-text-muted);
+  font-size: 0.78rem;
+}
+
+
 
 

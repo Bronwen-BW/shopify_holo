@@ -4,6 +4,9 @@
 {%- endcomment -%}
 {%- assign h = page.handle | downcase -%}
 
+{%- if h contains 'expansion' or h contains 'magicthegathering' or h == 'sets' -%}
+  {% render 'tcg-expansions-view', section: section %}
+{%- else -%}
 <div class="_page_4xdw3_1">
   <div class="_wide_4xdw3_6">
 
@@ -122,6 +125,7 @@
 
   </div>
 </div>
+{%- endif -%}
 
 {% schema %}
 {

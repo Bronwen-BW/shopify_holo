@@ -40,6 +40,7 @@
         <h3 class="_linkHeading_23f90_181">Shop</h3>
         <a href="{{ routes.all_products_collection_url }}">All products</a>
         <a href="{{ routes.collections_url }}">All collections</a>
+        <a href="{{ pages['expansions'].url | default: '/pages/expansions' }}">Expansions</a>
         <a href="{{ routes.search_url }}?q=&amp;filter.type=Single">Single cards</a>
         <a href="{{ routes.search_url }}?q=&amp;filter.type=Sealed">Sealed products</a>
         {%- if section != blank and section.blocks.size > 0 -%}

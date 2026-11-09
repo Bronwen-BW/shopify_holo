@@ -3610,4 +3610,400 @@
       }
     } catch (e) {}
   })();
+
+  /* -------------------------------------------------------------------
+   * 18. TCG Expansions 扩展包目录页交互（复刻 Scrydex view-mode Grid/Table 切换 + 24 分组 827 扩展包渲染 + 表格行/卡片详情切换）
+   * ----------------------------------------------------------------- */
+  (function expansionsDirectoryController() {
+    var expSection = document.querySelector('[data-tcg-expansions-section]');
+    if (!expSection) return;
+
+    var listView = expSection.querySelector('[data-expansions-list-view]');
+    var detailView = expSection.querySelector('[data-expansion-detail-view]');
+    var groupsContainer = expSection.querySelector('[data-expansions-groups-container]');
+    var jumpNav = expSection.querySelector('[data-expansions-jump-nav]');
+    var currentMode = expSection.getAttribute('data-view-mode-initial-value') || 'grid';
+    var expansionLookup = {};
+
+    function escAttr(str) {
+      return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    /* 18.1 挂载全部 24 个分组与 827 个扩展包 */
+    function renderFullExpansionsData(groups) {
+      if (!Array.isArray(groups) || !groups.length || !groupsContainer) return;
+
+      var totalCount = 0;
+      var htmlParts = [];
+      var jumpParts = [];
+
+      for (var gIdx = 0; gIdx < groups.length; gIdx++) {
+        var grp = groups[gIdx];
+        if (!grp || !Array.isArray(grp.items)) continue;
+        var grpName = grp.group || 'expansion';
+        var grpSlug = grp.slug || grpName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        var items = grp.items;
+        totalCount += items.length;
+
+        jumpParts.push(
+          '<a href="#exp-group-' + escAttr(grpSlug) + '" class="tcg-exp-jump-pill' + (gIdx === 0 ? ' is-active' : '') + '" data-exp-jump="' + escAttr(grpSlug) + '">' +
+            escAttr(grpName) + ' <em>' + items.length + '</em>' +
+          '</a>'
+        );
+
+        var gridCards = [];
+        var tableRows = [];
+
+        for (var i = 0; i < items.length; i++) {
+          var it = items[i];
+          var id = String(it.id || '');
+          var name = String(it.name || '');
+          var cards = Number(it.cards) || 0;
+          var date = String(it.date || '');
+          var logo = it.logo || ('https://images.scrydex.com/magicthegathering/' + id + '-logo/logo');
+
+          expansionLookup[id.toUpperCase()] = {
+            id: id,
+            name: name,
+            cards: cards,
+            date: date,
+            logo: logo,
+            group: grpName,
+            slug: it.slug || id.toLowerCase()
+          };
+
+          gridCards.push(
+            '<a href="?expansion=' + encodeURIComponent(id) + '" class="tcg-exp-card" data-expansion-card data-expansion-id="' + escAttr(id) + '" data-expansion-name="' + escAttr(name) + '" data-expansion-date="' + escAttr(date) + '" data-expansion-cards="' + cards + '" data-expansion-group-name="' + escAttr(grpName) + '" data-expansion-logo="' + escAttr(logo) + '">' +
+              '<div class="tcg-exp-card-inner">' +
+                '<div class="tcg-exp-card-logo">' +
+                  '<img src="' + escAttr(logo) + '" alt="' + escAttr(name) + '" loading="lazy" data-exp-logo="' + escAttr(id) + '">' +
+                '</div>' +
+                '<div class="tcg-exp-card-meta">' +
+                  '<span class="tcg-exp-card-name">' + escAttr(name) + '</span>' +
+                  '<span class="tcg-exp-card-date">' + escAttr(date) + '</span>' +
+                '</div>' +
+              '</div>' +
+            '</a>'
+          );
+
+          tableRows.push(
+            '<tr class="tcg-exp-row" data-action="click->view-mode#navigateToCard" data-expansion-row data-expansion-id="' + escAttr(id) + '" data-expansion-name="' + escAttr(name) + '" data-expansion-date="' + escAttr(date) + '" data-expansion-cards="' + cards + '" data-expansion-group-name="' + escAttr(grpName) + '" data-expansion-logo="' + escAttr(logo) + '" data-url="?expansion=' + encodeURIComponent(id) + '">' +
+              '<td>' +
+                '<div class="tcg-exp-row-Main">' +
+                  '<div class="tcg-exp-row-logo">' +
+                    '<img src="' + escAttr(logo) + '" alt="' + escAttr(name) + '" loading="lazy" data-exp-logo="' + escAttr(id) + '">' +
+                  '</div>' +
+                  '<span class="tcg-exp-row-name">' + escAttr(name) + '</span>' +
+                '</div>' +
+              '</td>' +
+              '<td class="is-center"><span class="tcg-exp-mono-id">' + escAttr(id) + '</span></td>' +
+              '<td class="is-center"><span class="tcg-exp-mono-cards">' + cards + '</span></td>' +
+              '<td class="is-right"><span class="tcg-exp-mono-date">' + escAttr(date) + '</span></td>' +
+            '</tr>'
+          );
+        }
+
+        var isTable = currentMode === 'table';
+        htmlParts.push(
+          '<section id="exp-group-' + escAttr(grpSlug) + '" class="tcg-exp-group" data-expansion-group="' + escAttr(grpSlug) + '">' +
+            '<div class="tcg-exp-group-head">' +
+              '<h2>' + escAttr(grpName) + '</h2>' +
+              '<span class="tcg-exp-group-badge">' + items.length + ' sets</span>' +
+            '</div>' +
+            '<div data-view-mode-target="grid" class="tcg-exp-grid' + (isTable ? ' hidden' : '') + '">' +
+              gridCards.join('') +
+            '</div>' +
+            '<div data-view-mode-target="table" class="tcg-exp-table-wrap' + (isTable ? '' : ' hidden') + '">' +
+              '<table class="tcg-exp-table">' +
+                '<thead>' +
+                  '<tr>' +
+                    '<th>Expansion Name</th>' +
+                    '<th class="is-center">ID</th>' +
+                    '<th class="is-center">Cards</th>' +
+                    '<th class="is-right">Release Date</th>' +
+                  '</tr>' +
+                '</thead>' +
+                '<tbody>' +
+                  tableRows.join('') +
+                '</tbody>' +
+              '</table>' +
+            '</div>' +
+          '</section>'
+        );
+      }
+
+      groupsContainer.innerHTML = htmlParts.join('');
+      if (jumpNav && jumpParts.length) {
+        jumpNav.innerHTML = jumpParts.join('');
+      }
+
+      var totalEl = expSection.querySelector('[data-expansions-total-count]');
+      var grpCountEl = expSection.querySelector('[data-expansions-group-count]');
+      if (totalEl) totalEl.textContent = String(totalCount);
+      if (grpCountEl) grpCountEl.textContent = String(groups.length);
+    }
+
+    /* 18.2 View Mode (Grid / Table) 切换与 localStorage('view-mode') 持久化 */
+    function switchViewMode(mode, persist) {
+      var targetMode = mode === 'table' ? 'table' : 'grid';
+      currentMode = targetMode;
+
+      expSection.querySelectorAll('[data-view-mode-target="grid"]').forEach(function (el) {
+        el.classList.toggle('hidden', targetMode !== 'grid');
+      });
+      expSection.querySelectorAll('[data-view-mode-target="table"]').forEach(function (el) {
+        el.classList.toggle('hidden', targetMode !== 'table');
+      });
+      expSection.querySelectorAll('[data-view-mode-target="button"]').forEach(function (btn) {
+        var active = btn.getAttribute('data-mode') === targetMode;
+        btn.classList.toggle('is-active', active);
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+
+      if (persist !== false) {
+        try {
+          localStorage.setItem('view-mode', targetMode);
+        } catch (e) {}
+      }
+    }
+
+    var savedMode = null;
+    try {
+      savedMode = localStorage.getItem('view-mode');
+    } catch (e) {}
+    switchViewMode(savedMode === 'table' || savedMode === 'grid' ? savedMode : currentMode, false);
+
+    on('[data-view-mode-target="button"]', 'click', function (e, btn) {
+      e.preventDefault();
+      var m = btn.getAttribute('data-mode') || 'grid';
+      switchViewMode(m, true);
+    }, expSection);
+
+    /* 18.3 Logo 加载失败时自动降级为系列符号或代号徽章 */
+    expSection.addEventListener('error', function (e) {
+      var img = e.target;
+      if (!img || img.tagName !== 'IMG') return;
+      var code = img.getAttribute('data-exp-logo');
+      if (!code) return;
+      var step = img.getAttribute('data-fallback-step') || '0';
+      if (step === '0') {
+        img.setAttribute('data-fallback-step', '1');
+        img.src = 'https://images.scrydex.com/magicthegathering/' + encodeURIComponent(code) + '-symbol/symbol';
+      } else if (step === '1') {
+        img.setAttribute('data-fallback-step', '2');
+        var badge = document.createElement('span');
+        badge.className = 'tcg-exp-logo-fallback';
+        badge.textContent = code;
+        if (img.parentNode) {
+          img.parentNode.replaceChild(badge, img);
+        }
+      }
+    }, true);
+
+    /* 18.4 分类胶囊锚点平滑定位 */
+    on('[data-exp-jump]', 'click', function (e, pill) {
+      var slug = pill.getAttribute('data-exp-jump');
+      var target = slug ? document.getElementById('exp-group-' + slug) : null;
+      if (target) {
+        e.preventDefault();
+        expSection.querySelectorAll('[data-exp-jump]').forEach(function (p) {
+          p.classList.toggle('is-active', p === pill);
+        });
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, expSection);
+
+    /* 18.5 扩展包详情页无刷新切换与浏览器历史同步 */
+    function resolveExpansionData(codeOrEl) {
+      if (typeof codeOrEl === 'string') {
+        var key = codeOrEl.trim().toUpperCase();
+        if (expansionLookup[key]) return expansionLookup[key];
+        var domMatch = expSection.querySelector('[data-expansion-id="' + codeOrEl.trim() + '"]');
+        if (domMatch) codeOrEl = domMatch;
+        else return null;
+      }
+      if (codeOrEl && codeOrEl.getAttribute) {
+        var cid = codeOrEl.getAttribute('data-expansion-id') || 'FDN';
+        if (expansionLookup[cid.toUpperCase()]) return expansionLookup[cid.toUpperCase()];
+        return {
+          id: cid,
+          name: codeOrEl.getAttribute('data-expansion-name') || cid,
+          date: codeOrEl.getAttribute('data-expansion-date') || '',
+          cards: Number(codeOrEl.getAttribute('data-expansion-cards')) || 0,
+          group: codeOrEl.getAttribute('data-expansion-group-name') || 'expansion',
+          logo: codeOrEl.getAttribute('data-expansion-logo') || ('https://images.scrydex.com/magicthegathering/' + cid + '-logo/logo')
+        };
+      }
+      return null;
+    }
+
+    function openExpansionDetail(expInfo, updateUrlFlag) {
+      if (!expInfo || !listView || !detailView) return false;
+
+      var crumbEl = detailView.querySelector('[data-exp-detail-crumb]');
+      var logoEl = detailView.querySelector('[data-exp-detail-logo]');
+      var symbolEl = detailView.querySelector('[data-exp-detail-symbol]');
+      var titleEl = detailView.querySelector('[data-exp-detail-title]');
+      var idEl = detailView.querySelector('[data-exp-detail-id]');
+      var groupEl = detailView.querySelector('[data-exp-detail-group]');
+      var cardsEl = detailView.querySelector('[data-exp-detail-cards]');
+      var dateEl = detailView.querySelector('[data-exp-detail-date]');
+      var searchLink = detailView.querySelector('[data-exp-detail-search-link]');
+      var gridHead = detailView.querySelector('[data-exp-detail-grid-heading]');
+      var cardsGrid = detailView.querySelector('[data-exp-detail-cards-grid]');
+
+      if (crumbEl) crumbEl.textContent = expInfo.name + ' (' + expInfo.id + ')';
+      if (titleEl) titleEl.textContent = expInfo.name;
+      if (idEl) idEl.textContent = expInfo.id;
+      if (groupEl) groupEl.textContent = expInfo.group || 'expansion';
+      if (cardsEl) cardsEl.textContent = String(expInfo.cards || 0);
+      if (dateEl) dateEl.textContent = expInfo.date || '—';
+      if (gridHead) gridHead.textContent = expInfo.name + ' (' + expInfo.id + ') — Collector Highlights';
+
+      if (logoEl) {
+        logoEl.src = expInfo.logo || ('https://images.scrydex.com/magicthegathering/' + expInfo.id + '-logo/logo');
+        logoEl.alt = expInfo.name;
+      }
+      if (symbolEl) {
+        if (symbolEl.parentElement) symbolEl.parentElement.style.display = '';
+        symbolEl.src = 'https://images.scrydex.com/magicthegathering/' + encodeURIComponent(expInfo.id) + '-symbol/symbol';
+        symbolEl.alt = expInfo.id;
+      }
+      if (searchLink) {
+        var searchBase = (window.TCG_ROUTES && window.TCG_ROUTES.search_url) ? window.TCG_ROUTES.search_url : '/search';
+        searchLink.href = searchBase + '?type=product&q=' + encodeURIComponent(expInfo.name);
+      }
+
+      if (cardsGrid) {
+        var sampleNums = [1, 2, 3, 4];
+        var fallbackPool = [
+          'https://horizon.local/assets/card-charizard.png',
+          'https://horizon.local/assets/card-palkia.png',
+          'https://horizon.local/assets/card-umbreon.png',
+          'https://horizon.local/assets/card-blastoise.png'
+        ];
+        var cardLabels = [
+          'Collector Booster Display',
+          'Play Booster Box (36 Packs)',
+          'Commander Deck Bundle',
+          'Mythic & Foil Chase Singles'
+        ];
+        var searchBaseUrl = (window.TCG_ROUTES && window.TCG_ROUTES.search_url) ? window.TCG_ROUTES.search_url : '/search';
+        cardsGrid.innerHTML = sampleNums.map(function (n, idx) {
+          var cardImg = 'https://images.scrydex.com/magicthegathering/' + encodeURIComponent(expInfo.id) + '-' + n + '/medium';
+          var fbImg = fallbackPool[idx % fallbackPool.length];
+          return (
+            '<a href="' + escAttr(searchBaseUrl + '?type=product&q=' + encodeURIComponent(expInfo.name)) + '" class="tcg-exp-sample-card">' +
+              '<div class="tcg-exp-sample-media">' +
+                '<img src="' + escAttr(cardImg) + '" alt="' + escAttr(expInfo.name + ' #' + n) + '" loading="lazy" onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src=\'' + escAttr(expInfo.logo) + '\';}else{this.src=\'' + fbImg + '\';}">' +
+              '</div>' +
+              '<div class="tcg-exp-sample-body">' +
+                '<span class="tcg-exp-sample-tag">' + escAttr(expInfo.id) + ' · #' + String(n).padStart(3, '0') + '</span>' +
+                '<strong class="tcg-exp-sample-title">' + escAttr(expInfo.name) + ' — ' + escAttr(cardLabels[idx]) + '</strong>' +
+                '<span class="tcg-exp-sample-sub">Release: ' + escAttr(expInfo.date || 'TBA') + ' · ' + escAttr(String(expInfo.cards || 0)) + ' cards in set</span>' +
+              '</div>' +
+            '</a>'
+          );
+        }).join('');
+      }
+
+      listView.setAttribute('hidden', '');
+      listView.hidden = true;
+      detailView.removeAttribute('hidden');
+      detailView.hidden = false;
+
+      if (updateUrlFlag !== false && window.history && window.history.pushState) {
+        try {
+          var u = new URL(window.location.href);
+          u.searchParams.set('expansion', expInfo.id);
+          window.history.pushState({ expansion: expInfo.id }, '', u.toString());
+        } catch (e) {}
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return true;
+    }
+
+    function backToExpansionsList(updateUrlFlag) {
+      if (!listView || !detailView) return;
+      detailView.setAttribute('hidden', '');
+      detailView.hidden = true;
+      listView.removeAttribute('hidden');
+      listView.hidden = false;
+
+      if (updateUrlFlag !== false && window.history && window.history.pushState) {
+        try {
+          var u = new URL(window.location.href);
+          u.searchParams.delete('expansion');
+          window.history.pushState({}, '', u.toString());
+        } catch (e) {}
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    on('[data-expansion-card]', 'click', function (e, card) {
+      var colUrl = card.getAttribute('data-collection-url');
+      if (colUrl) return;
+      var info = resolveExpansionData(card);
+      if (info && openExpansionDetail(info, true)) {
+        e.preventDefault();
+      }
+    }, expSection);
+
+    on('[data-expansion-row]', 'click', function (e, row) {
+      var targetUrl = row.getAttribute('data-url') || '';
+      if (targetUrl && targetUrl.indexOf('?expansion=') !== 0) {
+        window.location.href = targetUrl;
+        return;
+      }
+      var info = resolveExpansionData(row);
+      if (info && openExpansionDetail(info, true)) {
+        e.preventDefault();
+      }
+    }, expSection);
+
+    on('[data-back-to-expansions]', 'click', function (e) {
+      e.preventDefault();
+      backToExpansionsList(true);
+    }, expSection);
+
+    window.addEventListener('popstate', function () {
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var expCode = params.get('expansion');
+        if (expCode) {
+          var info = resolveExpansionData(expCode);
+          if (info) openExpansionDetail(info, false);
+        } else {
+          backToExpansionsList(false);
+        }
+      } catch (e) {}
+    });
+
+    function initDataAndRoute() {
+      if (window.TCG_MTG_EXPANSIONS && Array.isArray(window.TCG_MTG_EXPANSIONS)) {
+        renderFullExpansionsData(window.TCG_MTG_EXPANSIONS);
+      }
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var initCode = params.get('expansion');
+        if (initCode) {
+          var info = resolveExpansionData(initCode);
+          if (info) openExpansionDetail(info, false);
+        }
+      } catch (e) {}
+    }
+
+    if (window.TCG_MTG_EXPANSIONS) {
+      initDataAndRoute();
+    } else {
+      window.addEventListener('DOMContentLoaded', initDataAndRoute);
+      window.addEventListener('load', initDataAndRoute);
+    }
+  })();
 })();
