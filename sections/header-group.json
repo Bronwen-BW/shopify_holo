@@ -23,12 +23,22 @@
             "active": false
           }
         },
+        "nav_expansions": {
+          "type": "nav_item",
+          "settings": {
+            "label": "Expansion",
+            "url": "/pages/expansions",
+            "sort_order": 2,
+            "active": false,
+            "open_in_new_tab": false
+          }
+        },
         "nav_shop": {
           "type": "nav_item",
           "settings": {
             "label": "Shop",
             "url": "/collections/all",
-            "sort_order": 2,
+            "sort_order": 3,
             "active": false
           }
         },
@@ -37,18 +47,8 @@
           "settings": {
             "label": "Collections",
             "url": "/collections",
-            "sort_order": 3,
-            "active": false
-          }
-        },
-        "nav_expansions": {
-          "type": "nav_item",
-          "settings": {
-            "label": "Expansions",
-            "url": "/pages/expansions",
             "sort_order": 4,
-            "active": false,
-            "open_in_new_tab": false
+            "active": false
           }
         },
         "nav_about": {
@@ -92,9 +92,9 @@
       },
       "block_order": [
         "nav_home",
+        "nav_expansions",
         "nav_shop",
         "nav_games",
-        "nav_expansions",
         "nav_about",
         "nav_contact",
         "nav_blog",

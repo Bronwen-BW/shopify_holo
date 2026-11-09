@@ -3612,7 +3612,7 @@
   })();
 
   /* -------------------------------------------------------------------
-   * 18. TCG Expansions 扩展包目录页交互（复刻 Scrydex view-mode Grid/Table 切换 + 24 分组 827 扩展包渲染 + 表格行/卡片详情切换）
+   * 18. TCG Expansions 左右双栏联动扩展包目录页交互（点击左侧更新右侧 + 图片懒加载 + Grid/Table 视图切换 + 左右自定义区块合并）
    * ----------------------------------------------------------------- */
   (function expansionsDirectoryController() {
     var expSection = document.querySelector('[data-tcg-expansions-section]');
@@ -3620,10 +3620,12 @@
 
     var listView = expSection.querySelector('[data-expansions-list-view]');
     var detailView = expSection.querySelector('[data-expansion-detail-view]');
+    var sidebarList = expSection.querySelector('[data-exp-sidebar-list]');
     var groupsContainer = expSection.querySelector('[data-expansions-groups-container]');
-    var jumpNav = expSection.querySelector('[data-expansions-jump-nav]');
     var currentMode = expSection.getAttribute('data-view-mode-initial-value') || 'grid';
+    var currentGameKey = (expSection.getAttribute('data-default-game') || 'pokemon').toLowerCase();
     var expansionLookup = {};
+    var lazyObserver = null;
 
     function escAttr(str) {
       return String(str == null ? '' : str)
@@ -3633,27 +3635,263 @@
         .replace(/>/g, '&gt;');
     }
 
-    /* 18.1 挂载全部 24 个分组与 827 个扩展包 */
-    function renderFullExpansionsData(groups) {
-      if (!Array.isArray(groups) || !groups.length || !groupsContainer) return;
+    function normalizeGameKey(raw) {
+      var k = String(raw || 'pokemon').toLowerCase().trim();
+      if (k === 'magic-the-gathering' || k === 'magicthegathering' || k === 'mtg') return 'magic';
+      if (k === 'one-piece') return 'onepiece';
+      if (k === 'yu-gi-oh' || k === 'yu-gi-oh!') return 'yugioh';
+      return k;
+    }
 
-      var totalCount = 0;
+    function gameSlugForLogo(gameKey) {
+      var k = normalizeGameKey(gameKey);
+      if (k === 'magic') return 'magicthegathering';
+      return k;
+    }
+
+    /* 18.1 图片懒加载观察器（配合原生 loading="lazy" 与 data-lazy-src 按需加载） */
+    function initLazyObserver() {
+      if (lazyObserver) lazyObserver.disconnect();
+      if ('IntersectionObserver' in window) {
+        lazyObserver = new IntersectionObserver(function (entries, obs) {
+          entries.forEach(function (entry) {
+            if (!entry.isIntersecting) return;
+            var img = entry.target;
+            var lazySrc = img.getAttribute('data-lazy-src');
+            if (lazySrc) {
+              img.src = lazySrc;
+              img.removeAttribute('data-lazy-src');
+            }
+            obs.unobserve(img);
+          });
+        }, { rootMargin: '280px 0px' });
+      }
+      expSection.querySelectorAll('img[data-lazy-src]').forEach(function (img) {
+        if (lazyObserver) {
+          lazyObserver.observe(img);
+        } else {
+          img.src = img.getAttribute('data-lazy-src');
+          img.removeAttribute('data-lazy-src');
+        }
+      });
+    }
+
+    /* 18.2 若左侧栏为空（例如在通用 page 模板下未配置 Block），从内置目录自动生成左侧栏 */
+    function ensureSidebarPopulated() {
+      if (!sidebarList) return;
+      if (sidebarList.querySelectorAll('[data-exp-game-item]').length > 0) return;
+      var cat = window.TCG_EXPANSIONS_CATALOG;
+      if (!cat) return;
+
+      var order = ['pokemon', 'lorcana', 'magic', 'gundam', 'onepiece', 'riftbound', 'digimon', 'yugioh'];
+      var html = [];
+      order.forEach(function (key) {
+        var g = cat[key];
+        if (!g) return;
+        var active = key === currentGameKey;
+        var locked = Boolean(g.locked);
+        var expanded = (key === 'riftbound' || active) && !locked;
+        var subItems = (g.navGroups && g.navGroups[0] && g.navGroups[0].items) || [];
+        var subTitle = (g.navGroups && g.navGroups[0] && g.navGroups[0].title) || 'Latest Expansions';
+
+        var subListHtml = subItems.map(function (si) {
+          return (
+            '<li>' +
+              '<a href="?game=' + encodeURIComponent(key) + '&expansion=' + encodeURIComponent(si.id) + '" class="tcg-exp-sub-link" data-exp-sub-item data-game-key="' + escAttr(key) + '" data-expansion-target="' + escAttr(si.id) + '">' +
+                '<span class="tcg-exp-sub-pipe" aria-hidden="true"></span>' +
+                '<span class="tcg-exp-sub-text">' + escAttr(si.label) + '</span>' +
+              '</a>' +
+            '</li>'
+          );
+        }).join('');
+
+        html.push(
+          '<li class="tcg-exp-nav-item' + (active ? ' is-active' : '') + (expanded ? ' is-expanded' : '') + (locked ? ' is-locked' : '') + '" ' +
+            'data-exp-game-item data-game-key="' + escAttr(key) + '" ' +
+            'data-header-title="' + escAttr(g.headerTitle || g.navTitle) + '" ' +
+            'data-header-desc="' + escAttr(g.description || '') + '" ' +
+            'data-game-icon="' + escAttr(g.icon || '') + '" ' +
+            'data-watermark-url="' + escAttr(g.watermark || '') + '" ' +
+            'data-locked="' + (locked ? 'true' : 'false') + '">' +
+            '<button type="button" class="tcg-exp-nav-trigger" data-exp-game-trigger="' + escAttr(key) + '" aria-expanded="' + (expanded ? 'true' : 'false') + '">' +
+              '<span class="tcg-exp-nav-left">' +
+                (g.icon
+                  ? '<img src="' + escAttr(g.icon) + '" alt="' + escAttr(g.navTitle) + '" width="20" height="20" loading="lazy" decoding="async" class="tcg-exp-nav-icon">'
+                  : '<span class="tcg-exp-nav-icon-placeholder" aria-hidden="true">◈</span>') +
+                '<span class="tcg-exp-nav-title">' + escAttr(g.navTitle) + '</span>' +
+                (locked ? '<span class="tcg-exp-locked-badge">LOCKED</span>' : '') +
+              '</span>' +
+              '<span class="tcg-exp-nav-right" aria-hidden="true">' +
+                (locked
+                  ? '<svg class="tcg-exp-lock-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5Zm-3 8V6a3 3 0 1 1 6 0v3H9Z"/></svg>'
+                  : '<svg class="tcg-exp-chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>') +
+              '</span>' +
+            '</button>' +
+            (!locked
+              ? '<div class="tcg-exp-nav-subpanel"' + (expanded ? '' : ' hidden') + ' data-exp-subpanel>' +
+                  '<a href="#expansions-header" class="tcg-exp-sub-heading" data-exp-sub-all="' + escAttr(key) + '">' +
+                    '<span class="tcg-exp-sub-square"></span>' +
+                    '<span>' + escAttr(subTitle) + '</span>' +
+                  '</a>' +
+                  '<ul class="tcg-exp-sub-list">' + subListHtml + '</ul>' +
+                  '<a href="/pages/about" class="tcg-exp-sub-heading tcg-exp-sub-extra">' +
+                    '<span class="tcg-exp-sub-square"></span>' +
+                    '<span>API Docs</span>' +
+                  '</a>' +
+                '</div>'
+              : '') +
+          '</li>'
+        );
+      });
+      sidebarList.innerHTML = html.join('');
+    }
+
+    /* 18.3 读取商家/用户在右侧配置的自定义 expansion_item 区块，并与全量数据集智能合并（自定义项优先覆盖或插入到对应分组顶部） */
+    function getMergedGroupsForGame(gameKey) {
+      var normKey = normalizeGameKey(gameKey);
+      var cat = window.TCG_EXPANSIONS_CATALOG || {};
+      var baseGroups = (cat[normKey] && Array.isArray(cat[normKey].groups))
+        ? JSON.parse(JSON.stringify(cat[normKey].groups))
+        : [];
+
+      // 收集自定义区块 [data-custom-exp-item]
+      var customNodes = expSection.querySelectorAll('[data-custom-exp-item]');
+      var customItems = [];
+      customNodes.forEach(function (node) {
+        var nk = normalizeGameKey(node.getAttribute('data-game-key') || 'pokemon');
+        if (nk !== normKey) return;
+        customItems.push({
+          blockId: node.getAttribute('data-block-id') || '',
+          heScope: node.getAttribute('data-he-scope') || '',
+          heSection: node.getAttribute('data-he-section') || '',
+          heBlock: node.getAttribute('data-he-block') || '',
+          heLabel: node.getAttribute('data-he-label') || '',
+          heSelected: node.getAttribute('data-he-selected') || '',
+          groupName: (node.getAttribute('data-group-name') || 'MEGA EVOLUTION').trim(),
+          id: (node.getAttribute('data-exp-id') || '').trim(),
+          name: (node.getAttribute('data-exp-name') || '').trim(),
+          date: (node.getAttribute('data-exp-date') || '').trim(),
+          cards: Number(node.getAttribute('data-exp-cards')) || 0,
+          logo: (node.getAttribute('data-exp-logo') || '').trim(),
+          collectionUrl: (node.getAttribute('data-collection-url') || '').trim()
+        });
+      });
+
+      // 将自定义项按反向顺序合并（保证前面的 Block 排在对应分组最前面，同 ID 项直接覆盖原数据）
+      for (var cIdx = customItems.length - 1; cIdx >= 0; cIdx--) {
+        var ci = customItems[cIdx];
+        if (!ci.id && !ci.name) continue;
+        var targetGrp = null;
+        for (var g = 0; g < baseGroups.length; g++) {
+          if (String(baseGroups[g].group || '').toUpperCase() === ci.groupName.toUpperCase()) {
+            targetGrp = baseGroups[g];
+            break;
+          }
+        }
+        if (!targetGrp) {
+          targetGrp = {
+            group: ci.groupName,
+            slug: ci.groupName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            count: 0,
+            items: []
+          };
+          baseGroups.unshift(targetGrp);
+        }
+
+        // 查找同 ID 项并移除旧项，再插入自定义项到最前
+        var existingIdx = -1;
+        for (var k = 0; k < targetGrp.items.length; k++) {
+          if (String(targetGrp.items[k].id || '').toUpperCase() === ci.id.toUpperCase()) {
+            existingIdx = k;
+            break;
+          }
+        }
+        if (existingIdx >= 0) {
+          targetGrp.items.splice(existingIdx, 1);
+        }
+        targetGrp.items.unshift({
+          id: ci.id,
+          name: ci.name,
+          date: ci.date,
+          cards: ci.cards,
+          logo: ci.logo || ('https://images.scrydex.com/' + gameSlugForLogo(normKey) + '/' + ci.id + '-logo/logo'),
+          collectionUrl: ci.collectionUrl,
+          heScope: ci.heScope,
+          heSection: ci.heSection,
+          heBlock: ci.heBlock,
+          heLabel: ci.heLabel,
+          heSelected: ci.heSelected
+        });
+        targetGrp.count = targetGrp.items.length;
+      }
+
+      return baseGroups;
+    }
+
+    /* 18.4 渲染右侧当前选中游戏的顶部 Header 与下方扩展包分组列表 */
+    function renderRightPaneForGame(gameKey) {
+      var normKey = normalizeGameKey(gameKey);
+      currentGameKey = normKey;
+
+      var cat = (window.TCG_EXPANSIONS_CATALOG && window.TCG_EXPANSIONS_CATALOG[normKey]) || null;
+      var navItem = expSection.querySelector('[data-exp-game-item][data-game-key="' + normKey + '"]') ||
+                    expSection.querySelector('[data-exp-game-item][data-game-key="' + gameKey + '"]');
+
+      var hTitle = (navItem && navItem.getAttribute('data-header-title')) || (cat && cat.headerTitle) || normKey.toUpperCase();
+      var hDesc = (navItem && navItem.getAttribute('data-header-desc')) || (cat && cat.description) || '';
+      var hIcon = (navItem && navItem.getAttribute('data-game-icon')) || (cat && cat.icon) || '';
+      var hWatermark = (navItem && navItem.getAttribute('data-watermark-url')) || (cat && cat.watermark) || '';
+
+      var titleEl = expSection.querySelector('[data-exp-header-title]');
+      var descEl = expSection.querySelector('[data-exp-header-desc]');
+      var iconEl = expSection.querySelector('[data-exp-header-icon]');
+      var wmEl = expSection.querySelector('[data-exp-header-watermark]');
+      var crumbEl = expSection.querySelector('[data-exp-breadcrumb-current]');
+
+      if (titleEl) titleEl.textContent = hTitle;
+      if (descEl) descEl.textContent = hDesc;
+      if (iconEl) {
+        if (hIcon) {
+          iconEl.src = hIcon;
+          iconEl.alt = hTitle;
+          if (iconEl.parentElement) iconEl.parentElement.style.display = '';
+        } else if (iconEl.parentElement) {
+          iconEl.parentElement.style.display = 'none';
+        }
+      }
+      if (wmEl) {
+        if (hWatermark) {
+          wmEl.src = hWatermark;
+          wmEl.style.display = '';
+        } else {
+          wmEl.style.display = 'none';
+        }
+      }
+      if (crumbEl) {
+        crumbEl.setAttribute('data-game', normKey === 'onepiece' ? 'one-piece' : normKey);
+      }
+
+      if (!groupsContainer) return;
+      var groups = getMergedGroupsForGame(normKey);
+      if (!groups.length) {
+        groupsContainer.innerHTML =
+          '<section class="tcg-exp-group">' +
+            '<div class="tcg-exp-group-head"><h2>COMING SOON</h2></div>' +
+            '<p style="color:var(--tcg-text-muted);padding:1rem 0.25rem;">This game catalog is currently locked or has no expansion items configured yet. You can add or unlock expansions in the editor.</p>' +
+          '</section>';
+        return;
+      }
+
+      var isTable = currentMode === 'table';
       var htmlParts = [];
-      var jumpParts = [];
+      var slugPrefix = gameSlugForLogo(normKey);
 
       for (var gIdx = 0; gIdx < groups.length; gIdx++) {
         var grp = groups[gIdx];
-        if (!grp || !Array.isArray(grp.items)) continue;
-        var grpName = grp.group || 'expansion';
+        if (!grp || !Array.isArray(grp.items) || !grp.items.length) continue;
+        var grpName = String(grp.group || 'EXPANSIONS').toUpperCase();
         var grpSlug = grp.slug || grpName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
         var items = grp.items;
-        totalCount += items.length;
-
-        jumpParts.push(
-          '<a href="#exp-group-' + escAttr(grpSlug) + '" class="tcg-exp-jump-pill' + (gIdx === 0 ? ' is-active' : '') + '" data-exp-jump="' + escAttr(grpSlug) + '">' +
-            escAttr(grpName) + ' <em>' + items.length + '</em>' +
-          '</a>'
-        );
 
         var gridCards = [];
         var tableRows = [];
@@ -3664,23 +3902,38 @@
           var name = String(it.name || '');
           var cards = Number(it.cards) || 0;
           var date = String(it.date || '');
-          var logo = it.logo || ('https://images.scrydex.com/magicthegathering/' + id + '-logo/logo');
+          var logo = it.logo || ('https://images.scrydex.com/' + slugPrefix + '/' + id + '-logo/logo');
+          var colUrl = it.collectionUrl || '';
+          var href = colUrl || ('?game=' + encodeURIComponent(normKey) + '&expansion=' + encodeURIComponent(id));
 
-          expansionLookup[id.toUpperCase()] = {
+          // 首组前 12 张直接挂 src + loading="lazy"，其余分组使用 data-lazy-src + IntersectionObserver 懒加载
+          var useImmediateSrc = (gIdx === 0 && i < 12);
+          var placeholderSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='72' viewBox='0 0 160 72'%3E%3C/svg%3E";
+          var imgAttrs = useImmediateSrc
+            ? 'src="' + escAttr(logo) + '" loading="lazy" decoding="async"'
+            : 'src="' + placeholderSvg + '" data-lazy-src="' + escAttr(logo) + '" loading="lazy" decoding="async"';
+
+          var heAttrs = '';
+          if (it.heBlock) {
+            heAttrs = ' data-he-scope="' + escAttr(it.heScope || 'template') + '" data-he-section="' + escAttr(it.heSection || 'main') + '" data-he-block="' + escAttr(it.heBlock) + '" data-he-label="' + escAttr(it.heLabel || name) + '"' + (it.heSelected === 'true' ? ' data-he-selected="true"' : '');
+          }
+
+          expansionLookup[(normKey + ':' + id).toUpperCase()] = {
+            gameKey: normKey,
             id: id,
             name: name,
             cards: cards,
             date: date,
             logo: logo,
-            group: grpName,
-            slug: it.slug || id.toLowerCase()
+            group: grpName
           };
+          expansionLookup[id.toUpperCase()] = expansionLookup[(normKey + ':' + id).toUpperCase()];
 
           gridCards.push(
-            '<a href="?expansion=' + encodeURIComponent(id) + '" class="tcg-exp-card" data-expansion-card data-expansion-id="' + escAttr(id) + '" data-expansion-name="' + escAttr(name) + '" data-expansion-date="' + escAttr(date) + '" data-expansion-cards="' + cards + '" data-expansion-group-name="' + escAttr(grpName) + '" data-expansion-logo="' + escAttr(logo) + '">' +
+            '<a href="' + escAttr(href) + '" class="tcg-exp-card" data-expansion-card data-game-key="' + escAttr(normKey) + '" data-expansion-id="' + escAttr(id) + '" data-expansion-name="' + escAttr(name) + '" data-expansion-date="' + escAttr(date) + '" data-expansion-cards="' + cards + '" data-expansion-group-name="' + escAttr(grpName) + '" data-expansion-logo="' + escAttr(logo) + '"' + (colUrl ? ' data-collection-url="' + escAttr(colUrl) + '"' : '') + heAttrs + '>' +
               '<div class="tcg-exp-card-inner">' +
                 '<div class="tcg-exp-card-logo">' +
-                  '<img src="' + escAttr(logo) + '" alt="' + escAttr(name) + '" loading="lazy" data-exp-logo="' + escAttr(id) + '">' +
+                  '<img ' + imgAttrs + ' alt="' + escAttr(name) + '" data-exp-logo="' + escAttr(id) + '" data-exp-game="' + escAttr(slugPrefix) + '">' +
                 '</div>' +
                 '<div class="tcg-exp-card-meta">' +
                   '<span class="tcg-exp-card-name">' + escAttr(name) + '</span>' +
@@ -3691,11 +3944,11 @@
           );
 
           tableRows.push(
-            '<tr class="tcg-exp-row" data-action="click->view-mode#navigateToCard" data-expansion-row data-expansion-id="' + escAttr(id) + '" data-expansion-name="' + escAttr(name) + '" data-expansion-date="' + escAttr(date) + '" data-expansion-cards="' + cards + '" data-expansion-group-name="' + escAttr(grpName) + '" data-expansion-logo="' + escAttr(logo) + '" data-url="?expansion=' + encodeURIComponent(id) + '">' +
+            '<tr class="tcg-exp-row" data-action="click->view-mode#navigateToCard" data-expansion-row data-game-key="' + escAttr(normKey) + '" data-expansion-id="' + escAttr(id) + '" data-expansion-name="' + escAttr(name) + '" data-expansion-date="' + escAttr(date) + '" data-expansion-cards="' + cards + '" data-expansion-group-name="' + escAttr(grpName) + '" data-expansion-logo="' + escAttr(logo) + '" data-url="' + escAttr(href) + '"' + heAttrs + '>' +
               '<td>' +
                 '<div class="tcg-exp-row-Main">' +
                   '<div class="tcg-exp-row-logo">' +
-                    '<img src="' + escAttr(logo) + '" alt="' + escAttr(name) + '" loading="lazy" data-exp-logo="' + escAttr(id) + '">' +
+                    '<img ' + imgAttrs + ' alt="' + escAttr(name) + '" data-exp-logo="' + escAttr(id) + '" data-exp-game="' + escAttr(slugPrefix) + '">' +
                   '</div>' +
                   '<span class="tcg-exp-row-name">' + escAttr(name) + '</span>' +
                 '</div>' +
@@ -3707,12 +3960,10 @@
           );
         }
 
-        var isTable = currentMode === 'table';
         htmlParts.push(
           '<section id="exp-group-' + escAttr(grpSlug) + '" class="tcg-exp-group" data-expansion-group="' + escAttr(grpSlug) + '">' +
             '<div class="tcg-exp-group-head">' +
               '<h2>' + escAttr(grpName) + '</h2>' +
-              '<span class="tcg-exp-group-badge">' + items.length + ' sets</span>' +
             '</div>' +
             '<div data-view-mode-target="grid" class="tcg-exp-grid' + (isTable ? ' hidden' : '') + '">' +
               gridCards.join('') +
@@ -3737,17 +3988,100 @@
       }
 
       groupsContainer.innerHTML = htmlParts.join('');
-      if (jumpNav && jumpParts.length) {
-        jumpNav.innerHTML = jumpParts.join('');
-      }
-
-      var totalEl = expSection.querySelector('[data-expansions-total-count]');
-      var grpCountEl = expSection.querySelector('[data-expansions-group-count]');
-      if (totalEl) totalEl.textContent = String(totalCount);
-      if (grpCountEl) grpCountEl.textContent = String(groups.length);
+      initLazyObserver();
     }
 
-    /* 18.2 View Mode (Grid / Table) 切换与 localStorage('view-mode') 持久化 */
+    /* 18.5 点击左侧游戏导航项 -> 展开/收起子菜单 + 立即联动更新右侧面板 */
+    function selectLeftGame(gameKey, toggleAccordion, pushHistoryFlag) {
+      var normKey = normalizeGameKey(gameKey);
+      var allItems = expSection.querySelectorAll('[data-exp-game-item]');
+
+      allItems.forEach(function (li) {
+        var liKey = normalizeGameKey(li.getAttribute('data-game-key'));
+        var isMatch = liKey === normKey;
+        var trigger = li.querySelector('[data-exp-game-trigger]');
+        var subpanel = li.querySelector('[data-exp-subpanel]');
+
+        li.classList.toggle('is-active', isMatch);
+        if (isMatch && subpanel) {
+          var willExpand = toggleAccordion ? !li.classList.contains('is-expanded') : true;
+          li.classList.toggle('is-expanded', willExpand);
+          if (willExpand) subpanel.removeAttribute('hidden');
+          else subpanel.setAttribute('hidden', '');
+          if (trigger) trigger.setAttribute('aria-expanded', willExpand ? 'true' : 'false');
+        }
+      });
+
+      // 确保右侧处于扩展包列表视图并立即刷新对应游戏数据
+      if (detailView && !detailView.hasAttribute('hidden')) {
+        detailView.setAttribute('hidden', '');
+        detailView.hidden = true;
+      }
+      if (listView) {
+        listView.removeAttribute('hidden');
+        listView.hidden = false;
+      }
+
+      renderRightPaneForGame(normKey);
+
+      if (pushHistoryFlag && window.history && window.history.pushState) {
+        try {
+          var u = new URL(window.location.href);
+          u.searchParams.set('game', normKey);
+          u.searchParams.delete('expansion');
+          window.history.pushState({ game: normKey }, '', u.toString());
+        } catch (e) {}
+      }
+    }
+
+    on('[data-exp-game-trigger]', 'click', function (e, btn) {
+      e.preventDefault();
+      var li = btn.closest('[data-exp-game-item]');
+      var gKey = btn.getAttribute('data-exp-game-trigger') || (li && li.getAttribute('data-game-key')) || 'pokemon';
+      var isLocked = li && li.getAttribute('data-locked') === 'true';
+      var normKey = normalizeGameKey(gKey);
+      var hasCustomItems = expSection.querySelector('[data-custom-exp-item][data-game-key="' + normKey + '"]');
+      if (isLocked && !hasCustomItems) {
+        selectLeftGame(normKey, false, false);
+        return;
+      }
+      var alreadyActive = normalizeGameKey(currentGameKey) === normKey;
+      selectLeftGame(normKey, alreadyActive, true);
+    }, expSection);
+
+    on('[data-exp-sub-all]', 'click', function (e, link) {
+      e.preventDefault();
+      var gKey = link.getAttribute('data-exp-sub-all') || currentGameKey;
+      selectLeftGame(gKey, false, true);
+    }, expSection);
+
+    on('[data-exp-sub-item]', 'click', function (e, subLink) {
+      e.preventDefault();
+      var gKey = normalizeGameKey(subLink.getAttribute('data-game-key') || currentGameKey);
+      var targetId = subLink.getAttribute('data-expansion-target') || '';
+      if (normalizeGameKey(currentGameKey) !== gKey) {
+        selectLeftGame(gKey, false, false);
+      } else if (detailView && !detailView.hasAttribute('hidden')) {
+        backToExpansionsList(false);
+      }
+
+      expSection.querySelectorAll('[data-exp-sub-item]').forEach(function (a) {
+        a.classList.toggle('is-active', a === subLink);
+      });
+
+      if (targetId) {
+        var cardEl = groupsContainer && groupsContainer.querySelector('[data-expansion-id="' + targetId + '"]');
+        if (cardEl) {
+          cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          cardEl.focus({ preventScroll: true });
+        } else {
+          var info = resolveExpansionData(targetId);
+          if (info) openExpansionDetail(info, true);
+        }
+      }
+    }, expSection);
+
+    /* 18.6 View Mode (Grid / Table) 切换与 localStorage('view-mode') 持久化 */
     function switchViewMode(mode, persist) {
       var targetMode = mode === 'table' ? 'table' : 'grid';
       currentMode = targetMode;
@@ -3769,6 +4103,7 @@
           localStorage.setItem('view-mode', targetMode);
         } catch (e) {}
       }
+      initLazyObserver();
     }
 
     var savedMode = null;
@@ -3783,16 +4118,17 @@
       switchViewMode(m, true);
     }, expSection);
 
-    /* 18.3 Logo 加载失败时自动降级为系列符号或代号徽章 */
+    /* 18.7 Logo 加载失败时自动降级为系列符号或代号徽章 */
     expSection.addEventListener('error', function (e) {
       var img = e.target;
       if (!img || img.tagName !== 'IMG') return;
       var code = img.getAttribute('data-exp-logo');
       if (!code) return;
+      var gameSlug = img.getAttribute('data-exp-game') || gameSlugForLogo(currentGameKey);
       var step = img.getAttribute('data-fallback-step') || '0';
       if (step === '0') {
         img.setAttribute('data-fallback-step', '1');
-        img.src = 'https://images.scrydex.com/magicthegathering/' + encodeURIComponent(code) + '-symbol/symbol';
+        img.src = 'https://images.scrydex.com/' + encodeURIComponent(gameSlug) + '/' + encodeURIComponent(code) + '-symbol/symbol';
       } else if (step === '1') {
         img.setAttribute('data-fallback-step', '2');
         var badge = document.createElement('span');
@@ -3804,38 +4140,30 @@
       }
     }, true);
 
-    /* 18.4 分类胶囊锚点平滑定位 */
-    on('[data-exp-jump]', 'click', function (e, pill) {
-      var slug = pill.getAttribute('data-exp-jump');
-      var target = slug ? document.getElementById('exp-group-' + slug) : null;
-      if (target) {
-        e.preventDefault();
-        expSection.querySelectorAll('[data-exp-jump]').forEach(function (p) {
-          p.classList.toggle('is-active', p === pill);
-        });
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, expSection);
-
-    /* 18.5 扩展包详情页无刷新切换与浏览器历史同步 */
+    /* 18.8 扩展包详情页无刷新切换与浏览器历史同步 */
     function resolveExpansionData(codeOrEl) {
       if (typeof codeOrEl === 'string') {
-        var key = codeOrEl.trim().toUpperCase();
-        if (expansionLookup[key]) return expansionLookup[key];
+        var k1 = (currentGameKey + ':' + codeOrEl.trim()).toUpperCase();
+        var k2 = codeOrEl.trim().toUpperCase();
+        if (expansionLookup[k1]) return expansionLookup[k1];
+        if (expansionLookup[k2]) return expansionLookup[k2];
         var domMatch = expSection.querySelector('[data-expansion-id="' + codeOrEl.trim() + '"]');
         if (domMatch) codeOrEl = domMatch;
         else return null;
       }
       if (codeOrEl && codeOrEl.getAttribute) {
-        var cid = codeOrEl.getAttribute('data-expansion-id') || 'FDN';
-        if (expansionLookup[cid.toUpperCase()]) return expansionLookup[cid.toUpperCase()];
+        var cid = codeOrEl.getAttribute('data-expansion-id') || 'me6';
+        var gKey = normalizeGameKey(codeOrEl.getAttribute('data-game-key') || currentGameKey);
+        var k = (gKey + ':' + cid).toUpperCase();
+        if (expansionLookup[k]) return expansionLookup[k];
         return {
+          gameKey: gKey,
           id: cid,
           name: codeOrEl.getAttribute('data-expansion-name') || cid,
           date: codeOrEl.getAttribute('data-expansion-date') || '',
           cards: Number(codeOrEl.getAttribute('data-expansion-cards')) || 0,
-          group: codeOrEl.getAttribute('data-expansion-group-name') || 'expansion',
-          logo: codeOrEl.getAttribute('data-expansion-logo') || ('https://images.scrydex.com/magicthegathering/' + cid + '-logo/logo')
+          group: codeOrEl.getAttribute('data-expansion-group-name') || 'EXPANSION',
+          logo: codeOrEl.getAttribute('data-expansion-logo') || ('https://images.scrydex.com/' + gameSlugForLogo(gKey) + '/' + cid + '-logo/logo')
         };
       }
       return null;
@@ -3844,7 +4172,6 @@
     function openExpansionDetail(expInfo, updateUrlFlag) {
       if (!expInfo || !listView || !detailView) return false;
 
-      var crumbEl = detailView.querySelector('[data-exp-detail-crumb]');
       var logoEl = detailView.querySelector('[data-exp-detail-logo]');
       var symbolEl = detailView.querySelector('[data-exp-detail-symbol]');
       var titleEl = detailView.querySelector('[data-exp-detail-title]');
@@ -3855,22 +4182,22 @@
       var searchLink = detailView.querySelector('[data-exp-detail-search-link]');
       var gridHead = detailView.querySelector('[data-exp-detail-grid-heading]');
       var cardsGrid = detailView.querySelector('[data-exp-detail-cards-grid]');
+      var gSlug = gameSlugForLogo(expInfo.gameKey || currentGameKey);
 
-      if (crumbEl) crumbEl.textContent = expInfo.name + ' (' + expInfo.id + ')';
       if (titleEl) titleEl.textContent = expInfo.name;
       if (idEl) idEl.textContent = expInfo.id;
-      if (groupEl) groupEl.textContent = expInfo.group || 'expansion';
+      if (groupEl) groupEl.textContent = expInfo.group || 'EXPANSION';
       if (cardsEl) cardsEl.textContent = String(expInfo.cards || 0);
       if (dateEl) dateEl.textContent = expInfo.date || '—';
       if (gridHead) gridHead.textContent = expInfo.name + ' (' + expInfo.id + ') — Collector Highlights';
 
       if (logoEl) {
-        logoEl.src = expInfo.logo || ('https://images.scrydex.com/magicthegathering/' + expInfo.id + '-logo/logo');
+        logoEl.src = expInfo.logo || ('https://images.scrydex.com/' + gSlug + '/' + expInfo.id + '-logo/logo');
         logoEl.alt = expInfo.name;
       }
       if (symbolEl) {
         if (symbolEl.parentElement) symbolEl.parentElement.style.display = '';
-        symbolEl.src = 'https://images.scrydex.com/magicthegathering/' + encodeURIComponent(expInfo.id) + '-symbol/symbol';
+        symbolEl.src = 'https://images.scrydex.com/' + encodeURIComponent(gSlug) + '/' + encodeURIComponent(expInfo.id) + '-symbol/symbol';
         symbolEl.alt = expInfo.id;
       }
       if (searchLink) {
@@ -3887,19 +4214,19 @@
           'https://horizon.local/assets/card-blastoise.png'
         ];
         var cardLabels = [
-          'Collector Booster Display',
-          'Play Booster Box (36 Packs)',
-          'Commander Deck Bundle',
-          'Mythic & Foil Chase Singles'
+          'Booster Box Display (36 Packs)',
+          'Elite Trainer / Collector Bundle',
+          'Chase Illustration Rare Single',
+          'Graded Gem Mint 10 Slab'
         ];
         var searchBaseUrl = (window.TCG_ROUTES && window.TCG_ROUTES.search_url) ? window.TCG_ROUTES.search_url : '/search';
         cardsGrid.innerHTML = sampleNums.map(function (n, idx) {
-          var cardImg = 'https://images.scrydex.com/magicthegathering/' + encodeURIComponent(expInfo.id) + '-' + n + '/medium';
+          var cardImg = 'https://images.scrydex.com/' + encodeURIComponent(gSlug) + '/' + encodeURIComponent(expInfo.id) + '-' + n + '/medium';
           var fbImg = fallbackPool[idx % fallbackPool.length];
           return (
             '<a href="' + escAttr(searchBaseUrl + '?type=product&q=' + encodeURIComponent(expInfo.name)) + '" class="tcg-exp-sample-card">' +
               '<div class="tcg-exp-sample-media">' +
-                '<img src="' + escAttr(cardImg) + '" alt="' + escAttr(expInfo.name + ' #' + n) + '" loading="lazy" onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src=\'' + escAttr(expInfo.logo) + '\';}else{this.src=\'' + fbImg + '\';}">' +
+                '<img src="' + escAttr(cardImg) + '" alt="' + escAttr(expInfo.name + ' #' + n) + '" loading="lazy" decoding="async" onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src=\'' + escAttr(expInfo.logo) + '\';}else{this.src=\'' + fbImg + '\';}">' +
               '</div>' +
               '<div class="tcg-exp-sample-body">' +
                 '<span class="tcg-exp-sample-tag">' + escAttr(expInfo.id) + ' · #' + String(n).padStart(3, '0') + '</span>' +
@@ -3919,8 +4246,9 @@
       if (updateUrlFlag !== false && window.history && window.history.pushState) {
         try {
           var u = new URL(window.location.href);
+          u.searchParams.set('game', expInfo.gameKey || currentGameKey);
           u.searchParams.set('expansion', expInfo.id);
-          window.history.pushState({ expansion: expInfo.id }, '', u.toString());
+          window.history.pushState({ game: expInfo.gameKey || currentGameKey, expansion: expInfo.id }, '', u.toString());
         } catch (e) {}
       }
 
@@ -3939,7 +4267,7 @@
         try {
           var u = new URL(window.location.href);
           u.searchParams.delete('expansion');
-          window.history.pushState({}, '', u.toString());
+          window.history.pushState({ game: currentGameKey }, '', u.toString());
         } catch (e) {}
       }
 
@@ -3957,7 +4285,7 @@
 
     on('[data-expansion-row]', 'click', function (e, row) {
       var targetUrl = row.getAttribute('data-url') || '';
-      if (targetUrl && targetUrl.indexOf('?expansion=') !== 0) {
+      if (targetUrl && targetUrl.indexOf('?') !== 0) {
         window.location.href = targetUrl;
         return;
       }
@@ -3975,6 +4303,10 @@
     window.addEventListener('popstate', function () {
       try {
         var params = new URLSearchParams(window.location.search);
+        var gParam = params.get('game');
+        if (gParam && normalizeGameKey(gParam) !== normalizeGameKey(currentGameKey)) {
+          selectLeftGame(gParam, false, false);
+        }
         var expCode = params.get('expansion');
         if (expCode) {
           var info = resolveExpansionData(expCode);
@@ -3986,20 +4318,22 @@
     });
 
     function initDataAndRoute() {
-      if (window.TCG_MTG_EXPANSIONS && Array.isArray(window.TCG_MTG_EXPANSIONS)) {
-        renderFullExpansionsData(window.TCG_MTG_EXPANSIONS);
-      }
+      ensureSidebarPopulated();
       try {
         var params = new URLSearchParams(window.location.search);
+        var initGame = params.get('game') || currentGameKey;
+        selectLeftGame(initGame, false, false);
         var initCode = params.get('expansion');
         if (initCode) {
           var info = resolveExpansionData(initCode);
           if (info) openExpansionDetail(info, false);
         }
-      } catch (e) {}
+      } catch (e) {
+        selectLeftGame(currentGameKey, false, false);
+      }
     }
 
-    if (window.TCG_MTG_EXPANSIONS) {
+    if (window.TCG_EXPANSIONS_CATALOG) {
       initDataAndRoute();
     } else {
       window.addEventListener('DOMContentLoaded', initDataAndRoute);

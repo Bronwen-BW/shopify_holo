@@ -2,10 +2,317 @@
   "sections": {
     "main": {
       "type": "tcg-expansions",
+      "blocks": {
+        "game_pokemon": {
+          "type": "left_game",
+          "settings": {
+            "game_key": "pokemon",
+            "name": "POKÉMON",
+            "icon_url": "https://scrydex.com/assets/tcgs/icon_pokemon-386fb418d8f003048ea382cbe3f9a5c1518c3b3bad005e7891c2eb0798278d60.png",
+            "header_title": "POKÉMON TCG",
+            "header_description": "Catch 'em all. Explore every expansion in the Pokémon Trading Card Game, from the original Base Set to the latest releases.",
+            "watermark_url": "https://scrydex.com/assets/tcgs/logo_pokemon-8a159e17ae61d5720bfe605ab12acde3a8d7e5ff986e9979c353f66396b500f2.png",
+            "sub_section_title": "Latest Expansions",
+            "sub_items": "Delta Reign|me6\n30th Celebration: Classic Collection|me55c\n30th Celebration|me55\nPitch Black|me5",
+            "extra_link_label": "API Docs",
+            "extra_link_url": "/pages/about",
+            "expanded_by_default": false,
+            "is_locked": false
+          }
+        },
+        "game_lorcana": {
+          "type": "left_game",
+          "settings": {
+            "game_key": "lorcana",
+            "name": "LORCANA",
+            "icon_url": "https://scrydex.com/assets/tcgs/icon_lorcana-f68779c6b7609ad758b3126d347ea1e2cf8bb3944edb52a2d620b73f2ee8a300.png",
+            "header_title": "DISNEY LORCANA",
+            "header_description": "Become an Illumineer. Discover all the Disney Lorcana TCG expansions and find the magical cards that bring your favorite stories to life.",
+            "watermark_url": "https://scrydex.com/assets/tcgs/logo_lorcana-7127a308645f2a2d4eb4e9b38f1928a157960ed9ae4cab839952de98c902816e.png",
+            "sub_section_title": "Latest Expansions",
+            "sub_items": "Hyperia City|HYPC\nAttack of the Vine!|AOTV\nWilds Unknown|WILD",
+            "extra_link_label": "API Docs",
+            "extra_link_url": "/pages/about",
+            "expanded_by_default": false,
+            "is_locked": false
+          }
+        },
+        "game_magic": {
+          "type": "left_game",
+          "settings": {
+            "game_key": "magic",
+            "name": "MAGIC: THE GATHERING",
+            "icon_url": "https://scrydex.com/assets/tcgs/icon_magicthegathering-e2151698e87443ceccb0ad4b6c98dac19d1b244cce24bac76f52c506046d5833.png",
+            "header_title": "MAGIC: THE GATHERING",
+            "header_description": "Master the Multiverse. Explore the vast history of Magic: The Gathering expansions, from Alpha to the most recent planeswalking adventures.",
+            "watermark_url": "https://scrydex.com/assets/tcgs/logo_mtg-a99225ad3a6ecb7c7fdc9c579a187289aee78c3eeb577f92086dcc8a57f1738e.png",
+            "sub_section_title": "Latest Expansions",
+            "sub_items": "Star Trek|TRK\nReality Fracture|FRA\nThe Hobbit|HOB\nMarvel Super Heroes|MSH",
+            "extra_link_label": "API Docs",
+            "extra_link_url": "/pages/about",
+            "expanded_by_default": false,
+            "is_locked": false
+          }
+        },
+        "game_gundam": {
+          "type": "left_game",
+          "settings": {
+            "game_key": "gundam",
+            "name": "GUNDAM",
+            "icon_url": "https://scrydex.com/assets/tcgs/icon_gundam-72d1c7c2890e7862b3c52b4d8851825dea709a8f279d70dd19c12aaea1e4462c.png",
+            "header_title": "GUNDAM CARD GAME",
+            "header_description": "Suit up for battle. Explore every expansion in the Gundam Card Game, featuring your favorite mobile suits and pilots from across the franchise.",
+            "watermark_url": "https://scrydex.com/assets/tcgs/logo_gundam-2e130fb7d7d5b295a6377c6994657d0b0041fdf13158e72709f7a21bb01e9a2a.png",
+            "sub_section_title": "Latest Expansions",
+            "sub_items": "Stardust Trails|GD06\nFreedom Ascension|GD05\nEternal Nexus|EB01",
+            "extra_link_label": "API Docs",
+            "extra_link_url": "/pages/about",
+            "expanded_by_default": false,
+            "is_locked": false
+          }
+        },
+        "game_onepiece": {
+          "type": "left_game",
+          "settings": {
+            "game_key": "onepiece",
+            "name": "ONE PIECE",
+            "icon_url": "https://scrydex.com/assets/tcgs/icon_onepiece-60130f65eda5c773fea7dc6158b47a7780d404ca36031ddacd50baa011812ea7.png",
+            "header_title": "ONE PIECE CARD GAME",
+            "header_description": "Set sail for adventure. Explore every expansion in the One Piece Card Game, featuring your favorite pirates and characters from the legendary series.",
+            "watermark_url": "https://scrydex.com/assets/tcgs/logo_onepiece-0eeef83c3e9e7396c760d3a08b57705421b7cebb83c94bc1042b63240817738f.png",
+            "sub_section_title": "Latest Expansions",
+            "sub_items": "Heroines Edition Vol.2|EB05\nThe World's Strongest Warriors|OP17\nThe Time Of Battle|OP16",
+            "extra_link_label": "API Docs",
+            "extra_link_url": "/pages/about",
+            "expanded_by_default": false,
+            "is_locked": false
+          }
+        },
+        "game_riftbound": {
+          "type": "left_game",
+          "settings": {
+            "game_key": "riftbound",
+            "name": "RIFTBOUND",
+            "icon_url": "https://scrydex.com/assets/tcgs/icon_riftbound-c7e8aec12d130058c30f1f2a32cae4554cfbf602319aeeeba6a58dff996fb1c6.png",
+            "header_title": "RIFTBOUND TCG",
+            "header_description": "Explore every expansion of the Riftbound TCG, featuring powerful cards, strategic depth, and immersive fantasy design.",
+            "watermark_url": "https://scrydex.com/assets/tcgs/logo_riftbound-de3d4febdd5d2d4a9e529904b3e93cff20dd3bdceee90caf3365187892c7437f.png",
+            "sub_section_title": "Latest Expansions",
+            "sub_items": "Radiance|RAD\nVendetta|VEN\nUnleashed|UNL\nSpiritforged|SFD",
+            "extra_link_label": "API Docs",
+            "extra_link_url": "/pages/about",
+            "expanded_by_default": true,
+            "is_locked": false
+          }
+        },
+        "game_digimon": {
+          "type": "left_game",
+          "settings": {
+            "game_key": "digimon",
+            "name": "DIGIMON",
+            "icon_url": "",
+            "header_title": "DIGIMON CARD GAME",
+            "header_description": "Digital monsters across evolutions. Explore Digimon booster sets, starter decks, and special collections.",
+            "watermark_url": "",
+            "sub_section_title": "Latest Expansions",
+            "sub_items": "",
+            "extra_link_label": "",
+            "extra_link_url": "",
+            "expanded_by_default": false,
+            "is_locked": true
+          }
+        },
+        "game_yugioh": {
+          "type": "left_game",
+          "settings": {
+            "game_key": "yugioh",
+            "name": "YU-GI-OH!",
+            "icon_url": "https://scrydex.com/assets/tcgs/icon_yugioh-bae87c221a4d757542c8f5472e031b454c0c5884cf47b80e5d5cac853a1b5b01.png",
+            "header_title": "YU-GI-OH! TCG",
+            "header_description": "It's time to duel. Explore Yu-Gi-Oh! booster sets, structure decks, and collector tins.",
+            "watermark_url": "",
+            "sub_section_title": "Latest Expansions",
+            "sub_items": "",
+            "extra_link_label": "",
+            "extra_link_url": "",
+            "expanded_by_default": false,
+            "is_locked": true
+          }
+        },
+        "exp_pkm_me6": {
+          "type": "expansion_item",
+          "settings": {
+            "game_key": "pokemon",
+            "group_name": "MEGA EVOLUTION",
+            "name": "Delta Reign",
+            "code": "me6",
+            "cards_count": 215,
+            "release_date": "2026/11/06",
+            "logo_url": "https://images.scrydex.com/pokemon/me6-logo/logo",
+            "collection": ""
+          }
+        },
+        "exp_pkm_me55c": {
+          "type": "expansion_item",
+          "settings": {
+            "game_key": "pokemon",
+            "group_name": "MEGA EVOLUTION",
+            "name": "30th Celebration: Classic Collection",
+            "code": "me55c",
+            "cards_count": 102,
+            "release_date": "2026/09/16",
+            "logo_url": "https://images.scrydex.com/pokemon/me55c-logo/logo",
+            "collection": ""
+          }
+        },
+        "exp_pkm_me55": {
+          "type": "expansion_item",
+          "settings": {
+            "game_key": "pokemon",
+            "group_name": "MEGA EVOLUTION",
+            "name": "30th Celebration",
+            "code": "me55",
+            "cards_count": 165,
+            "release_date": "2026/09/16",
+            "logo_url": "https://images.scrydex.com/pokemon/me55-logo/logo",
+            "collection": ""
+          }
+        },
+        "exp_pkm_me5": {
+          "type": "expansion_item",
+          "settings": {
+            "game_key": "pokemon",
+            "group_name": "MEGA EVOLUTION",
+            "name": "Pitch Black",
+            "code": "me5",
+            "cards_count": 198,
+            "release_date": "2026/07/17",
+            "logo_url": "https://images.scrydex.com/pokemon/me5-logo/logo",
+            "collection": ""
+          }
+        },
+        "exp_pkm_me4": {
+          "type": "expansion_item",
+          "settings": {
+            "game_key": "pokemon",
+            "group_name": "MEGA EVOLUTION",
+            "name": "Chaos Rising",
+            "code": "me4",
+            "cards_count": 210,
+            "release_date": "2026/05/22",
+            "logo_url": "https://images.scrydex.com/pokemon/me4-logo/logo",
+            "collection": ""
+          }
+        },
+        "exp_pkm_me3": {
+          "type": "expansion_item",
+          "settings": {
+            "game_key": "pokemon",
+            "group_name": "MEGA EVOLUTION",
+            "name": "Perfect Order",
+            "code": "me3",
+            "cards_count": 217,
+            "release_date": "2026/03/27",
+            "logo_url": "https://images.scrydex.com/pokemon/me3-logo/logo",
+            "collection": ""
+          }
+        },
+        "exp_pkm_me25": {
+          "type": "expansion_item",
+          "settings": {
+            "game_key": "pokemon",
+            "group_name": "MEGA EVOLUTION",
+            "name": "Ascended Heroes",
+            "code": "me25",
+            "cards_count": 295,
+            "release_date": "2026/01/30",
+            "logo_url": "https://images.scrydex.com/pokemon/me25-logo/logo",
+            "collection": ""
+          }
+        },
+        "exp_pkm_me2": {
+          "type": "expansion_item",
+          "settings": {
+            "game_key": "pokemon",
+            "group_name": "MEGA EVOLUTION",
+            "name": "Phantasmal Flames",
+            "code": "me2",
+            "cards_count": 130,
+            "release_date": "2025/11/14",
+            "logo_url": "https://images.scrydex.com/pokemon/me2-logo/logo",
+            "collection": ""
+          }
+        },
+        "exp_pkm_me1": {
+          "type": "expansion_item",
+          "settings": {
+            "game_key": "pokemon",
+            "group_name": "MEGA EVOLUTION",
+            "name": "Mega Evolution",
+            "code": "me1",
+            "cards_count": 188,
+            "release_date": "2025/09/26",
+            "logo_url": "https://images.scrydex.com/pokemon/me1-logo/logo",
+            "collection": ""
+          }
+        },
+        "exp_pkm_mee": {
+          "type": "expansion_item",
+          "settings": {
+            "game_key": "pokemon",
+            "group_name": "MEGA EVOLUTION",
+            "name": "Mega Evolution Energies",
+            "code": "mee",
+            "cards_count": 16,
+            "release_date": "2025/09/26",
+            "logo_url": "https://images.scrydex.com/pokemon/mee-logo/logo",
+            "collection": ""
+          }
+        },
+        "exp_pkm_mep": {
+          "type": "expansion_item",
+          "settings": {
+            "game_key": "pokemon",
+            "group_name": "MEGA EVOLUTION",
+            "name": "Mega Evolution Black Star Promos",
+            "code": "mep",
+            "cards_count": 49,
+            "release_date": "2025/09/26",
+            "logo_url": "https://images.scrydex.com/pokemon/mep-logo/logo",
+            "collection": ""
+          }
+        }
+      },
+      "block_order": [
+        "game_pokemon",
+        "game_lorcana",
+        "game_magic",
+        "game_gundam",
+        "game_onepiece",
+        "game_riftbound",
+        "game_digimon",
+        "game_yugioh",
+        "exp_pkm_me6",
+        "exp_pkm_me55c",
+        "exp_pkm_me55",
+        "exp_pkm_me5",
+        "exp_pkm_me4",
+        "exp_pkm_me3",
+        "exp_pkm_me25",
+        "exp_pkm_me2",
+        "exp_pkm_me1",
+        "exp_pkm_mee",
+        "exp_pkm_mep"
+      ],
       "settings": {
-        "heading": "Magic: The Gathering",
-        "description": "Master the Multiverse. Explore the vast history of Magic: The Gathering expansions, from Alpha to the most recent planeswalking adventures.",
-        "default_view_mode": "grid"
+        "breadcrumb_label": "Expansion",
+        "sidebar_brand": "Scrydex_",
+        "default_game": "pokemon",
+        "default_view_mode": "grid",
+        "heading": "POKÉMON TCG",
+        "description": "Catch 'em all. Explore every expansion in the Pokémon Trading Card Game, from the original Base Set to the latest releases.",
+        "game_icon_url": "https://scrydex.com/assets/tcgs/icon_pokemon-386fb418d8f003048ea382cbe3f9a5c1518c3b3bad005e7891c2eb0798278d60.png",
+        "header_watermark_url": "https://scrydex.com/assets/tcgs/logo_pokemon-8a159e17ae61d5720bfe605ab12acde3a8d7e5ff986e9979c353f66396b500f2.png"
       }
     }
   },

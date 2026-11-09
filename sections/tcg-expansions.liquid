@@ -1,28 +1,48 @@
 {%- comment -%}
-  TCG 扩展包目录页（对应 templates/page.expansions.json）
-  复刻 https://scrydex.com/magicthegathering/expansions 的系列展示与交互逻辑，融合店铺现有 TCG 主题风格，不包含 Filters 功能。
+  TCG Expansion 左右双栏联动页面（对应 templates/page.expansions.json）
+  功能特性：
+  1. 导航路径：Home -> Expansion
+  2. 左右两层布局（左侧手风琴游戏导航栏 + 右侧联动扩展包舞台与分组列表）
+  3. 点击左侧游戏或子项后，右侧顶部舞台（图标、标题、简介、背景水印 Logo）与下方扩展包分组列表同步无刷新更新
+  4. 全量图片采用懒加载（loading="lazy" + IntersectionObserver 按需加载）
+  5. 左右两侧均支持在主题编辑器及 shopify_suite 可视化工作台中自行修改（left_game 区块管理左侧导航，expansion_item 区块管理右侧扩展包卡片）
+  6. 保留 Grid / Table 视图切换与扩展包详情查看逻辑，不包含 Filters 功能
 {%- endcomment -%}
 
 {% render 'tcg-expansions-view', section: section %}
 
 {% schema %}
 {
-  "name": "TCG 扩展包目录 (Expansions)",
+  "name": "TCG 扩展包双栏目录 (Expansion)",
   "tag": "section",
   "class": "tcg-expansions-section",
-  "max_blocks": 30,
+  "max_blocks": 250,
   "settings": [
     {
       "type": "text",
-      "id": "heading",
-      "label": "页面主标题",
-      "default": "Magic: The Gathering"
+      "id": "breadcrumb_label",
+      "label": "面包屑当前页名称",
+      "default": "Expansion"
     },
     {
-      "type": "textarea",
-      "id": "description",
-      "label": "页面顶部简介文案",
-      "default": "Master the Multiverse. Explore the vast history of Magic: The Gathering expansions, from Alpha to the most recent planeswalking adventures."
+      "type": "text",
+      "id": "sidebar_brand",
+      "label": "左侧栏顶部标题",
+      "default": "Scrydex_"
+    },
+    {
+      "type": "select",
+      "id": "default_game",
+      "label": "默认选中游戏 (Default Active Game)",
+      "default": "pokemon",
+      "options": [
+        { "value": "pokemon", "label": "Pokémon TCG" },
+        { "value": "lorcana", "label": "Disney Lorcana" },
+        { "value": "magic", "label": "Magic: The Gathering" },
+        { "value": "gundam", "label": "Gundam Card Game" },
+        { "value": "onepiece", "label": "One Piece Card Game" },
+        { "value": "riftbound", "label": "Riftbound TCG" }
+      ]
     },
     {
       "type": "select",
@@ -36,15 +56,27 @@
     },
     {
       "type": "text",
+      "id": "heading",
+      "label": "右侧默认主标题（未匹配左侧项时兜底）",
+      "default": "POKÉMON TCG"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "右侧默认简介文案",
+      "default": "Catch 'em all. Explore every expansion in the Pokémon Trading Card Game, from the original Base Set to the latest releases."
+    },
+    {
+      "type": "text",
       "id": "game_icon_url",
-      "label": "游戏徽标图标 URL",
-      "default": "https://scrydex.com/assets/tcgs/icon_magicthegathering-e2151698e87443ceccb0ad4b6c98dac19d1b244cce24bac76f52c506046d5833.png"
+      "label": "右侧默认游戏图标 URL",
+      "default": "https://scrydex.com/assets/tcgs/icon_pokemon-386fb418d8f003048ea382cbe3f9a5c1518c3b3bad005e7891c2eb0798278d60.png"
     },
     {
       "type": "text",
       "id": "header_watermark_url",
-      "label": "右侧背景水印 Logo URL",
-      "default": "https://scrydex.com/assets/tcgs/logo_mtg-a99225ad3a6ecb7c7fdc9c579a187289aee78c3eeb577f92086dcc8a57f1738e.png"
+      "label": "右侧默认背景水印 Logo URL",
+      "default": "https://scrydex.com/assets/tcgs/logo_pokemon-8a159e17ae61d5720bfe605ab12acde3a8d7e5ff986e9979c353f66396b500f2.png"
     },
     {
       "type": "collection",
@@ -54,37 +86,133 @@
   ],
   "blocks": [
     {
-      "type": "expansion_item",
-      "name": "自定义置顶系列",
+      "type": "left_game",
+      "name": "左侧游戏导航项 (Left Game)",
       "settings": [
+        {
+          "type": "text",
+          "id": "game_key",
+          "label": "游戏唯一标识 (game_key，如 pokemon / magic / lorcana)",
+          "default": "pokemon"
+        },
+        {
+          "type": "text",
+          "id": "name",
+          "label": "左侧导航显示名称",
+          "default": "POKÉMON"
+        },
+        {
+          "type": "text",
+          "id": "icon_url",
+          "label": "游戏图标 URL",
+          "default": "https://scrydex.com/assets/tcgs/icon_pokemon-386fb418d8f003048ea382cbe3f9a5c1518c3b3bad005e7891c2eb0798278d60.png"
+        },
+        {
+          "type": "image_picker",
+          "id": "icon_image",
+          "label": "本地上传图标覆盖（可选）"
+        },
+        {
+          "type": "text",
+          "id": "header_title",
+          "label": "右侧联动顶部主标题",
+          "default": "POKÉMON TCG"
+        },
+        {
+          "type": "textarea",
+          "id": "header_description",
+          "label": "右侧联动顶部简介文案",
+          "default": "Catch 'em all. Explore every expansion in the Pokémon Trading Card Game, from the original Base Set to the latest releases."
+        },
+        {
+          "type": "text",
+          "id": "watermark_url",
+          "label": "右侧联动背景水印 Logo URL",
+          "default": "https://scrydex.com/assets/tcgs/logo_pokemon-8a159e17ae61d5720bfe605ab12acde3a8d7e5ff986e9979c353f66396b500f2.png"
+        },
+        {
+          "type": "text",
+          "id": "sub_section_title",
+          "label": "左侧展开子菜单标题",
+          "default": "Latest Expansions"
+        },
+        {
+          "type": "textarea",
+          "id": "sub_items",
+          "label": "左侧展开子菜单项（每行一项：名称|扩展包ID）",
+          "default": "Delta Reign|me6\n30th Celebration|me55\n30th Celebration: Classic Collection|me55c\nPitch Black|me5"
+        },
+        {
+          "type": "text",
+          "id": "extra_link_label",
+          "label": "左侧附加链接名称（留空则隐藏）",
+          "default": "API Docs"
+        },
+        {
+          "type": "text",
+          "id": "extra_link_url",
+          "label": "左侧附加链接地址",
+          "default": "/pages/about"
+        },
+        {
+          "type": "checkbox",
+          "id": "expanded_by_default",
+          "label": "默认展开左侧子菜单",
+          "default": false
+        },
+        {
+          "type": "checkbox",
+          "id": "is_locked",
+          "label": "设为 LOCKED 锁定状态",
+          "default": false
+        }
+      ]
+    },
+    {
+      "type": "expansion_item",
+      "name": "右侧扩展包卡片项 (Right Expansion)",
+      "settings": [
+        {
+          "type": "text",
+          "id": "game_key",
+          "label": "所属左侧游戏标识 (game_key，如 pokemon / magic)",
+          "default": "pokemon"
+        },
+        {
+          "type": "text",
+          "id": "group_name",
+          "label": "右侧所属系列分组名 (如 MEGA EVOLUTION)",
+          "default": "MEGA EVOLUTION"
+        },
         {
           "type": "text",
           "id": "name",
           "label": "扩展包名称 (Expansion Name)",
-          "default": "Foundations"
+          "default": "Delta Reign"
         },
         {
           "type": "text",
           "id": "code",
           "label": "扩展包代号 (ID)",
-          "default": "FDN"
+          "default": "me6"
         },
         {
           "type": "number",
           "id": "cards_count",
           "label": "卡牌数量 (Cards)",
-          "default": 763
+          "default": 215
         },
         {
           "type": "text",
           "id": "release_date",
           "label": "发售日期 (Release Date)",
-          "default": "2024/11/15"
+          "default": "2026/11/06"
         },
         {
           "type": "text",
           "id": "logo_url",
-          "label": "Logo 图片 URL（留空则按 ID 自动匹配）"
+          "label": "Logo 图片 URL（支持懒加载）",
+          "default": "https://images.scrydex.com/pokemon/me6-logo/logo"
         },
         {
           "type": "image_picker",
@@ -101,7 +229,7 @@
   ],
   "presets": [
     {
-      "name": "TCG 扩展包目录 (Expansions)"
+      "name": "TCG 扩展包双栏目录 (Expansion)"
     }
   ]
 }

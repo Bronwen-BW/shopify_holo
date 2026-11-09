@@ -1,447 +1,434 @@
 {%- comment -%}
-  TCG Expansions 页面核心视图（复刻 https://scrydex.com/magicthegathering/expansions 功能与交互逻辑，融合店铺现有 TCG 暗黑/明亮双模视觉风格，不包含 Filters 功能）
-  核心特性：
-  1. 顶部 Expansions Header：游戏徽标 + 标题 + 背景水印 Logo + 简介文案 + 统计概览 + Grid / Table 视图模式切换器（无右侧 Filters 侧边栏）
-  2. 分组快速锚点导航栏（支持一键平滑滚动定位到 24 个系列分类：expansion / core / commander / masters 等）
-  3. 完整支持 Grid（网格 Logo 卡片）与 Table（Expansion Name / ID / Cards / Release Date 四列表格）双视图无缝切换，并持久化到 localStorage('view-mode')
-  4. 点击任意扩展包卡片或表格行，支持无刷新切换到该扩展包的详情/商品选购视图（或跳转到绑定的 Shopify 集合）
+  TCG Expansion 左右双栏联动核心视图（不含 Filters 功能）
+  1. 导航路径：Home -> Expansion
+  2. 左侧栏：手风琴游戏分类导航（POKÉMON / LORCANA / MAGIC: THE GATHERING / GUNDAM / ONE PIECE / RIFTBOUND / DIGIMON / YU-GI-OH!），支持展开子菜单（Latest Expansions 子项 + 附加链接），点击左侧游戏或子项立即联动更新右侧
+  3. 右侧栏：对应游戏的顶部 Header（游戏图标、大标题、简介文案、右侧半透明灰度背景水印 Logo、Grid/Table 视图切换器）+ 系列分组扩展包列表（如 MEGA EVOLUTION / SCARLET & VIOLET 等）
+  4. 所有扩展包 Logo 与图标均采用懒加载（loading="lazy" decoding="async" + IntersectionObserver）
+  5. 左右两侧均支持通过 Block（left_game / expansion_item）自行修改与增删改排
 {%- endcomment -%}
 
-{%- assign page_heading = section.settings.heading | default: 'Magic: The Gathering' -%}
-{%- assign page_desc = section.settings.description | default: 'Master the Multiverse. Explore the vast history of Magic: The Gathering expansions, from Alpha to the most recent planeswalking adventures.' -%}
+{%- assign crumb_label = section.settings.breadcrumb_label | default: 'Expansion' -%}
+{%- assign sidebar_brand = section.settings.sidebar_brand | default: 'Scrydex_' -%}
+{%- assign default_game = section.settings.default_game | default: 'pokemon' -%}
 {%- assign default_view = section.settings.default_view_mode | default: 'grid' -%}
-{%- assign game_icon_url = section.settings.game_icon_url | default: 'https://scrydex.com/assets/tcgs/icon_magicthegathering-e2151698e87443ceccb0ad4b6c98dac19d1b244cce24bac76f52c506046d5833.png' -%}
-{%- assign header_bg_logo = section.settings.header_watermark_url | default: 'https://scrydex.com/assets/tcgs/logo_mtg-a99225ad3a6ecb7c7fdc9c579a187289aee78c3eeb577f92086dcc8a57f1738e.png' -%}
+{%- assign page_heading = section.settings.heading | default: 'POKÉMON TCG' -%}
+{%- assign page_desc = section.settings.description | default: "Catch 'em all. Explore every expansion in the Pokémon Trading Card Game, from the original Base Set to the latest releases." -%}
+{%- assign game_icon_url = section.settings.game_icon_url | default: 'https://scrydex.com/assets/tcgs/icon_pokemon-386fb418d8f003048ea382cbe3f9a5c1518c3b3bad005e7891c2eb0798278d60.png' -%}
+{%- assign header_bg_logo = section.settings.header_watermark_url | default: 'https://scrydex.com/assets/tcgs/logo_pokemon-8a159e17ae61d5720bfe605ab12acde3a8d7e5ff986e9979c353f66396b500f2.png' -%}
+
+{%- assign left_game_blocks = section.blocks | where: 'type', 'left_game' -%}
+{%- assign right_exp_blocks = section.blocks | where: 'type', 'expansion_item' -%}
 
 <div
   class="_page_4xdw3_1 tcg-expansions-page"
   data-tcg-expansions-section
+  data-default-game="{{ default_game | escape }}"
   data-controller="view-mode"
-  data-view-mode-initial-value="{{ default_view }}"
+  data-view-mode-initial-value="{{ default_view | escape }}"
 >
   <div class="_wide_4xdw3_6">
 
-    {%- comment %} ================= 1. 扩展包总览主视图 ================= {% endcomment -%}
-    <div data-expansions-list-view>
+    {%- comment %} 面包屑导航：Home -> Expansion {% endcomment -%}
+    <nav aria-label="Breadcrumb" class="_breadcrumb_4xdw3_11">
+      <a aria-label="Back to home" href="{{ routes.root_url }}" class="_crumbBack_4xdw3_69">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+      </a>
+      <ol>
+        <li><a href="{{ routes.root_url }}">Home</a></li>
+        <li aria-current="page"><span class="_crumbGame_4xdw3_89" data-game="pokemon" data-exp-breadcrumb-current>{{ crumb_label }}</span></li>
+      </ol>
+    </nav>
 
-      {%- comment %} 面包屑导航（保持店铺统一胶囊面包屑风格） {% endcomment -%}
-      <nav aria-label="Breadcrumb" class="_breadcrumb_4xdw3_11">
-        <a aria-label="Back to home" href="{{ routes.root_url }}" class="_crumbBack_4xdw3_69">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
-        </a>
-        <ol>
-          <li><a href="{{ routes.root_url }}">Home</a></li>
-          <li><a href="{{ routes.collections_url }}">Collections</a></li>
-          <li aria-current="page"><span class="_crumbGame_4xdw3_89" data-game="magic">{{ page_heading }} Expansions</span></li>
-        </ol>
-      </nav>
+    {%- comment %} ================= 左右两层主布局容器 ================= {% endcomment -%}
+    <div class="tcg-exp-dual-layout">
 
-      {%- comment %} 顶部 Header 横幅（复刻 #expansions-header，融入店铺卡片与光效风格，右侧集成 Grid / Table 视图切换器，不含 Filters） {% endcomment -%}
-      <section id="expansions-header" class="tcg-exp-header">
-        <div id="expansions-header-bg" class="tcg-exp-header-bg" aria-hidden="true">
-          <img src="{{ header_bg_logo }}" alt="" loading="lazy">
+      {%- comment %} ------------ 左侧层：游戏分类与最新扩展包手风琴导航栏（支持自定义修改） ------------ {% endcomment -%}
+      <aside class="tcg-exp-sidebar" aria-label="Game Expansions Navigation" data-exp-sidebar>
+        <div class="tcg-exp-sidebar-brand">
+          <span class="tcg-exp-sidebar-logo-glyph" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"></path>
+              <path d="M12 6a6 6 0 1 0 6 6 6 6 0 0 0-6-6Z"></path>
+              <circle cx="12" cy="12" r="2"></circle>
+            </svg>
+          </span>
+          <span class="tcg-exp-sidebar-brand-text" data-exp-sidebar-brand>{{ sidebar_brand }}</span>
         </div>
 
-        <div class="tcg-exp-header-inner">
-          <div class="tcg-exp-header-top">
-            <div id="expansions-header-badge" class="tcg-exp-badge">
-              <span class="tcg-exp-badge-icon">
-                <img src="{{ game_icon_url }}" alt="{{ page_heading | escape }}" width="32" height="32">
-              </span>
-              <div>
-                <span class="tcg-eyebrow">Expansion Archive &amp; Set Directory</span>
-                <h1 class="tcg-exp-title">{{ page_heading }}</h1>
-              </div>
-            </div>
-
-            {%- comment %} View Mode 切换器（Grid / Table，保留原页面核心交互逻辑，去除 Filters） {% endcomment -%}
-            <div class="tcg-exp-toolbar" role="toolbar" aria-label="View Mode">
-              <div class="tcg-exp-view-label">
-                <span class="tcg-exp-view-dot"></span>
-                <span>View Mode</span>
-              </div>
-              <div class="tcg-exp-view-switch" role="group" aria-label="Switch between Grid and Table view">
-                <button
-                  type="button"
-                  class="tcg-exp-view-btn is-active"
-                  data-view-mode-target="button"
-                  data-action="click->view-mode#change"
-                  data-mode="grid"
-                  aria-pressed="true"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
-                    <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
-                    <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
-                    <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
-                  </svg>
-                  <span>Grid</span>
-                </button>
-                <button
-                  type="button"
-                  class="tcg-exp-view-btn"
-                  data-view-mode-target="button"
-                  data-action="click->view-mode#change"
-                  data-mode="table"
-                  aria-pressed="false"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect x="3" y="4" width="18" height="16" rx="2"></rect>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                    <line x1="3" y1="15" x2="21" y2="15"></line>
-                    <line x1="9" y1="10" x2="9" y2="20"></line>
-                  </svg>
-                  <span>Table</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <p id="expansions-header-description" class="tcg-exp-desc">
-            {{ page_desc }}
-          </p>
-
-          <div class="tcg-exp-meta-bar">
-            <div class="tcg-exp-stat-pill">
-              <strong data-expansions-total-count>827</strong>
-              <span>Total Expansions</span>
-            </div>
-            <div class="tcg-exp-stat-pill">
-              <strong data-expansions-group-count>24</strong>
-              <span>Set Categories</span>
-            </div>
-            <div class="tcg-exp-stat-pill">
-              <strong>1993 – 2026</strong>
-              <span>Alpha to Latest Releases</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {%- comment %} 分类快速定位胶囊条（纯页内锚点跳转，非 Filter 过滤） {% endcomment -%}
-      <nav class="tcg-exp-jump-nav" aria-label="Expansion categories quick jump" data-expansions-jump-nav>
-        <a href="#exp-group-expansion" class="tcg-exp-jump-pill is-active" data-exp-jump="expansion">expansion <em>118</em></a>
-        <a href="#exp-group-core" class="tcg-exp-jump-pill" data-exp-jump="core">core <em>25</em></a>
-        <a href="#exp-group-commander" class="tcg-exp-jump-pill" data-exp-jump="commander">commander <em>45</em></a>
-        <a href="#exp-group-masters" class="tcg-exp-jump-pill" data-exp-jump="masters">masters <em>32</em></a>
-        <a href="#exp-group-draft-innovation" class="tcg-exp-jump-pill" data-exp-jump="draft-innovation">draft innovation <em>19</em></a>
-        <a href="#exp-group-masterpiece" class="tcg-exp-jump-pill" data-exp-jump="masterpiece">masterpiece <em>20</em></a>
-        <a href="#exp-group-eternal" class="tcg-exp-jump-pill" data-exp-jump="eternal">eternal <em>4</em></a>
-        <a href="#exp-group-promo" class="tcg-exp-jump-pill" data-exp-jump="promo">promo <em>287</em></a>
-        <a href="#exp-group-alchemy" class="tcg-exp-jump-pill" data-exp-jump="alchemy">alchemy <em>14</em></a>
-        <a href="#exp-group-funny" class="tcg-exp-jump-pill" data-exp-jump="funny">funny <em>19</em></a>
-        <a href="#exp-group-memorabilia" class="tcg-exp-jump-pill" data-exp-jump="memorabilia">memorabilia <em>86</em></a>
-        <a href="#exp-group-token" class="tcg-exp-jump-pill" data-exp-jump="token">token <em>22</em></a>
-        <a href="#exp-group-minigame" class="tcg-exp-jump-pill" data-exp-jump="minigame">minigame <em>14</em></a>
-        <a href="#exp-group-box" class="tcg-exp-jump-pill" data-exp-jump="box">box <em>46</em></a>
-        <a href="#exp-group-arsenal" class="tcg-exp-jump-pill" data-exp-jump="arsenal">arsenal <em>3</em></a>
-        <a href="#exp-group-starter" class="tcg-exp-jump-pill" data-exp-jump="starter">starter <em>15</em></a>
-        <a href="#exp-group-spellbook" class="tcg-exp-jump-pill" data-exp-jump="spellbook">spellbook <em>3</em></a>
-        <a href="#exp-group-planechase" class="tcg-exp-jump-pill" data-exp-jump="planechase">planechase <em>6</em></a>
-        <a href="#exp-group-duel-deck" class="tcg-exp-jump-pill" data-exp-jump="duel-deck">duel deck <em>28</em></a>
-        <a href="#exp-group-from-the-vault" class="tcg-exp-jump-pill" data-exp-jump="from-the-vault">from the vault <em>10</em></a>
-        <a href="#exp-group-archenemy" class="tcg-exp-jump-pill" data-exp-jump="archenemy">archenemy <em>4</em></a>
-        <a href="#exp-group-treasure-chest" class="tcg-exp-jump-pill" data-exp-jump="treasure-chest">treasure chest <em>2</em></a>
-        <a href="#exp-group-premium-deck" class="tcg-exp-jump-pill" data-exp-jump="premium-deck">premium deck <em>3</em></a>
-        <a href="#exp-group-vanguard" class="tcg-exp-jump-pill" data-exp-jump="vanguard">vanguard <em>2</em></a>
-      </nav>
-
-      {%- comment %} 商家自定义高亮系列区块（若在 Shopify 主题编辑器中配置了自定义系列 Block 则优先置顶渲染） {% endcomment -%}
-      {%- if section != blank and section.blocks.size > 0 -%}
-        <section class="tcg-exp-group" data-expansion-group="featured">
-          <div class="tcg-exp-group-head">
-            <h2>Featured Store Expansions</h2>
-            <span class="tcg-exp-group-badge">{{ section.blocks.size }} sets</span>
-          </div>
-
-          <div data-view-mode-target="grid" class="tcg-exp-grid">
-            {%- for block in section.blocks -%}
-              {%- assign b_col = collections[block.settings.collection] -%}
-              {%- assign b_code = block.settings.code | default: 'MTG' -%}
-              {%- assign b_name = block.settings.name | default: b_col.title | default: 'Featured Expansion' -%}
-              {%- assign b_date = block.settings.release_date | default: '2026/11/13' -%}
-              {%- assign b_cards = block.settings.cards_count | default: b_col.products_count | default: 350 -%}
-              {%- assign b_logo = block.settings.logo_url -%}
-              {%- if b_logo == blank -%}
-                {%- assign b_logo = 'https://images.scrydex.com/magicthegathering/' | append: b_code | append: '-logo/logo' -%}
+        <ul class="tcg-exp-nav-list" data-exp-sidebar-list>
+          {%- if left_game_blocks.size > 0 -%}
+            {%- for block in left_game_blocks -%}
+              {%- assign g_key = block.settings.game_key | default: 'pokemon' | downcase | strip -%}
+              {%- assign g_name = block.settings.name | default: 'POKÉMON' -%}
+              {%- assign g_icon = block.settings.icon_url -%}
+              {%- if block.settings.icon_image != blank -%}
+                {%- assign g_icon = block.settings.icon_image | image_url: width: 96 -%}
               {%- endif -%}
-              {%- assign b_url = b_col.url | default: '?expansion=' | append: b_code -%}
+              {%- assign g_h_title = block.settings.header_title | default: g_name -%}
+              {%- assign g_h_desc = block.settings.header_description | default: page_desc -%}
+              {%- assign g_watermark = block.settings.watermark_url -%}
+              {%- assign g_sub_title = block.settings.sub_section_title | default: 'Latest Expansions' -%}
+              {%- assign g_sub_raw = block.settings.sub_items | default: '' -%}
+              {%- assign g_extra_label = block.settings.extra_link_label -%}
+              {%- assign g_extra_url = block.settings.extra_link_url | default: '/pages/about' -%}
+              {%- assign g_locked = block.settings.is_locked -%}
+              {%- assign g_expanded = block.settings.expanded_by_default -%}
+              {%- if g_key == default_game and g_locked == false -%}
+                {%- assign g_expanded = true -%}
+              {%- endif -%}
 
-              <a
-                href="{{ b_url }}"
-                class="tcg-exp-card"
-                data-expansion-card
-                data-expansion-id="{{ b_code | escape }}"
-                data-expansion-name="{{ b_name | escape }}"
-                data-expansion-date="{{ b_date | escape }}"
-                data-expansion-cards="{{ b_cards }}"
-                data-expansion-group-name="featured"
-                data-expansion-logo="{{ b_logo | escape }}"
-                {% if b_col != blank %}data-collection-url="{{ b_col.url }}"{% endif %}
+              <li
+                class="tcg-exp-nav-item{% if g_key == default_game %} is-active{% endif %}{% if g_expanded %} is-expanded{% endif %}{% if g_locked %} is-locked{% endif %}"
+                data-exp-game-item
+                data-game-key="{{ g_key | escape }}"
+                data-header-title="{{ g_h_title | escape }}"
+                data-header-desc="{{ g_h_desc | escape }}"
+                data-game-icon="{{ g_icon | escape }}"
+                data-watermark-url="{{ g_watermark | escape }}"
+                data-locked="{{ g_locked }}"
                 {{ block.shopify_attributes }}
               >
-                <div class="tcg-exp-card-inner">
-                  <div class="tcg-exp-card-logo">
-                    {%- if block.settings.image != blank -%}
-                      <img src="{{ block.settings.image | image_url: width: 480 }}" alt="{{ b_name | escape }}" loading="lazy">
+                <button
+                  type="button"
+                  class="tcg-exp-nav-trigger"
+                  data-exp-game-trigger="{{ g_key | escape }}"
+                  aria-expanded="{% if g_expanded %}true{% else %}false{% endif %}"
+                >
+                  <span class="tcg-exp-nav-left">
+                    {%- if g_icon != blank -%}
+                      <img src="{{ g_icon }}" alt="{{ g_name | escape }}" width="20" height="20" loading="lazy" decoding="async" class="tcg-exp-nav-icon">
                     {%- else -%}
-                      <img src="{{ b_logo }}" alt="{{ b_name | escape }}" loading="lazy" data-exp-logo="{{ b_code | escape }}">
+                      <span class="tcg-exp-nav-icon-placeholder" aria-hidden="true">◈</span>
+                    {%- endif -%}
+                    <span class="tcg-exp-nav-title">{{ g_name }}</span>
+                    {%- if g_locked -%}
+                      <span class="tcg-exp-locked-badge">LOCKED</span>
+                    {%- endif -%}
+                  </span>
+                  <span class="tcg-exp-nav-right" aria-hidden="true">
+                    {%- if g_locked -%}
+                      <svg class="tcg-exp-lock-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5Zm-3 8V6a3 3 0 1 1 6 0v3H9Z"/></svg>
+                    {%- else -%}
+                      <svg class="tcg-exp-chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    {%- endif -%}
+                  </span>
+                </button>
+
+                {%- unless g_locked -%}
+                  <div class="tcg-exp-nav-subpanel"{% unless g_expanded %} hidden{% endunless %} data-exp-subpanel>
+                    {%- if g_sub_title != blank -%}
+                      <a href="#expansions-header" class="tcg-exp-sub-heading" data-exp-sub-all="{{ g_key | escape }}">
+                        <span class="tcg-exp-sub-square"></span>
+                        <span>{{ g_sub_title }}</span>
+                      </a>
+                    {%- endif -%}
+                    {%- if g_sub_raw != blank -%}
+                      {%- assign sub_lines = g_sub_raw | newline_to_br | split: '<br />' -%}
+                      <ul class="tcg-exp-sub-list">
+                        {%- for line in sub_lines -%}
+                          {%- assign clean_line = line | strip -%}
+                          {%- if clean_line != '' -%}
+                            {%- assign s_parts = clean_line | split: '|' -%}
+                            {%- assign s_label = s_parts[0] | strip -%}
+                            {%- assign s_id = s_parts[1] | default: s_parts[0] | strip -%}
+                            <li>
+                              <a href="?game={{ g_key | url_encode }}&amp;expansion={{ s_id | url_encode }}" class="tcg-exp-sub-link" data-exp-sub-item data-game-key="{{ g_key | escape }}" data-expansion-target="{{ s_id | escape }}">
+                                <span class="tcg-exp-sub-pipe" aria-hidden="true"></span>
+                                <span class="tcg-exp-sub-text">{{ s_label }}</span>
+                              </a>
+                            </li>
+                          {%- endif -%}
+                        {%- endfor -%}
+                      </ul>
+                    {%- endif -%}
+                    {%- if g_extra_label != blank -%}
+                      <a href="{{ g_extra_url }}" class="tcg-exp-sub-heading tcg-exp-sub-extra">
+                        <span class="tcg-exp-sub-square"></span>
+                        <span>{{ g_extra_label }}</span>
+                      </a>
                     {%- endif -%}
                   </div>
-                  <div class="tcg-exp-card-meta">
-                    <span class="tcg-exp-card-name">{{ b_name }}</span>
-                    <span class="tcg-exp-card-date">{{ b_date }}</span>
+                {%- endunless -%}
+              </li>
+            {%- endfor -%}
+          {%- endif -%}
+        </ul>
+      </aside>
+
+      {%- comment %} ------------ 右侧层：随左侧点击实时更新的扩展包主内容区 ------------ {% endcomment -%}
+      <div class="tcg-exp-main" data-exp-main-pane>
+
+        {%- comment %} 1. 扩展包总览主视图 {% endcomment -%}
+        <div data-expansions-list-view>
+
+          {%- comment %} 顶部 Header 舞台（#expansions-header，含游戏徽标 + 标题 + 背景水印 Logo + 简介文案 + Grid/Table 切换，不含 Filters） {% endcomment -%}
+          <section id="expansions-header" class="tcg-exp-header">
+            <div id="expansions-header-bg" class="tcg-exp-header-bg" aria-hidden="true">
+              <img data-exp-header-watermark src="{{ header_bg_logo }}" alt="" loading="lazy" decoding="async">
+            </div>
+
+            <div class="tcg-exp-header-inner">
+              <div class="tcg-exp-header-top">
+                <div id="expansions-header-badge" class="tcg-exp-badge">
+                  <span class="tcg-exp-badge-icon">
+                    <img data-exp-header-icon src="{{ game_icon_url }}" alt="{{ page_heading | escape }}" width="28" height="28" loading="lazy" decoding="async">
+                  </span>
+                  <h1 class="tcg-exp-title" data-exp-header-title>{{ page_heading }}</h1>
+                </div>
+
+                {%- comment %} View Mode 切换器（Grid / Table，保留原页面交互逻辑，不含 Filters） {% endcomment -%}
+                <div class="tcg-exp-toolbar" role="toolbar" aria-label="View Mode">
+                  <div class="tcg-exp-view-label">
+                    <span class="tcg-exp-view-dot"></span>
+                    <span>View Mode</span>
+                  </div>
+                  <div class="tcg-exp-view-switch" role="group" aria-label="Switch between Grid and Table view">
+                    <button
+                      type="button"
+                      class="tcg-exp-view-btn is-active"
+                      data-view-mode-target="button"
+                      data-action="click->view-mode#change"
+                      data-mode="grid"
+                      aria-pressed="true"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                        <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                        <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                        <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                      </svg>
+                      <span>Grid</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="tcg-exp-view-btn"
+                      data-view-mode-target="button"
+                      data-action="click->view-mode#change"
+                      data-mode="table"
+                      aria-pressed="false"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                        <line x1="3" y1="15" x2="21" y2="15"></line>
+                        <line x1="9" y1="10" x2="9" y2="20"></line>
+                      </svg>
+                      <span>Table</span>
+                    </button>
                   </div>
                 </div>
-              </a>
+              </div>
+
+              <p id="expansions-header-description" class="tcg-exp-desc" data-exp-header-desc>
+                {{ page_desc }}
+              </p>
+            </div>
+          </section>
+
+          {%- comment %} 传递自定义右侧扩展包区块数据供 JS 与静态渲染层合并 {% endcomment -%}
+          <div hidden data-custom-expansion-blocks>
+            {%- for block in right_exp_blocks -%}
+              {%- assign b_col = collections[block.settings.collection] -%}
+              {%- assign b_game = block.settings.game_key | default: 'pokemon' | downcase | strip -%}
+              {%- assign b_group = block.settings.group_name | default: 'MEGA EVOLUTION' -%}
+              {%- assign b_code = block.settings.code | default: 'me6' -%}
+              {%- assign b_name = block.settings.name | default: b_col.title | default: 'Expansion' -%}
+              {%- assign b_date = block.settings.release_date | default: '2026/11/06' -%}
+              {%- assign b_cards = block.settings.cards_count | default: b_col.products_count | default: 200 -%}
+              {%- assign b_logo = block.settings.logo_url -%}
+              {%- if block.settings.image != blank -%}
+                {%- assign b_logo = block.settings.image | image_url: width: 480 -%}
+              {%- endif -%}
+              <span
+                data-custom-exp-item
+                data-block-id="{{ block.id }}"
+                data-game-key="{{ b_game | escape }}"
+                data-group-name="{{ b_group | escape }}"
+                data-exp-id="{{ b_code | escape }}"
+                data-exp-name="{{ b_name | escape }}"
+                data-exp-date="{{ b_date | escape }}"
+                data-exp-cards="{{ b_cards }}"
+                data-exp-logo="{{ b_logo | escape }}"
+                {% if b_col != blank %}data-collection-url="{{ b_col.url }}"{% endif %}
+                {{ block.shopify_attributes }}
+              ></span>
             {%- endfor -%}
           </div>
 
-          <div data-view-mode-target="table" class="tcg-exp-table-wrap hidden">
-            <table class="tcg-exp-table">
-              <thead>
-                <tr>
-                  <th>Expansion Name</th>
-                  <th class="is-center">ID</th>
-                  <th class="is-center">Cards</th>
-                  <th class="is-right">Release Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {%- for block in section.blocks -%}
-                  {%- assign b_col = collections[block.settings.collection] -%}
-                  {%- assign b_code = block.settings.code | default: 'MTG' -%}
-                  {%- assign b_name = block.settings.name | default: b_col.title | default: 'Featured Expansion' -%}
-                  {%- assign b_date = block.settings.release_date | default: '2026/11/13' -%}
-                  {%- assign b_cards = block.settings.cards_count | default: b_col.products_count | default: 350 -%}
-                  {%- assign b_logo = block.settings.logo_url -%}
-                  {%- if b_logo == blank -%}
-                    {%- assign b_logo = 'https://images.scrydex.com/magicthegathering/' | append: b_code | append: '-logo/logo' -%}
-                  {%- endif -%}
-                  {%- assign b_url = b_col.url | default: '?expansion=' | append: b_code -%}
+          {%- comment %} 右侧系列分组与卡片/表格主容器（首屏 SSR 预渲染 Pokémon Mega Evolution 与 Scarlet & Violet，随后由 JS 按当前选中游戏动态更新） {% endcomment -%}
+          <div id="search_results_frame" class="tcg-exp-groups" data-expansions-groups-container>
+            {%- assign ssr_pokemon_me = "Delta Reign|me6|215|2026/11/06,30th Celebration: Classic Collection|me55c|102|2026/09/16,30th Celebration|me55|165|2026/09/16,Pitch Black|me5|198|2026/07/17,Chaos Rising|me4|210|2026/05/22,Perfect Order|me3|217|2026/03/27,Ascended Heroes|me25|295|2026/01/30,Phantasmal Flames|me2|130|2025/11/14,Mega Evolution|me1|188|2025/09/26,Mega Evolution Energies|mee|16|2025/09/26,Mega Evolution Black Star Promos|mep|49|2025/09/26" | split: "," -%}
+            <section id="exp-group-mega-evolution" class="tcg-exp-group" data-expansion-group="mega-evolution">
+              <div class="tcg-exp-group-head">
+                <h2>MEGA EVOLUTION</h2>
+              </div>
 
-                  <tr
-                    class="tcg-exp-row"
-                    data-action="click->view-mode#navigateToCard"
-                    data-expansion-row
-                    data-expansion-id="{{ b_code | escape }}"
-                    data-expansion-name="{{ b_name | escape }}"
-                    data-expansion-date="{{ b_date | escape }}"
-                    data-expansion-cards="{{ b_cards }}"
-                    data-expansion-group-name="featured"
-                    data-expansion-logo="{{ b_logo | escape }}"
-                    data-url="{{ b_url }}"
-                  >
-                    <td>
-                      <div class="tcg-exp-row-Main">
-                        <div class="tcg-exp-row-logo">
-                          {%- if block.settings.image != blank -%}
-                            <img src="{{ block.settings.image | image_url: width: 240 }}" alt="{{ b_name | escape }}" loading="lazy">
-                          {%- else -%}
-                            <img src="{{ b_logo }}" alt="{{ b_name | escape }}" loading="lazy" data-exp-logo="{{ b_code | escape }}">
-                          {%- endif -%}
-                        </div>
-                        <span class="tcg-exp-row-name">{{ b_name }}</span>
-                      </div>
-                    </td>
-                    <td class="is-center"><span class="tcg-exp-mono-id">{{ b_code }}</span></td>
-                    <td class="is-center"><span class="tcg-exp-mono-cards">{{ b_cards }}</span></td>
-                    <td class="is-right"><span class="tcg-exp-mono-date">{{ b_date }}</span></td>
-                  </tr>
-                {%- endfor -%}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      {%- endif -%}
-
-      {%- comment %}
-        全量 24 个系列分组容器：
-        首屏预渲染核心系列（保证 SSR 与静态预览即刻呈现），随后由 tcg-expansions-data.js + tcg.js 无缝挂载全部 24 组 827 个扩展包
-      {%- endcomment -%}
-      <div id="search_results_frame" class="tcg-exp-groups" data-expansions-groups-container>
-        {%- assign ssr_items = "Star Trek|TRK|613|2026/11/13,Reality Fracture|FRA|479|2026/10/02,The Hobbit|HOB|336|2026/08/14,Marvel Super Heroes|MSH|480|2026/06/26,Secrets of Strixhaven|SOS|382|2026/04/24,Teenage Mutant Ninja Turtles|TMT|330|2026/03/06,Lorwyn Eclipsed|ECL|421|2026/01/23,Avatar: The Last Airbender|TLA|416|2025/11/21,Marvel's Spider-Man|SPM|293|2025/09/26,Edge of Eternities|EOE|411|2025/08/01,Final Fantasy|FIN|624|2025/06/13,Tarkir: Dragonstorm|TDM|442|2025/04/11,Aetherdrift|DFT|567|2025/02/14,Duskmourn: House of Horror|DSK|438|2024/09/27,Bloomburrow|BLB|428|2024/08/02,The Big Score|BIG|102|2024/04/19,Outlaws of Thunder Junction|OTJ|393|2024/04/19,Murders at Karlov Manor|MKM|454|2024/02/09" | split: "," -%}
-        <section id="exp-group-expansion" class="tcg-exp-group" data-expansion-group="expansion">
-          <div class="tcg-exp-group-head">
-            <h2>expansion</h2>
-            <span class="tcg-exp-group-badge">118 sets</span>
-          </div>
-
-          <div data-view-mode-target="grid" class="tcg-exp-grid">
-            {%- for raw_item in ssr_items -%}
-              {%- assign parts = raw_item | split: "|" -%}
-              {%- assign item_name = parts[0] -%}
-              {%- assign item_id = parts[1] -%}
-              {%- assign item_cards = parts[2] -%}
-              {%- assign item_date = parts[3] -%}
-              {%- assign item_logo = 'https://images.scrydex.com/magicthegathering/' | append: item_id | append: '-logo/logo' -%}
-              <a
-                href="?expansion={{ item_id }}"
-                class="tcg-exp-card"
-                data-expansion-card
-                data-expansion-id="{{ item_id }}"
-                data-expansion-name="{{ item_name | escape }}"
-                data-expansion-date="{{ item_date }}"
-                data-expansion-cards="{{ item_cards }}"
-                data-expansion-group-name="expansion"
-                data-expansion-logo="{{ item_logo }}"
-              >
-                <div class="tcg-exp-card-inner">
-                  <div class="tcg-exp-card-logo">
-                    <img src="{{ item_logo }}" alt="{{ item_name | escape }}" loading="lazy" data-exp-logo="{{ item_id }}">
-                  </div>
-                  <div class="tcg-exp-card-meta">
-                    <span class="tcg-exp-card-name">{{ item_name }}</span>
-                    <span class="tcg-exp-card-date">{{ item_date }}</span>
-                  </div>
-                </div>
-              </a>
-            {%- endfor -%}
-          </div>
-
-          <div data-view-mode-target="table" class="tcg-exp-table-wrap hidden">
-            <table class="tcg-exp-table">
-              <thead>
-                <tr>
-                  <th>Expansion Name</th>
-                  <th class="is-center">ID</th>
-                  <th class="is-center">Cards</th>
-                  <th class="is-right">Release Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {%- for raw_item in ssr_items -%}
+              <div data-view-mode-target="grid" class="tcg-exp-grid">
+                {%- for raw_item in ssr_pokemon_me -%}
                   {%- assign parts = raw_item | split: "|" -%}
                   {%- assign item_name = parts[0] -%}
                   {%- assign item_id = parts[1] -%}
                   {%- assign item_cards = parts[2] -%}
                   {%- assign item_date = parts[3] -%}
-                  {%- assign item_logo = 'https://images.scrydex.com/magicthegathering/' | append: item_id | append: '-logo/logo' -%}
-                  <tr
-                    class="tcg-exp-row"
-                    data-action="click->view-mode#navigateToCard"
-                    data-expansion-row
+                  {%- assign item_logo = 'https://images.scrydex.com/pokemon/' | append: item_id | append: '-logo/logo' -%}
+                  <a
+                    href="?game=pokemon&amp;expansion={{ item_id }}"
+                    class="tcg-exp-card"
+                    data-expansion-card
+                    data-game-key="pokemon"
                     data-expansion-id="{{ item_id }}"
                     data-expansion-name="{{ item_name | escape }}"
                     data-expansion-date="{{ item_date }}"
                     data-expansion-cards="{{ item_cards }}"
-                    data-expansion-group-name="expansion"
+                    data-expansion-group-name="MEGA EVOLUTION"
                     data-expansion-logo="{{ item_logo }}"
-                    data-url="?expansion={{ item_id }}"
                   >
-                    <td>
-                      <div class="tcg-exp-row-Main">
-                        <div class="tcg-exp-row-logo">
-                          <img src="{{ item_logo }}" alt="{{ item_name | escape }}" loading="lazy" data-exp-logo="{{ item_id }}">
-                        </div>
-                        <span class="tcg-exp-row-name">{{ item_name }}</span>
+                    <div class="tcg-exp-card-inner">
+                      <div class="tcg-exp-card-logo">
+                        <img src="{{ item_logo }}" alt="{{ item_name | escape }}" loading="lazy" decoding="async" data-exp-logo="{{ item_id }}">
                       </div>
-                    </td>
-                    <td class="is-center"><span class="tcg-exp-mono-id">{{ item_id }}</span></td>
-                    <td class="is-center"><span class="tcg-exp-mono-cards">{{ item_cards }}</span></td>
-                    <td class="is-right"><span class="tcg-exp-mono-date">{{ item_date }}</span></td>
-                  </tr>
+                      <div class="tcg-exp-card-meta">
+                        <span class="tcg-exp-card-name">{{ item_name }}</span>
+                        <span class="tcg-exp-card-date">{{ item_date }}</span>
+                      </div>
+                    </div>
+                  </a>
                 {%- endfor -%}
-              </tbody>
-            </table>
+              </div>
+
+              <div data-view-mode-target="table" class="tcg-exp-table-wrap hidden">
+                <table class="tcg-exp-table">
+                  <thead>
+                    <tr>
+                      <th>Expansion Name</th>
+                      <th class="is-center">ID</th>
+                      <th class="is-center">Cards</th>
+                      <th class="is-right">Release Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {%- for raw_item in ssr_pokemon_me -%}
+                      {%- assign parts = raw_item | split: "|" -%}
+                      {%- assign item_name = parts[0] -%}
+                      {%- assign item_id = parts[1] -%}
+                      {%- assign item_cards = parts[2] -%}
+                      {%- assign item_date = parts[3] -%}
+                      {%- assign item_logo = 'https://images.scrydex.com/pokemon/' | append: item_id | append: '-logo/logo' -%}
+                      <tr
+                        class="tcg-exp-row"
+                        data-action="click->view-mode#navigateToCard"
+                        data-expansion-row
+                        data-game-key="pokemon"
+                        data-expansion-id="{{ item_id }}"
+                        data-expansion-name="{{ item_name | escape }}"
+                        data-expansion-date="{{ item_date }}"
+                        data-expansion-cards="{{ item_cards }}"
+                        data-expansion-group-name="MEGA EVOLUTION"
+                        data-expansion-logo="{{ item_logo }}"
+                        data-url="?game=pokemon&amp;expansion={{ item_id }}"
+                      >
+                        <td>
+                          <div class="tcg-exp-row-Main">
+                            <div class="tcg-exp-row-logo">
+                              <img src="{{ item_logo }}" alt="{{ item_name | escape }}" loading="lazy" decoding="async" data-exp-logo="{{ item_id }}">
+                            </div>
+                            <span class="tcg-exp-row-name">{{ item_name }}</span>
+                          </div>
+                        </td>
+                        <td class="is-center"><span class="tcg-exp-mono-id">{{ item_id }}</span></td>
+                        <td class="is-center"><span class="tcg-exp-mono-cards">{{ item_cards }}</span></td>
+                        <td class="is-right"><span class="tcg-exp-mono-date">{{ item_date }}</span></td>
+                      </tr>
+                    {%- endfor -%}
+                  </tbody>
+                </table>
+              </div>
+            </section>
           </div>
-        </section>
-      </div>
 
-    </div>
-
-    {%- comment %} ================= 2. 扩展包详情与卡牌/商品浏览视图（点击任意扩展包卡片或表格行时无缝切换） ================= {% endcomment -%}
-    <div data-expansion-detail-view hidden>
-      <nav aria-label="Breadcrumb" class="_breadcrumb_4xdw3_11">
-        <a aria-label="Back to expansions" href="#all-expansions" class="_crumbBack_4xdw3_69" data-back-to-expansions>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
-        </a>
-        <ol>
-          <li><a href="{{ routes.root_url }}">Home</a></li>
-          <li><a href="#all-expansions" data-back-to-expansions>{{ page_heading }} Expansions</a></li>
-          <li aria-current="page"><span data-exp-detail-crumb>Expansion</span></li>
-        </ol>
-      </nav>
-
-      {%- comment %} 复刻 Scrydex 扩展包详情页顶部舞台 Banner（含扇形卡牌背景 + 系列 Logo + 徽标 + 元信息） {% endcomment -%}
-      <section class="tcg-exp-detail-hero">
-        <div class="tcg-exp-detail-backdrop" aria-hidden="true">
-          <img src="{{ 'card-charizard.png' | asset_url }}" alt="" style="--fan-idx: 0;">
-          <img src="{{ 'card-palkia.png' | asset_url }}" alt="" style="--fan-idx: 1;">
-          <img src="{{ 'card-umbreon.png' | asset_url }}" alt="" style="--fan-idx: 2;">
-          <img src="{{ 'card-blastoise.png' | asset_url }}" alt="" style="--fan-idx: 3;">
-          <img src="{{ 'card-venusaur.png' | asset_url }}" alt="" style="--fan-idx: 4;">
         </div>
 
-        <div class="tcg-exp-detail-hero-inner">
-          <div class="tcg-exp-detail-logo-box">
-            <img data-exp-detail-logo src="https://images.scrydex.com/magicthegathering/FDN-logo/logo" alt="">
-          </div>
-
-          <div class="tcg-exp-detail-info">
-            <div class="tcg-exp-detail-title-row">
-              <h1 data-exp-detail-title>Foundations</h1>
-              <span class="tcg-exp-detail-symbol-wrap" title="Set Symbol">
-                <img data-exp-detail-symbol src="https://images.scrydex.com/magicthegathering/FDN-symbol/symbol" alt="" onerror="this.parentElement.style.display='none'">
-              </span>
+        {%- comment %} 2. 扩展包详情与卡牌/商品浏览视图（点击右侧任意扩展包卡片或左侧子项时切换） {% endcomment -%}
+        <div data-expansion-detail-view hidden>
+          <section class="tcg-exp-detail-hero">
+            <div class="tcg-exp-detail-backdrop" aria-hidden="true">
+              <img src="{{ 'card-charizard.png' | asset_url }}" alt="" loading="lazy" decoding="async" style="--fan-idx: 0;">
+              <img src="{{ 'card-palkia.png' | asset_url }}" alt="" loading="lazy" decoding="async" style="--fan-idx: 1;">
+              <img src="{{ 'card-umbreon.png' | asset_url }}" alt="" loading="lazy" decoding="async" style="--fan-idx: 2;">
+              <img src="{{ 'card-blastoise.png' | asset_url }}" alt="" loading="lazy" decoding="async" style="--fan-idx: 3;">
+              <img src="{{ 'card-venusaur.png' | asset_url }}" alt="" loading="lazy" decoding="async" style="--fan-idx: 4;">
             </div>
 
-            <div class="tcg-exp-detail-badges">
-              <span class="tcg-exp-detail-code" data-exp-detail-id>FDN</span>
-              <span class="tcg-exp-detail-dot">•</span>
-              <span class="tcg-exp-detail-type" data-exp-detail-group>core</span>
-              <span class="tcg-exp-detail-dot">•</span>
-              <span class="tcg-exp-detail-cards"><strong data-exp-detail-cards>763</strong> Cards</span>
-              <span class="tcg-exp-detail-dot">•</span>
-              <span class="tcg-exp-detail-date">Released <strong data-exp-detail-date>2024/11/15</strong></span>
+            <div class="tcg-exp-detail-hero-inner">
+              <div class="tcg-exp-detail-logo-box">
+                <img data-exp-detail-logo src="https://images.scrydex.com/pokemon/me6-logo/logo" alt="" loading="lazy" decoding="async">
+              </div>
+
+              <div class="tcg-exp-detail-info">
+                <div class="tcg-exp-detail-title-row">
+                  <h1 data-exp-detail-title>Delta Reign</h1>
+                  <span class="tcg-exp-detail-symbol-wrap" title="Set Symbol">
+                    <img data-exp-detail-symbol src="https://images.scrydex.com/pokemon/me6-symbol/symbol" alt="" loading="lazy" decoding="async" onerror="this.parentElement.style.display='none'">
+                  </span>
+                </div>
+
+                <div class="tcg-exp-detail-badges">
+                  <span class="tcg-exp-detail-code" data-exp-detail-id>me6</span>
+                  <span class="tcg-exp-detail-dot">•</span>
+                  <span class="tcg-exp-detail-type" data-exp-detail-group>MEGA EVOLUTION</span>
+                  <span class="tcg-exp-detail-dot">•</span>
+                  <span class="tcg-exp-detail-cards"><strong data-exp-detail-cards>215</strong> Cards</span>
+                  <span class="tcg-exp-detail-dot">•</span>
+                  <span class="tcg-exp-detail-date">Released <strong data-exp-detail-date>2026/11/06</strong></span>
+                </div>
+
+                <div class="tcg-exp-detail-actions">
+                  <button type="button" class="tcg-btn-secondary" data-back-to-expansions>
+                    ← Back to Expansions
+                  </button>
+                  <a href="{{ routes.all_products_collection_url }}" class="_primaryButton_4xdw3_673" data-exp-detail-shop-link style="flex:none;">
+                    Shop Expansion Products
+                  </a>
+                  <a href="{{ routes.search_url }}?type=product&amp;q=Pokemon" class="tcg-btn-ghost" data-exp-detail-search-link>
+                    Search Cards in Store →
+                  </a>
+                </div>
+              </div>
             </div>
+          </section>
 
-            <div class="tcg-exp-detail-actions">
-              <button type="button" class="tcg-btn-secondary" data-back-to-expansions>
-                ← Back to All Expansions
-              </button>
-              <a href="{{ routes.all_products_collection_url }}" class="_primaryButton_4xdw3_673" data-exp-detail-shop-link style="flex:none;">
-                Shop Expansion Products
-              </a>
-              <a href="{{ routes.search_url }}?type=product&amp;q=FDN" class="tcg-btn-ghost" data-exp-detail-search-link>
-                Search Cards in Store →
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {%- comment %} 该扩展包下的预览卡牌网格 & 店铺在售商品联动展示 {% endcomment -%}
-      <section class="tcg-exp-detail-catalog">
-        <header class="_header_36e53_10">
-          <div>
-            <h2 data-exp-detail-grid-heading>Featured Cards &amp; Sealed Products</h2>
-            <p data-exp-detail-grid-sub>Explore cards from this expansion and available sealed products or singles in our store.</p>
-          </div>
-          <a href="#all-expansions" class="_viewAll_36e53_33" data-back-to-expansions>All 827 expansions →</a>
-        </header>
-
-        {%- comment %} 扩展包代表性卡牌展示网格（由 JS 动态根据当前所选扩展包 ID 渲染 Scrydex 卡牌预览与在售商品） {% endcomment -%}
-        <div class="tcg-exp-cards-preview-grid" data-exp-detail-cards-grid></div>
-
-        {%- assign exp_store_col = collections[section.settings.store_collection] | default: collections.all -%}
-        {%- if exp_store_col != blank and exp_store_col.products.size > 0 -%}
-          <div style="margin-top: 2.5rem;">
+          <section class="tcg-exp-detail-catalog">
             <header class="_header_36e53_10">
               <div>
-                <h2>Available in Store Now</h2>
-                <p>Condition-checked singles, booster boxes, and graded collector slabs ready to ship.</p>
+                <h2 data-exp-detail-grid-heading>Featured Cards &amp; Sealed Products</h2>
+                <p data-exp-detail-grid-sub>Explore cards from this expansion and available sealed products or singles in our store.</p>
               </div>
-              <a href="{{ exp_store_col.url | default: routes.all_products_collection_url }}" class="_viewAll_36e53_33">View all store stock →</a>
+              <a href="#all-expansions" class="_viewAll_36e53_33" data-back-to-expansions>Back to all sets →</a>
             </header>
-            <div class="_grid_36e53_53">
-              {%- for product in exp_store_col.products limit: 4 -%}
-                {% render 'tcg-product-card', product: product %}
-              {%- endfor -%}
-            </div>
-          </div>
-        {%- endif -%}
-      </section>
+
+            <div class="tcg-exp-cards-preview-grid" data-exp-detail-cards-grid></div>
+
+            {%- assign exp_store_col = collections[section.settings.store_collection] | default: collections.all -%}
+            {%- if exp_store_col != blank and exp_store_col.products.size > 0 -%}
+              <div style="margin-top: 2.5rem;">
+                <header class="_header_36e53_10">
+                  <div>
+                    <h2>Available in Store Now</h2>
+                    <p>Condition-checked singles, booster boxes, and graded collector slabs ready to ship.</p>
+                  </div>
+                  <a href="{{ exp_store_col.url | default: routes.all_products_collection_url }}" class="_viewAll_36e53_33">View all store stock →</a>
+                </header>
+                <div class="_grid_36e53_53">
+                  {%- for product in exp_store_col.products limit: 4 -%}
+                    {% render 'tcg-product-card', product: product %}
+                  {%- endfor -%}
+                </div>
+              </div>
+            {%- endif -%}
+          </section>
+        </div>
+
+      </div>
     </div>
 
   </div>
