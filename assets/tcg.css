@@ -2969,28 +2969,63 @@ html[data-theme="light"] ._cardBody_36e53_256 {
   opacity: 0.65;
 }
 
-/* 左侧展开的子菜单 (Latest Expansions & 子项树) */
+/* 左侧展开的子菜单 (Latest Expansions & 子项树 · 阶梯式缩进与选中高亮美化) */
 .tcg-exp-nav-subpanel {
-  padding: 0.25rem 0 0.85rem;
+  position: relative;
+  padding: 0.38rem 0.55rem 0.65rem 1.35rem;
   background: color-mix(in srgb, var(--tcg-bg) 45%, var(--tcg-surface));
   border-top: 1px solid var(--tcg-border);
 }
 
+.tcg-exp-nav-subpanel::before {
+  content: "";
+  position: absolute;
+  top: 0.5rem;
+  bottom: 0.65rem;
+  left: 1.05rem;
+  width: 1.5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tcg-border-strong) 75%, transparent);
+  pointer-events: none;
+}
+
 .tcg-exp-sub-heading {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  padding: 0.45rem 1.2rem;
-  color: var(--tcg-text);
+  gap: 0.6rem;
+  margin: 0.12rem 0 0.12rem 0.35rem;
+  padding: 0.44rem 0.85rem 0.44rem 0.9rem;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  color: var(--tcg-text-secondary);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.76rem;
   font-weight: 600;
   text-decoration: none;
-  transition: color 0.16s ease;
+  transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
 }
 
 .tcg-exp-sub-heading:hover {
+  color: var(--tcg-text);
+  background: color-mix(in srgb, var(--tcg-surface-soft) 80%, transparent);
+}
+
+.tcg-exp-sub-heading.is-parent-active {
+  color: var(--tcg-text);
+}
+
+.tcg-exp-sub-heading.is-active {
   color: var(--tcg-accent-hover);
+  background: var(--tcg-accent-soft);
+  border-color: color-mix(in srgb, var(--tcg-accent) 42%, transparent);
+  font-weight: 700;
+}
+
+.tcg-exp-sub-heading.is-active .tcg-exp-sub-square {
+  background: var(--tcg-accent-hover);
+  box-shadow: 0 0 8px var(--tcg-accent);
+  transform: scale(1.18);
 }
 
 .tcg-exp-sub-extra {
@@ -2998,48 +3033,61 @@ html[data-theme="light"] ._cardBody_36e53_256 {
 }
 
 .tcg-exp-sub-square {
-  width: 0.32rem;
-  height: 0.32rem;
-  border-radius: 1px;
+  width: 0.34rem;
+  height: 0.34rem;
+  border-radius: 1.5px;
   background: #f28753;
   flex-shrink: 0;
+  transition: background-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
 }
 
 .tcg-exp-sub-list {
   list-style: none;
-  margin: 0.15rem 0 0.25rem;
-  padding: 0;
+  margin: 0.12rem 0 0.32rem 1.05rem;
+  padding: 0.1rem 0 0.1rem 0.55rem;
+  border-left: 1px dashed color-mix(in srgb, var(--tcg-border-strong) 80%, transparent);
 }
 
 .tcg-exp-sub-link {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  padding: 0.28rem 1.15rem 0.28rem 2.15rem;
+  gap: 0.6rem;
+  margin: 0.1rem 0;
+  padding: 0.34rem 0.75rem 0.34rem 0.65rem;
+  border-radius: 0.45rem;
+  border: 1px solid transparent;
   color: var(--tcg-text-secondary);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.74rem;
   text-decoration: none;
-  transition: color 0.15s ease, background-color 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .tcg-exp-sub-pipe {
-  width: 1px;
+  width: 2px;
   height: 0.85rem;
+  border-radius: 999px;
   background: var(--tcg-border-strong);
   flex-shrink: 0;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.tcg-exp-sub-link:hover,
+.tcg-exp-sub-link:hover {
+  color: var(--tcg-text);
+  background: color-mix(in srgb, var(--tcg-surface-soft) 75%, transparent);
+}
+
 .tcg-exp-sub-link.is-active {
   color: var(--tcg-accent-hover);
-  background: var(--tcg-surface-soft);
+  background: var(--tcg-accent-soft);
+  border-color: color-mix(in srgb, var(--tcg-accent) 40%, transparent);
+  font-weight: 700;
 }
 
 .tcg-exp-sub-link:hover .tcg-exp-sub-pipe,
 .tcg-exp-sub-link.is-active .tcg-exp-sub-pipe {
-  background: var(--tcg-accent);
+  background: var(--tcg-accent-hover);
+  box-shadow: 0 0 6px var(--tcg-accent);
 }
 
 .tcg-exp-sub-text {

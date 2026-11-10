@@ -6,47 +6,35 @@
         "l1_352060": {
           "type": "left_game",
           "settings": {
-            "game_key": "pok-mon-ptcg",
+            "game_key": "custom",
             "name": "POKÉMON",
             "icon_url": "https://cdn.shopify.com/s/files/1/0983/1179/9105/files/icon_pokemon-386fb418d8f003048ea382cbe3f9a5c1518c3b3bad005e7891c2eb0798278d60.png?v=1794276010",
-            "header_title": "POKÉMON",
-            "header_description": "Explore expansions, collector sets, and singles for POKÉMON（PTCG）.",
+            "header_title": "ENGLISH — NEW EXPANSION SET",
+            "header_description": "Explore all cards, sealed products, and collector items in ENGLISH — NEW EXPANSION SET.",
             "watermark_url": "",
             "sub_section_title": "English",
-            "sub_items": "",
+            "sub_items": "New Expansion Set|page.expansions-english-new-expansion-set.json",
             "extra_link_label": "",
             "extra_link_url": "/pages/about",
             "expanded_by_default": true,
             "is_locked": false
           }
-        },
-        "blk_pok-mon-ptcg_l1_1": {
-          "type": "expansion_item",
-          "settings": {
-            "game_key": "pok-mon-ptcg",
-            "group_name": "EXPANSIONS",
-            "name": "POKÉMON（PTCG）",
-            "code": "PTCG1",
-            "cards_count": 198,
-            "release_date": "2026-11-10",
-            "logo_url": "https://images.scrydex.com/pokemon/me6-logo/logo"
-          }
         }
       },
       "block_order": [
-        "l1_352060",
-        "blk_pok-mon-ptcg_l1_1"
+        "l1_352060"
       ],
       "settings": {
         "breadcrumb_label": "Expansion",
         "sidebar_brand": "DeckBingo",
-        "default_game": "pok-mon-ptcg",
+        "sidebar_brand_icon_url": "",
+        "default_game": "english-new-expansion-set",
         "default_view_mode": "grid",
-        "heading": "POKÉMON",
-        "description": "Explore expansions, collector sets, and singles for POKÉMON（PTCG）.",
-        "game_icon_url": "https://cdn.shopify.com/s/files/1/0983/1179/9105/files/icon_pokemon-386fb418d8f003048ea382cbe3f9a5c1518c3b3bad005e7891c2eb0798278d60.png?v=1794276010",
+        "heading": "ENGLISH — NEW EXPANSION SET",
+        "description": "Explore all cards, sealed products, and collector items in ENGLISH — NEW EXPANSION SET.",
+        "game_icon_url": "",
         "header_watermark_url": "",
-        "left_tree_json": "{\"breadcrumb_label\":\"Expansion\",\"sidebar_brand\":\"DeckBingo\",\"default_template_file\":\"page.expansions-pok-mon-ptcg.json\",\"default_view_mode\":\"grid\",\"left_tree\":[{\"id\":\"l1_352060\",\"level\":1,\"title\":\"POKÉMON\",\"icon_url\":\"https://cdn.shopify.com/s/files/1/0983/1179/9105/files/icon_pokemon-386fb418d8f003048ea382cbe3f9a5c1518c3b3bad005e7891c2eb0798278d60.png?v=1794276010\",\"is_locked\":false,\"expanded_by_default\":true,\"click_mode\":\"template\",\"target_template_file\":\"page.expansions-pok-mon-ptcg.json\",\"target_url\":\"/collections/pokemon?filter.v.availability=1\",\"product_click_target_mode\":\"add_to_cart\",\"product_card_size_mode\":\"small\",\"product_custom_width_px\":210,\"product_custom_height_px\":185,\"cached_products\":[],\"children\":[{\"id\":\"l2_6a908e\",\"level\":2,\"title\":\"English\",\"icon_url\":\"\",\"is_locked\":false,\"expanded_by_default\":true,\"click_mode\":\"template\",\"target_template_file\":\"page.expansions-pok-mon-english.json\",\"target_url\":\"/collections/pokemon?filter.v.availability=1\",\"product_click_target_mode\":\"add_to_cart\",\"product_card_size_mode\":\"small\",\"product_custom_width_px\":210,\"product_custom_height_px\":185,\"cached_products\":[],\"children\":[]},{\"id\":\"l2_df4c3f\",\"level\":2,\"title\":\"Japanese\",\"icon_url\":\"\",\"is_locked\":false,\"expanded_by_default\":true,\"click_mode\":\"template\",\"target_template_file\":\"page.expansions-pok-mon-japanese.json\",\"target_url\":\"/collections/pokemon?filter.v.availability=1\",\"product_click_target_mode\":\"add_to_cart\",\"product_card_size_mode\":\"small\",\"product_custom_width_px\":210,\"product_custom_height_px\":185,\"cached_products\":[],\"children\":[]},{\"id\":\"l2_5c3b65\",\"level\":2,\"title\":\"Traditional Chinese\",\"icon_url\":\"\",\"is_locked\":false,\"expanded_by_default\":true,\"click_mode\":\"template\",\"target_template_file\":\"page.expansions-pok-mon-traditional-chinese.json\",\"target_url\":\"/collections/pokemon?filter.v.availability=1\",\"product_click_target_mode\":\"add_to_cart\",\"product_card_size_mode\":\"small\",\"product_custom_width_px\":210,\"product_custom_height_px\":185,\"cached_products\":[],\"children\":[]},{\"id\":\"l2_5bbf0a\",\"level\":2,\"title\":\"Korean\",\"icon_url\":\"\",\"is_locked\":false,\"expanded_by_default\":true,\"click_mode\":\"template\",\"target_template_file\":\"page.expansions-pok-mon-korean.json\",\"target_url\":\"/collections/pokemon?filter.v.availability=1\",\"product_click_target_mode\":\"add_to_cart\",\"product_card_size_mode\":\"small\",\"product_custom_width_px\":210,\"product_custom_height_px\":185,\"cached_products\":[],\"children\":[]},{\"id\":\"l2_3ac216\",\"level\":2,\"title\":\"Simplified Chinese\",\"icon_url\":\"\",\"is_locked\":false,\"expanded_by_default\":true,\"click_mode\":\"template\",\"target_template_file\":\"page.expansions-pok-mon-simplified-chinese.json\",\"target_url\":\"/collections/pokemon?filter.v.availability=1\",\"product_click_target_mode\":\"add_to_cart\",\"product_card_size_mode\":\"small\",\"product_custom_width_px\":210,\"product_custom_height_px\":185,\"cached_products\":[],\"children\":[]}]}]}"
+        "left_tree_json": "{\"breadcrumb_label\":\"Expansion\",\"sidebar_brand\":\"DeckBingo\",\"sidebar_brand_icon_url\":\"\",\"default_template_file\":\"page.expansions-english-new-expansion-set.json\",\"default_view_mode\":\"grid\",\"left_tree\":[{\"id\":\"l1_352060\",\"level\":1,\"title\":\"POKÉMON\",\"icon_url\":\"https://cdn.shopify.com/s/files/1/0983/1179/9105/files/icon_pokemon-386fb418d8f003048ea382cbe3f9a5c1518c3b3bad005e7891c2eb0798278d60.png?v=1794276010\",\"is_locked\":false,\"expanded_by_default\":true,\"click_mode\":\"template\",\"target_template_file\":\"\",\"target_url\":\"/collections/pokemon?filter.v.availability=1\",\"product_click_target_mode\":\"add_to_cart\",\"product_card_size_mode\":\"small\",\"product_custom_width_px\":210,\"product_custom_height_px\":185,\"cached_products\":[],\"children\":[{\"id\":\"l2_6a908e\",\"level\":2,\"title\":\"English\",\"icon_url\":\"\",\"is_locked\":false,\"expanded_by_default\":true,\"click_mode\":\"template\",\"target_template_file\":\"\",\"target_url\":\"/collections/pokemon?filter.v.availability=1\",\"product_click_target_mode\":\"add_to_cart\",\"product_card_size_mode\":\"small\",\"product_custom_width_px\":210,\"product_custom_height_px\":185,\"cached_products\":[],\"children\":[{\"id\":\"l3_185200\",\"level\":3,\"title\":\"New Expansion Set\",\"icon_url\":\"\",\"is_locked\":false,\"expanded_by_default\":true,\"click_mode\":\"template\",\"target_template_file\":\"page.expansions-english-new-expansion-set.json\",\"target_url\":\"/collections/pokemon?filter.v.availability=1\",\"product_click_target_mode\":\"add_to_cart\",\"product_card_size_mode\":\"small\",\"product_custom_width_px\":210,\"product_custom_height_px\":185,\"cached_products\":[],\"children\":[]}]},{\"id\":\"l2_df4c3f\",\"level\":2,\"title\":\"Japanese\",\"icon_url\":\"\",\"is_locked\":false,\"expanded_by_default\":true,\"click_mode\":\"template\",\"target_template_file\":\"page.expansions-pok-mon-japanese.json\",\"target_url\":\"/collections/pokemon?filter.v.availability=1\",\"product_click_target_mode\":\"add_to_cart\",\"product_card_size_mode\":\"small\",\"product_custom_width_px\":210,\"product_custom_height_px\":185,\"cached_products\":[],\"children\":[]},{\"id\":\"l2_5c3b65\",\"level\":2,\"title\":\"Traditional Chinese\",\"icon_url\":\"\",\"is_locked\":false,\"expanded_by_default\":true,\"click_mode\":\"template\",\"target_template_file\":\"page.expansions-pok-mon-traditional-chinese.json\",\"target_url\":\"/collections/pokemon?filter.v.availability=1\",\"product_click_target_mode\":\"add_to_cart\",\"product_card_size_mode\":\"small\",\"product_custom_width_px\":210,\"product_custom_height_px\":185,\"cached_products\":[],\"children\":[]},{\"id\":\"l2_5bbf0a\",\"level\":2,\"title\":\"Korean\",\"icon_url\":\"\",\"is_locked\":false,\"expanded_by_default\":true,\"click_mode\":\"template\",\"target_template_file\":\"page.expansions-pok-mon-korean.json\",\"target_url\":\"/collections/pokemon?filter.v.availability=1\",\"product_click_target_mode\":\"add_to_cart\",\"product_card_size_mode\":\"small\",\"product_custom_width_px\":210,\"product_custom_height_px\":185,\"cached_products\":[],\"children\":[]},{\"id\":\"l2_3ac216\",\"level\":2,\"title\":\"Simplified Chinese\",\"icon_url\":\"\",\"is_locked\":false,\"expanded_by_default\":true,\"click_mode\":\"template\",\"target_template_file\":\"page.expansions-pok-mon-simplified-chinese.json\",\"target_url\":\"/collections/pokemon?filter.v.availability=1\",\"product_click_target_mode\":\"add_to_cart\",\"product_card_size_mode\":\"small\",\"product_custom_width_px\":210,\"product_custom_height_px\":185,\"cached_products\":[],\"children\":[]}]}]}"
       }
     }
   },

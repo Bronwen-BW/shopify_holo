@@ -4640,12 +4640,25 @@
       var minP = null;
       var maxP = null;
       var colHandle = '';
+      function fullyDecodeUrlPart(val) {
+        var cur = String(val || '');
+        for (var r = 0; r < 3; r++) {
+          try {
+            var next = decodeURIComponent(cur.replace(/\+/g, ' '));
+            if (next === cur) break;
+            cur = next;
+          } catch (e) { break; }
+        }
+        return cur.trim();
+      }
       try {
         var u = new URL(rawUrl || '/collections/all', window.location.origin || 'https://horizon.local');
         var segs = u.pathname.split('/').filter(Boolean);
-        if (segs[0] === 'collections' && segs[1]) colHandle = decodeURIComponent(segs[1]);
-        q = (u.searchParams.get('q') || '').trim();
-        pType = (u.searchParams.get('filter.p.product_type') || u.searchParams.get('filter.type') || '').trim();
+        if (segs[0] === 'collections' && segs[1]) {
+          colHandle = fullyDecodeUrlPart(segs[1]).replace(/\.json$/i, '');
+        }
+        q = fullyDecodeUrlPart(u.searchParams.get('q') || '');
+        pType = fullyDecodeUrlPart(u.searchParams.get('filter.p.product_type') || u.searchParams.get('filter.type') || '');
         inStock = u.searchParams.get('filter.v.availability') === '1';
         if (u.searchParams.get('filter.v.price.gte')) minP = Number(u.searchParams.get('filter.v.price.gte'));
         if (u.searchParams.get('filter.v.price.lte')) maxP = Number(u.searchParams.get('filter.v.price.lte'));
@@ -4690,34 +4703,60 @@
       try {
         var u = new URL(rawUrl, window.location.origin);
         var segs = u.pathname.split('/').filter(Boolean);
-        var jsonEndpoint = (segs[0] === 'collections' && segs[1] && segs[1] !== 'all')
-          ? ('/collections/' + encodeURIComponent(segs[1]) + '/products.json?limit=250')
-          : '/products.json?limit=250';
+        var decodedHandle = '';
+        if (segs[0] === 'collections' && segs[1]) {
+          var tmp = segs[1];
+          for (var d = 0; d < 3; d++) {
+            try { var nx = decodeURIComponent(tmp); if (nx === tmp) break; tmp = nx; } catch (e) { break; }
+          }
+          decodedHandle = tmp.replace(/\.json$/i, '');
+        }
+        var baseJsonEndpoint = (decodedHandle && decodedHandle !== 'all')
+          ? ('/collections/' + encodeURIComponent(decodedHandle) + '/products.json')
+          : '/products.json';
 
-        fetch(jsonEndpoint)
-          .then(function (r) { return r.ok ? r.json() : null; })
-          .then(function (data) {
-            if (!data || !Array.isArray(data.products) || !data.products.length) return;
-            var mapped = data.products.map(function (p) {
-              var v0 = (p.variants && p.variants[0]) || {};
-              var img = (p.images && p.images[0] && p.images[0].src) || (p.image && p.image.src) || '';
-              var priceNum = Number(v0.price) || 29.99;
-              return {
-                id: String(p.id || ''),
-                handle: p.handle || '',
-                variant_id: String(v0.id || ''),
-                title: p.title || '',
-                image_url: img,
-                price_display: '$' + priceNum.toFixed(2),
-                raw_price: priceNum,
-                sku: v0.sku || p.vendor || '',
-                product_type: p.product_type || 'Single',
-                inventory_qty: v0.available === false ? 0 : 10,
-                add_to_cart_url: '/products/' + p.handle + (v0.id ? ('?variant=' + v0.id) : ''),
-                checkout_url: v0.id ? ('/cart/' + v0.id + ':1') : ('/products/' + p.handle)
-              };
+        var allMapped = [];
+        var seenIds = {};
+        function fetchPageRecursive(pageNum) {
+          if (pageNum > 200) return Promise.resolve();
+          return fetch(baseJsonEndpoint + '?limit=250&page=' + pageNum)
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (data) {
+              if (!data || !Array.isArray(data.products) || !data.products.length) return;
+              var added = 0;
+              data.products.forEach(function (p) {
+                var key = String(p.id || p.handle || '');
+                if (!key || seenIds[key]) return;
+                seenIds[key] = true;
+                var v0 = (p.variants && p.variants[0]) || {};
+                var img = (p.images && p.images[0] && p.images[0].src) || (p.image && p.image.src) || '';
+                var priceNum = Number(v0.price) || 29.99;
+                allMapped.push({
+                  id: String(p.id || ''),
+                  handle: p.handle || '',
+                  variant_id: String(v0.id || ''),
+                  title: p.title || '',
+                  image_url: img,
+                  price_display: '$' + priceNum.toFixed(2),
+                  raw_price: priceNum,
+                  sku: v0.sku || p.vendor || '',
+                  product_type: p.product_type || 'Single',
+                  inventory_qty: v0.available === false ? 0 : 10,
+                  add_to_cart_url: '/products/' + p.handle + (v0.id ? ('?variant=' + v0.id) : ''),
+                  checkout_url: v0.id ? ('/cart/' + v0.id + ':1') : ('/products/' + p.handle)
+                });
+                added++;
+              });
+              if (data.products.length >= 250 && added > 0) {
+                return fetchPageRecursive(pageNum + 1);
+              }
             });
-            var finalItems = filterProductsByShopifyLink(mapped, rawUrl, title);
+        }
+
+        fetchPageRecursive(1)
+          .then(function () {
+            if (!allMapped.length) return;
+            var finalItems = filterProductsByShopifyLink(allMapped, rawUrl, title);
             if (finalItems.length > 0) {
               renderShopifyProductFeedIntoList(title, rawUrl, finalItems, wPx, hPx, clickTargetMode);
             }
@@ -4735,41 +4774,9 @@
       }
     }, expSection);
 
-    on('[data-studio-left-node]', 'click', function (e, nodeEl) {
-      var locked = nodeEl.getAttribute('data-locked') === 'true';
-      if (locked) {
-        e.preventDefault();
-        return;
-      }
-      var level = nodeEl.getAttribute('data-node-level');
-      var hasChildren = nodeEl.getAttribute('data-has-children') === 'true';
+    function triggerStudioLeafNodeAction(nodeEl) {
+      if (!nodeEl) return;
       var nodeId = nodeEl.getAttribute('data-node-id') || '';
-
-      // 规则1：若第 1 层级下有子层级，或第 2 层级下有子层级，仅执行打开/收起子层级操作，不执行跳转或切换独立模块
-      if (hasChildren) {
-        e.preventDefault();
-        if (level === '1') {
-          var li = nodeEl.closest('[data-studio-l1-item]');
-          if (li) {
-            var sub = li.querySelector('[data-exp-subpanel]');
-            if (sub) {
-              var exp = !li.classList.contains('is-expanded');
-              li.classList.toggle('is-expanded', exp);
-              if (exp) sub.removeAttribute('hidden');
-              else sub.setAttribute('hidden', '');
-            }
-          }
-        } else if (level === '2') {
-          var subList = expSection.querySelector('[data-l2-sublist="' + nodeId + '"]');
-          if (subList) {
-            if (subList.hasAttribute('hidden')) subList.removeAttribute('hidden');
-            else subList.setAttribute('hidden', '');
-          }
-        }
-        return;
-      }
-
-      // 仅无子层级的节点可跳转、切换独立模块或拉取 Shopify 链接商品进入列表
       expSection.querySelectorAll('[data-studio-left-node]').forEach(function (el) {
         el.classList.toggle('is-active', el === nodeEl);
       });
@@ -4785,7 +4792,6 @@
       var targetTpl = nodeEl.getAttribute('data-target-tpl') || '';
 
       if (mode === 'shopify_products' || (mode === 'url' && isShopifyProductFeedUrl(targetUrl))) {
-        e.preventDefault();
         var manifest = getStudioManifest();
         var leftModel = manifest && manifest.workspace ? findLeftNodeModelById(manifest.workspace.left_tree, nodeId) : null;
         fetchAndShowShopifyLinkProducts({
@@ -4803,8 +4809,55 @@
         window.location.href = targetUrl;
         return;
       }
-      e.preventDefault();
       loadAndSwitchRightTemplateFile(targetTpl);
+    }
+
+    on('[data-studio-left-node]', 'click', function (e, nodeEl) {
+      var locked = nodeEl.getAttribute('data-locked') === 'true';
+      if (locked) {
+        e.preventDefault();
+        return;
+      }
+      var level = nodeEl.getAttribute('data-node-level');
+      var hasChildren = nodeEl.getAttribute('data-has-children') === 'true';
+      var nodeId = nodeEl.getAttribute('data-node-id') || '';
+
+      // 规则1：若第 1 层级下有子层级，或第 2 层级下有子层级，展开子层级并自动选择该层级下的第一个无子层级子项
+      if (hasChildren) {
+        e.preventDefault();
+        if (level === '1') {
+          var li = nodeEl.closest('[data-studio-l1-item]');
+          if (li) {
+            var sub = li.querySelector('[data-exp-subpanel]');
+            if (sub) {
+              var exp = !li.classList.contains('is-expanded');
+              li.classList.toggle('is-expanded', exp);
+              if (exp) {
+                sub.removeAttribute('hidden');
+                var firstLeafInL1 = sub.querySelector('[data-studio-left-node][data-has-children="false"]');
+                if (firstLeafInL1) triggerStudioLeafNodeAction(firstLeafInL1);
+              } else {
+                sub.setAttribute('hidden', '');
+              }
+            }
+          }
+        } else if (level === '2') {
+          var subList = expSection.querySelector('[data-l2-sublist="' + nodeId + '"]');
+          if (subList) {
+            if (subList.hasAttribute('hidden')) {
+              subList.removeAttribute('hidden');
+              var firstLeafInL2 = subList.querySelector('[data-studio-left-node][data-has-children="false"]');
+              if (firstLeafInL2) triggerStudioLeafNodeAction(firstLeafInL2);
+            } else {
+              subList.setAttribute('hidden', '');
+            }
+          }
+        }
+        return;
+      }
+
+      e.preventDefault();
+      triggerStudioLeafNodeAction(nodeEl);
     }, expSection);
 
     on('[data-studio-right-block]', 'click', function (e, cardEl) {
@@ -4875,8 +4928,13 @@
     function initDataAndRoute() {
       var manifest = getStudioManifest();
       if (manifest && manifest.workspace && renderStudioLeftTree(manifest.workspace)) {
-        var defTpl = manifest.workspace.default_template_file || 'page.expansions-pokemon.json';
-        loadAndSwitchRightTemplateFile(defTpl);
+        var firstLeafEl = sidebarList ? sidebarList.querySelector('[data-studio-left-node][data-has-children="false"]') : null;
+        if (firstLeafEl) {
+          triggerStudioLeafNodeAction(firstLeafEl);
+        } else {
+          var defTpl = manifest.workspace.default_template_file || 'page.expansions-pokemon.json';
+          loadAndSwitchRightTemplateFile(defTpl);
+        }
         return;
       }
       ensureSidebarPopulated();
