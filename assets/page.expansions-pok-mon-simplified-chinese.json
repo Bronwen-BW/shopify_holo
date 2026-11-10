@@ -1,0 +1,10 @@
+{
+  "template_file_name": "page.expansions-pok-mon-simplified-chinese.json",
+  "template_key": "pok-mon-simplified-chinese",
+  "header_title": "POKÉMON — SIMPLIFIED CHINESE",
+  "header_description": "Explore all cards, sealed products, and collector items in POKÉMON — SIMPLIFIED CHINESE.",
+  "header_icon_url": "",
+  "header_watermark_url": "",
+  "default_view_mode": "grid",
+  "blocks": []
+}

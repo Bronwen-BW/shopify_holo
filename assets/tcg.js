@@ -4317,7 +4317,568 @@
       } catch (e) {}
     });
 
+    /* 18.9 支持独立模块生成的三层级左侧树 + 独立右侧模板文件按需加载 + 右侧三层块钻取切换 */
+    var studioDrillStack = [];
+    var activeRightTemplateDoc = null;
+
+    function getStudioManifest() {
+      if (window.TCG_EXPANSIONS_STUDIO_DATA && window.TCG_EXPANSIONS_STUDIO_DATA.workspace) {
+        return window.TCG_EXPANSIONS_STUDIO_DATA;
+      }
+      var treeScript = expSection.querySelector('[data-exp-left-tree-json]');
+      if (treeScript && treeScript.textContent) {
+        try {
+          var ws = JSON.parse(treeScript.textContent);
+          return { workspace: ws, templates: {} };
+        } catch (e) {}
+      }
+      return null;
+    }
+
+    function renderStudioLeftTree(ws) {
+      if (!ws || !Array.isArray(ws.left_tree) || !ws.left_tree.length || !sidebarList) return false;
+      var brandEl = expSection.querySelector('[data-exp-sidebar-brand]');
+      if (brandEl && ws.sidebar_brand) brandEl.textContent = ws.sidebar_brand;
+      var brandIconEl = expSection.querySelector('[data-exp-sidebar-brand-icon]');
+      if (brandIconEl) {
+        if (ws.sidebar_brand_icon_url) {
+          brandIconEl.innerHTML = '<img src="' + escAttr(ws.sidebar_brand_icon_url) + '" alt="' + escAttr(ws.sidebar_brand || '') + '" width="22" height="22" style="width:22px;height:22px;object-fit:contain;border-radius:4px;display:block;" loading="lazy" decoding="async">';
+        } else {
+          brandIconEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"></path><path d="M12 6a6 6 0 1 0 6 6 6 6 0 0 0-6-6Z"></path><circle cx="12" cy="12" r="2"></circle></svg>';
+        }
+      }
+      var crumbEl = expSection.querySelector('[data-exp-breadcrumb-current]');
+      if (crumbEl && ws.breadcrumb_label) crumbEl.textContent = ws.breadcrumb_label;
+
+      var html = [];
+      ws.left_tree.forEach(function (l1, idx) {
+        var locked = Boolean(l1.is_locked);
+        var expanded = Boolean(l1.expanded_by_default) || idx === 0;
+        var l2List = Array.isArray(l1.children) ? l1.children : [];
+        var subHtml = [];
+
+        l2List.forEach(function (l2) {
+          var l3List = Array.isArray(l2.children) ? l2.children : [];
+          var l2HasChildren = l3List.length > 0;
+          var l2Expanded = l2.expanded_by_default !== false;
+          // 第二层级：保持现有样式不变 (.tcg-exp-sub-heading + .tcg-exp-sub-square)；若有子层级则仅展开子层级
+          subHtml.push(
+            '<a href="' + escAttr(!l2HasChildren && l2.click_mode === 'url' ? (l2.target_url || '#') : '#') + '" ' +
+              'class="tcg-exp-sub-heading" data-studio-left-node data-node-level="2" data-node-id="' + escAttr(l2.id) + '" ' +
+              'data-has-children="' + (l2HasChildren ? 'true' : 'false') + '" ' +
+              'data-click-mode="' + escAttr(l2.click_mode || 'template') + '" ' +
+              'data-target-tpl="' + escAttr(l2.target_template_file || '') + '" ' +
+              'data-target-url="' + escAttr(l2.target_url || '') + '">' +
+              '<span class="tcg-exp-sub-square"></span>' +
+              '<span>' + escAttr(l2.title) + '</span>' +
+            '</a>'
+          );
+
+          if (l2HasChildren) {
+            var l3Items = l3List.map(function (l3) {
+              // 第三层级：无子层级，保持现有样式不变 (.tcg-exp-sub-link + .tcg-exp-sub-pipe)，点击可切换独立模块或跳转链接
+              return (
+                '<li>' +
+                  '<a href="' + escAttr(l3.click_mode === 'url' ? (l3.target_url || '#') : ('#tpl:' + (l3.target_template_file || ''))) + '" ' +
+                    'class="tcg-exp-sub-link" data-studio-left-node data-node-level="3" data-node-id="' + escAttr(l3.id) + '" ' +
+                    'data-has-children="false" ' +
+                    'data-click-mode="' + escAttr(l3.click_mode || 'template') + '" ' +
+                    'data-target-tpl="' + escAttr(l3.target_template_file || '') + '" ' +
+                    'data-target-url="' + escAttr(l3.target_url || '') + '">' +
+                    '<span class="tcg-exp-sub-pipe" aria-hidden="true"></span>' +
+                    '<span class="tcg-exp-sub-text">' + escAttr(l3.title) + '</span>' +
+                  '</a>' +
+                '</li>'
+              );
+            }).join('');
+            subHtml.push('<ul class="tcg-exp-sub-list" data-l2-sublist="' + escAttr(l2.id) + '"' + (l2Expanded ? '' : ' hidden') + '>' + l3Items + '</ul>');
+          }
+        });
+
+        var l1HasChildren = l2List.length > 0;
+        html.push(
+          '<li class="tcg-exp-nav-item' + (idx === 0 ? ' is-active' : '') + (expanded ? ' is-expanded' : '') + (locked ? ' is-locked' : '') + '" data-studio-l1-item>' +
+            '<button type="button" class="tcg-exp-nav-trigger" data-studio-left-node data-node-level="1" data-node-id="' + escAttr(l1.id) + '" ' +
+              'data-locked="' + (locked ? 'true' : 'false') + '" ' +
+              'data-has-children="' + (l1HasChildren ? 'true' : 'false') + '" ' +
+              'data-click-mode="' + escAttr(l1.click_mode || 'template') + '" ' +
+              'data-target-tpl="' + escAttr(l1.target_template_file || '') + '" ' +
+              'data-target-url="' + escAttr(l1.target_url || '') + '">' +
+              '<span class="tcg-exp-nav-left">' +
+                (l1.icon_url
+                  ? '<img src="' + escAttr(l1.icon_url) + '" alt="' + escAttr(l1.title) + '" width="20" height="20" loading="lazy" decoding="async" class="tcg-exp-nav-icon">'
+                  : '<span class="tcg-exp-nav-icon-placeholder" aria-hidden="true">◈</span>') +
+                '<span class="tcg-exp-nav-title">' + escAttr(l1.title) + '</span>' +
+                (locked ? '<span class="tcg-exp-locked-badge">LOCKED</span>' : '') +
+              '</span>' +
+              '<span class="tcg-exp-nav-right" aria-hidden="true">' +
+                (locked
+                  ? '<svg class="tcg-exp-lock-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5Zm-3 8V6a3 3 0 1 1 6 0v3H9Z"/></svg>'
+                  : '<svg class="tcg-exp-chevron-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>') +
+              '</span>' +
+            '</button>' +
+            (!locked && subHtml.length > 0
+              ? '<div class="tcg-exp-nav-subpanel"' + (expanded ? '' : ' hidden') + ' data-exp-subpanel>' + subHtml.join('') + '</div>'
+              : '') +
+          '</li>'
+        );
+      });
+
+      sidebarList.innerHTML = html.join('');
+      return true;
+    }
+
+    function renderStudioRightTemplateDoc(doc, drillStack) {
+      if (!doc || !groupsContainer) return;
+      activeRightTemplateDoc = doc;
+      studioDrillStack = Array.isArray(drillStack) ? drillStack : [];
+
+      var currentLayerBlock = studioDrillStack.length > 0 ? studioDrillStack[studioDrillStack.length - 1] : null;
+      var hTitle = currentLayerBlock ? currentLayerBlock.title : (doc.header_title || 'EXPANSIONS');
+      var hDesc = (currentLayerBlock && currentLayerBlock.sub_header_description) ? currentLayerBlock.sub_header_description : (doc.header_description || '');
+      var hIcon = (currentLayerBlock && currentLayerBlock.image_url) ? currentLayerBlock.image_url : (doc.header_icon_url || '');
+      var hWm = doc.header_watermark_url || '';
+
+      var titleEl = expSection.querySelector('[data-exp-header-title]');
+      var descEl = expSection.querySelector('[data-exp-header-desc]');
+      var iconEl = expSection.querySelector('[data-exp-header-icon]');
+      var wmEl = expSection.querySelector('[data-exp-header-watermark]');
+
+      if (titleEl) titleEl.textContent = hTitle;
+      if (descEl) descEl.textContent = hDesc;
+      if (iconEl && hIcon) iconEl.src = hIcon;
+      if (wmEl) {
+        if (hWm) {
+          wmEl.src = hWm;
+          wmEl.style.display = '';
+        } else {
+          wmEl.style.display = 'none';
+        }
+      }
+
+      var activeBlocks = currentLayerBlock ? (currentLayerBlock.children || []) : (doc.blocks || []);
+      var htmlParts = [];
+
+      // 若处于第 2 层或第 3 层，顶部展示三层返回导航条
+      if (studioDrillStack.length > 0) {
+        var crumbBtns = [
+          '<button type="button" class="tcg-btn-secondary" data-studio-drill-depth="0" style="padding:0.35rem 0.75rem;font-size:0.78rem;">← 第 1 层: ' + escAttr(doc.header_title) + '</button>'
+        ];
+        if (studioDrillStack.length >= 1) {
+          crumbBtns.push('<span style="color:var(--tcg-text-muted);">/</span>');
+          crumbBtns.push('<button type="button" class="tcg-btn-secondary" data-studio-drill-depth="1" style="padding:0.35rem 0.75rem;font-size:0.78rem;">第 2 层: ' + escAttr(studioDrillStack[0].title) + '</button>');
+        }
+        if (studioDrillStack.length >= 2) {
+          crumbBtns.push('<span style="color:var(--tcg-text-muted);">/</span>');
+          crumbBtns.push('<span style="color:var(--tcg-accent-hover);font-weight:700;font-size:0.82rem;">第 3 层: ' + escAttr(studioDrillStack[1].title) + '</span>');
+        }
+        htmlParts.push('<div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;">' + crumbBtns.join('') + '</div>');
+      }
+
+      // 按 group_name 分组
+      var groupMap = {};
+      var groupOrder = [];
+      activeBlocks.forEach(function (b) {
+        var gName = String(b.group_name || 'EXPANSIONS').toUpperCase();
+        if (!groupMap[gName]) {
+          groupMap[gName] = [];
+          groupOrder.push(gName);
+        }
+        groupMap[gName].push(b);
+      });
+
+      var isTable = currentMode === 'table';
+      var placeholderSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='72' viewBox='0 0 160 72'%3E%3C/svg%3E";
+
+      groupOrder.forEach(function (gName, gIdx) {
+        var items = groupMap[gName];
+        var gridCards = [];
+        var tableRows = [];
+
+        items.forEach(function (it, i) {
+          var useImmediate = (gIdx === 0 && i < 12);
+          var imgAttrs = useImmediate
+            ? 'src="' + escAttr(it.image_url) + '" loading="lazy" decoding="async"'
+            : 'src="' + placeholderSvg + '" data-lazy-src="' + escAttr(it.image_url) + '" loading="lazy" decoding="async"';
+
+          var sMode = String(it.card_size_mode || 'small').toLowerCase();
+          var wPx = sMode === 'large' ? 260 : (sMode === 'custom' ? Math.max(110, Math.min(560, Number(it.custom_width_px) || 210)) : 170);
+          var hPx = sMode === 'large' ? 220 : (sMode === 'custom' ? Math.max(100, Math.min(480, Number(it.custom_height_px) || 185)) : 152);
+          var logoH = Math.max(42, hPx - 78);
+
+          gridCards.push(
+            '<a href="' + escAttr(it.target_url || '#') + '" style="width:' + wPx + 'px;min-height:' + hPx + 'px;" class="tcg-exp-card tcg-exp-card-sized" data-studio-right-block data-block-id="' + escAttr(it.id) + '">' +
+              '<div class="tcg-exp-card-inner" style="height:100%;justify-content:space-between;">' +
+                '<div class="tcg-exp-card-logo" style="height:' + logoH + 'px;"><img ' + imgAttrs + ' style="max-height:' + (logoH - 6) + 'px;" alt="' + escAttr(it.title) + '"></div>' +
+                '<div class="tcg-exp-card-meta">' +
+                  '<span class="tcg-exp-card-name">' + escAttr(it.title) + '</span>' +
+                  '<span class="tcg-exp-card-date">' + escAttr(it.release_date) + '</span>' +
+                '</div>' +
+              '</div>' +
+            '</a>'
+          );
+
+          tableRows.push(
+            '<tr class="tcg-exp-row" data-studio-right-block data-block-id="' + escAttr(it.id) + '">' +
+              '<td><div class="tcg-exp-row-Main"><div class="tcg-exp-row-logo"><img ' + imgAttrs + ' alt="' + escAttr(it.title) + '"></div><span class="tcg-exp-row-name">' + escAttr(it.title) + '</span></div></td>' +
+              '<td class="is-center"><span class="tcg-exp-mono-id">' + escAttr(it.code) + '</span></td>' +
+              '<td class="is-center"><span class="tcg-exp-mono-cards">' + escAttr(it.cards_text) + '</span></td>' +
+              '<td class="is-right"><span class="tcg-exp-mono-date">' + escAttr(it.release_date) + '</span></td>' +
+            '</tr>'
+          );
+        });
+
+        htmlParts.push(
+          '<section class="tcg-exp-group">' +
+            '<div class="tcg-exp-group-head"><h2>' + escAttr(gName) + '</h2></div>' +
+            '<div data-view-mode-target="grid" class="tcg-exp-grid tcg-exp-grid-sized' + (isTable ? ' hidden' : '') + '">' + gridCards.join('') + '</div>' +
+            '<div data-view-mode-target="table" class="tcg-exp-table-wrap' + (isTable ? '' : ' hidden') + '">' +
+              '<table class="tcg-exp-table"><thead><tr><th>Expansion Name</th><th class="is-center">ID</th><th class="is-center">Cards</th><th class="is-right">Release Date</th></tr></thead><tbody>' + tableRows.join('') + '</tbody></table>' +
+            '</div>' +
+          '</section>'
+        );
+      });
+
+      groupsContainer.innerHTML = htmlParts.join('');
+      initLazyObserver();
+    }
+
+    function loadAndSwitchRightTemplateFile(tplFileName) {
+      if (!tplFileName) return;
+      var manifest = getStudioManifest();
+      if (manifest && manifest.templates && manifest.templates[tplFileName]) {
+        renderStudioRightTemplateDoc(manifest.templates[tplFileName], []);
+        return;
+      }
+      var gameGuess = tplFileName.replace(/^page\.expansions-/, '').replace(/\.json$/, '').split('-')[0];
+      selectLeftGame(gameGuess, false, true);
+    }
+
+    function isShopifyProductFeedUrl(url) {
+      var u = String(url || '').toLowerCase();
+      return u.indexOf('/collections') !== -1 || u.indexOf('/search') !== -1 || u.indexOf('filter.') !== -1 || u.indexOf('q=') !== -1;
+    }
+
+    function findLeftNodeModelById(nodes, targetId) {
+      if (!Array.isArray(nodes)) return null;
+      for (var i = 0; i < nodes.length; i++) {
+        var n = nodes[i];
+        if (n.id === targetId) return n;
+        var found = findLeftNodeModelById(n.children, targetId);
+        if (found) return found;
+      }
+      return null;
+    }
+
+    /* 18.10 拉取 Shopify 搜索、分类、筛选链接下的所有商品并以 Expansion 同款格子展示，点击商品跳转新页面到加购或付款界面 */
+    function renderShopifyProductFeedIntoList(title, sourceUrl, products, wPx, hPx, clickTargetMode) {
+      if (!groupsContainer) return;
+      var list = Array.isArray(products) ? products : [];
+      var pw = Number(wPx) || 170;
+      var ph = Number(hPx) || 152;
+      var logoH = Math.max(42, ph - 78);
+      var isCheckout = clickTargetMode === 'checkout';
+      var isTable = currentMode === 'table';
+
+      var titleEl = expSection.querySelector('[data-exp-header-title]');
+      var descEl = expSection.querySelector('[data-exp-header-desc]');
+      if (titleEl && title) titleEl.textContent = title;
+      if (descEl) descEl.textContent = 'Showing all products pulled from Shopify link (' + (sourceUrl || '/collections/all') + '). Click any product tile to open its Add-to-Cart or Checkout page in a new tab.';
+
+      var gridCards = [];
+      var tableRows = [];
+
+      list.forEach(function (prod) {
+        var destUrl = prod.add_to_cart_url || ('/products/' + encodeURIComponent(prod.handle || '') + (prod.variant_id ? ('?variant=' + encodeURIComponent(prod.variant_id)) : ''));
+
+        gridCards.push(
+          '<a href="' + escAttr(destUrl) + '" target="_blank" rel="noopener" style="width:' + pw + 'px;min-height:' + ph + 'px;" class="tcg-exp-card tcg-exp-card-sized" data-shopify-product-tile>' +
+            '<div class="tcg-exp-card-inner" style="height:100%;justify-content:space-between;">' +
+              '<div class="tcg-exp-card-logo" style="height:' + logoH + 'px;">' +
+                '<img src="' + escAttr(prod.image_url || '') + '" style="max-height:' + (logoH - 6) + 'px;" alt="' + escAttr(prod.title || '') + '" loading="lazy" decoding="async">' +
+              '</div>' +
+              '<div class="tcg-exp-card-meta">' +
+                '<span class="tcg-exp-card-name">' + escAttr(prod.title || '') + '</span>' +
+                '<span class="tcg-exp-card-date">' + escAttr(prod.price_display || '$29.99') + '</span>' +
+              '</div>' +
+            '</div>' +
+          '</a>'
+        );
+
+        tableRows.push(
+          '<tr class="tcg-exp-row" onclick="window.open(\'' + escAttr(destUrl).replace(/'/g, "\\'") + '\', \'_blank\')">' +
+            '<td><div class="tcg-exp-row-Main"><div class="tcg-exp-row-logo"><img src="' + escAttr(prod.image_url || '') + '" alt="' + escAttr(prod.title || '') + '" loading="lazy"></div><span class="tcg-exp-row-name">' + escAttr(prod.title || '') + '</span></div></td>' +
+            '<td class="is-center"><span class="tcg-exp-mono-id">' + escAttr(prod.sku || prod.handle || '') + '</span></td>' +
+            '<td class="is-center"><span class="tcg-exp-mono-cards">' + escAttr(String(prod.inventory_qty != null ? prod.inventory_qty : 10)) + '</span></td>' +
+            '<td class="is-right"><span class="tcg-exp-mono-date">' + escAttr(prod.price_display || '$29.99') + '</span></td>' +
+          '</tr>'
+        );
+      });
+
+      groupsContainer.innerHTML =
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.85rem;">' +
+          '<button type="button" class="tcg-btn-secondary" data-exit-shopify-product-feed style="padding:0.4rem 0.85rem;font-size:0.8rem;">← Back to Expansions</button>' +
+          '<span style="color:var(--tcg-text-secondary);font-family:monospace;font-size:0.78rem;">Shopify Source: ' + escAttr(sourceUrl || '/collections/all') + ' · ' + list.length + ' Products</span>' +
+        '</div>' +
+        '<section class="tcg-exp-group">' +
+          '<div class="tcg-exp-group-head"><h2>' + escAttr(String(title || 'PRODUCTS').toUpperCase()) + '</h2></div>' +
+          '<div data-view-mode-target="grid" class="tcg-exp-grid tcg-exp-grid-sized' + (isTable ? ' hidden' : '') + '">' + gridCards.join('') + '</div>' +
+          '<div data-view-mode-target="table" class="tcg-exp-table-wrap' + (isTable ? '' : ' hidden') + '">' +
+            '<table class="tcg-exp-table"><thead><tr><th>Product Name</th><th class="is-center">SKU</th><th class="is-center">Stock</th><th class="is-right">Price</th></tr></thead><tbody>' + tableRows.join('') + '</tbody></table>' +
+          '</div>' +
+        '</section>';
+
+      initLazyObserver();
+    }
+
+    function filterProductsByShopifyLink(pool, rawUrl, fallbackTitle) {
+      var list = Array.isArray(pool) ? pool.slice() : [];
+      if (!list.length) return [];
+      var q = '';
+      var pType = '';
+      var inStock = false;
+      var minP = null;
+      var maxP = null;
+      var colHandle = '';
+      try {
+        var u = new URL(rawUrl || '/collections/all', window.location.origin || 'https://horizon.local');
+        var segs = u.pathname.split('/').filter(Boolean);
+        if (segs[0] === 'collections' && segs[1]) colHandle = decodeURIComponent(segs[1]);
+        q = (u.searchParams.get('q') || '').trim();
+        pType = (u.searchParams.get('filter.p.product_type') || u.searchParams.get('filter.type') || '').trim();
+        inStock = u.searchParams.get('filter.v.availability') === '1';
+        if (u.searchParams.get('filter.v.price.gte')) minP = Number(u.searchParams.get('filter.v.price.gte'));
+        if (u.searchParams.get('filter.v.price.lte')) maxP = Number(u.searchParams.get('filter.v.price.lte'));
+      } catch (e) {}
+
+      var kw = q || (colHandle && colHandle !== 'all' ? colHandle.replace(/-/g, ' ') : '');
+      var filtered = list.filter(function (p) {
+        if (inStock && Number(p.inventory_qty) <= 0) return false;
+        if (minP !== null && Number(p.raw_price) < minP) return false;
+        if (maxP !== null && Number(p.raw_price) > maxP) return false;
+        if (pType && String(p.product_type || '').toLowerCase().indexOf(pType.toLowerCase()) === -1) return false;
+        if (kw) {
+          var hay = (String(p.title || '') + ' ' + String(p.sku || '') + ' ' + String(p.product_type || '') + ' ' + String(p.handle || '')).toLowerCase();
+          var tokens = kw.toLowerCase().split(/\s+/).filter(Boolean);
+          for (var t = 0; t < tokens.length; t++) {
+            if (hay.indexOf(tokens[t]) === -1) return false;
+          }
+        }
+        return true;
+      });
+
+      return filtered.length > 0 ? filtered : list;
+    }
+
+    function fetchAndShowShopifyLinkProducts(opts) {
+      var title = opts.title || 'Store Products';
+      var rawUrl = opts.url || '/collections/all';
+      var cached = Array.isArray(opts.cachedProducts) && opts.cachedProducts.length > 0 ? opts.cachedProducts : null;
+      var wPx = opts.wPx || 170;
+      var hPx = opts.hPx || 152;
+      var clickTargetMode = opts.clickTargetMode || 'add_to_cart';
+
+      var manifest = getStudioManifest();
+      var fallbackPool = (Array.isArray(window.TCG_LIQUID_STORE_PRODUCTS) && window.TCG_LIQUID_STORE_PRODUCTS.length > 0)
+        ? window.TCG_LIQUID_STORE_PRODUCTS
+        : ((manifest && Array.isArray(manifest.store_products)) ? manifest.store_products : []);
+
+      // 先立即展示已缓存或本地筛选的商品列表，随后若在在线 Shopify 环境则异步拉取最新 Storefront JSON 更新
+      var initialList = cached || filterProductsByShopifyLink(fallbackPool, rawUrl, title);
+      renderShopifyProductFeedIntoList(title, rawUrl, initialList, wPx, hPx, clickTargetMode);
+
+      try {
+        var u = new URL(rawUrl, window.location.origin);
+        var segs = u.pathname.split('/').filter(Boolean);
+        var jsonEndpoint = (segs[0] === 'collections' && segs[1] && segs[1] !== 'all')
+          ? ('/collections/' + encodeURIComponent(segs[1]) + '/products.json?limit=250')
+          : '/products.json?limit=250';
+
+        fetch(jsonEndpoint)
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (data) {
+            if (!data || !Array.isArray(data.products) || !data.products.length) return;
+            var mapped = data.products.map(function (p) {
+              var v0 = (p.variants && p.variants[0]) || {};
+              var img = (p.images && p.images[0] && p.images[0].src) || (p.image && p.image.src) || '';
+              var priceNum = Number(v0.price) || 29.99;
+              return {
+                id: String(p.id || ''),
+                handle: p.handle || '',
+                variant_id: String(v0.id || ''),
+                title: p.title || '',
+                image_url: img,
+                price_display: '$' + priceNum.toFixed(2),
+                raw_price: priceNum,
+                sku: v0.sku || p.vendor || '',
+                product_type: p.product_type || 'Single',
+                inventory_qty: v0.available === false ? 0 : 10,
+                add_to_cart_url: '/products/' + p.handle + (v0.id ? ('?variant=' + v0.id) : ''),
+                checkout_url: v0.id ? ('/cart/' + v0.id + ':1') : ('/products/' + p.handle)
+              };
+            });
+            var finalItems = filterProductsByShopifyLink(mapped, rawUrl, title);
+            if (finalItems.length > 0) {
+              renderShopifyProductFeedIntoList(title, rawUrl, finalItems, wPx, hPx, clickTargetMode);
+            }
+          })
+          .catch(function () {});
+      } catch (e) {}
+    }
+
+    on('[data-exit-shopify-product-feed]', 'click', function (e) {
+      e.preventDefault();
+      if (activeRightTemplateDoc) {
+        renderStudioRightTemplateDoc(activeRightTemplateDoc, studioDrillStack);
+      } else {
+        selectLeftGame(currentGameKey, false, false);
+      }
+    }, expSection);
+
+    on('[data-studio-left-node]', 'click', function (e, nodeEl) {
+      var locked = nodeEl.getAttribute('data-locked') === 'true';
+      if (locked) {
+        e.preventDefault();
+        return;
+      }
+      var level = nodeEl.getAttribute('data-node-level');
+      var hasChildren = nodeEl.getAttribute('data-has-children') === 'true';
+      var nodeId = nodeEl.getAttribute('data-node-id') || '';
+
+      // 规则1：若第 1 层级下有子层级，或第 2 层级下有子层级，仅执行打开/收起子层级操作，不执行跳转或切换独立模块
+      if (hasChildren) {
+        e.preventDefault();
+        if (level === '1') {
+          var li = nodeEl.closest('[data-studio-l1-item]');
+          if (li) {
+            var sub = li.querySelector('[data-exp-subpanel]');
+            if (sub) {
+              var exp = !li.classList.contains('is-expanded');
+              li.classList.toggle('is-expanded', exp);
+              if (exp) sub.removeAttribute('hidden');
+              else sub.setAttribute('hidden', '');
+            }
+          }
+        } else if (level === '2') {
+          var subList = expSection.querySelector('[data-l2-sublist="' + nodeId + '"]');
+          if (subList) {
+            if (subList.hasAttribute('hidden')) subList.removeAttribute('hidden');
+            else subList.setAttribute('hidden', '');
+          }
+        }
+        return;
+      }
+
+      // 仅无子层级的节点可跳转、切换独立模块或拉取 Shopify 链接商品进入列表
+      expSection.querySelectorAll('[data-studio-left-node]').forEach(function (el) {
+        el.classList.toggle('is-active', el === nodeEl);
+      });
+      var parentLi = nodeEl.closest('[data-studio-l1-item]');
+      if (parentLi) {
+        expSection.querySelectorAll('[data-studio-l1-item]').forEach(function (other) {
+          other.classList.toggle('is-active', other === parentLi);
+        });
+      }
+
+      var mode = nodeEl.getAttribute('data-click-mode') || 'template';
+      var targetUrl = nodeEl.getAttribute('data-target-url') || '';
+      var targetTpl = nodeEl.getAttribute('data-target-tpl') || '';
+
+      if (mode === 'shopify_products' || (mode === 'url' && isShopifyProductFeedUrl(targetUrl))) {
+        e.preventDefault();
+        var manifest = getStudioManifest();
+        var leftModel = manifest && manifest.workspace ? findLeftNodeModelById(manifest.workspace.left_tree, nodeId) : null;
+        fetchAndShowShopifyLinkProducts({
+          title: (leftModel && leftModel.title) || nodeEl.textContent.trim(),
+          url: targetUrl,
+          cachedProducts: leftModel ? leftModel.cached_products : null,
+          wPx: leftModel && leftModel.product_card_size_mode === 'large' ? 260 : 170,
+          hPx: leftModel && leftModel.product_card_size_mode === 'large' ? 220 : 152,
+          clickTargetMode: (leftModel && leftModel.product_click_target_mode) || 'add_to_cart'
+        });
+        return;
+      }
+
+      if (mode === 'url' && targetUrl) {
+        window.location.href = targetUrl;
+        return;
+      }
+      e.preventDefault();
+      loadAndSwitchRightTemplateFile(targetTpl);
+    }, expSection);
+
+    on('[data-studio-right-block]', 'click', function (e, cardEl) {
+      if (!activeRightTemplateDoc) return;
+      var blkId = cardEl.getAttribute('data-block-id');
+      var pool = studioDrillStack.length > 0 ? (studioDrillStack[studioDrillStack.length - 1].children || []) : (activeRightTemplateDoc.blocks || []);
+      var found = null;
+      for (var i = 0; i < pool.length; i++) {
+        if (pool[i].id === blkId) {
+          found = pool[i];
+          break;
+        }
+      }
+      if (!found) return;
+      var hasChildBlocks = Array.isArray(found.children) && found.children.length > 0;
+
+      // 1) 若该块配置为跳转外链 (click_mode === 'url'，包括右侧第三层级及任意层级)，直接执行外链跳转
+      if (found.click_mode === 'url') {
+        e.preventDefault();
+        var extUrl = found.external_redirect_url || found.target_url || '#';
+        if (extUrl && extUrl !== '#') {
+          if (/^https?:\/\//i.test(extUrl)) {
+            window.open(extUrl, '_blank', 'noopener');
+          } else {
+            window.location.href = extUrl;
+          }
+        }
+        return;
+      }
+
+      // 2) 若该块有子层级且未达第 3 层上限，切换到下一层块
+      if (studioDrillStack.length < 2 && found.click_mode === 'drilldown' && hasChildBlocks) {
+        e.preventDefault();
+        var nextStack = studioDrillStack.slice();
+        nextStack.push(found);
+        renderStudioRightTemplateDoc(activeRightTemplateDoc, nextStack);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
+      // 3) 若该块配置为拉取列表 (click_mode === 'shopify_products') 或无子层级，点击后拉取其专属 Shopify 链接下的所有商品进入列表
+      if (found.click_mode === 'shopify_products' || !hasChildBlocks) {
+        e.preventDefault();
+        var sMode = String(found.card_size_mode || 'small').toLowerCase();
+        var wPx = sMode === 'large' ? 260 : (sMode === 'custom' ? (Number(found.custom_width_px) || 210) : 170);
+        var hPx = sMode === 'large' ? 220 : (sMode === 'custom' ? (Number(found.custom_height_px) || 185) : 152);
+        var shopUrl = found.shopify_source_url || found.target_url || ('/search?type=product&q=' + encodeURIComponent(found.title || ''));
+        fetchAndShowShopifyLinkProducts({
+          title: found.title,
+          url: shopUrl,
+          cachedProducts: found.cached_products,
+          wPx: wPx,
+          hPx: hPx,
+          clickTargetMode: found.product_click_target_mode || 'add_to_cart'
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+    }, expSection);
+
+    on('[data-studio-drill-depth]', 'click', function (e, btn) {
+      e.preventDefault();
+      if (!activeRightTemplateDoc) return;
+      var depth = Number(btn.getAttribute('data-studio-drill-depth')) || 0;
+      renderStudioRightTemplateDoc(activeRightTemplateDoc, studioDrillStack.slice(0, depth));
+    }, expSection);
+
     function initDataAndRoute() {
+      var manifest = getStudioManifest();
+      if (manifest && manifest.workspace && renderStudioLeftTree(manifest.workspace)) {
+        var defTpl = manifest.workspace.default_template_file || 'page.expansions-pokemon.json';
+        loadAndSwitchRightTemplateFile(defTpl);
+        return;
+      }
       ensureSidebarPopulated();
       try {
         var params = new URLSearchParams(window.location.search);

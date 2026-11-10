@@ -1,0 +1,10 @@
+{
+  "template_file_name": "page.expansions-pok-mon-japanese.json",
+  "template_key": "pok-mon-japanese",
+  "header_title": "POKÉMON — JAPANESE",
+  "header_description": "Explore all cards, sealed products, and collector items in POKÉMON — JAPANESE.",
+  "header_icon_url": "",
+  "header_watermark_url": "",
+  "default_view_mode": "grid",
+  "blocks": []
+}
