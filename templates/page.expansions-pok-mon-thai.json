@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "main": {
@@ -6,8 +15,6 @@
         "blk_pok-mon-thai_l1_1": {
           "type": "expansion_item",
           "settings": {
-            "game_key": "pok-mon-thai",
-            "group_name": "EXPANSIONS",
             "name": "POKÉMON — THAI",
             "code": "SET1",
             "cards_count": 198,
@@ -20,15 +27,11 @@
         "blk_pok-mon-thai_l1_1"
       ],
       "settings": {
-        "breadcrumb_label": "Expansion",
-        "sidebar_brand": "DeckBingo",
-        "default_game": "pok-mon-thai",
-        "default_view_mode": "grid",
         "heading": "POKÉMON — THAI",
         "description": "Explore all cards, sealed products, and collector items in POKÉMON — THAI.",
+        "default_view_mode": "grid",
         "game_icon_url": "",
-        "header_watermark_url": "",
-        "right_template_doc_json": "{\"template_file_name\":\"page.expansions-pok-mon-thai.json\",\"template_key\":\"pok-mon-thai\",\"header_title\":\"POKÉMON — THAI\",\"header_description\":\"Explore all cards, sealed products, and collector items in POKÉMON — THAI.\",\"header_icon_url\":\"\",\"header_watermark_url\":\"\",\"default_view_mode\":\"grid\",\"blocks\":[{\"id\":\"blk_pok-mon-thai_l1_1\",\"level\":1,\"group_name\":\"EXPANSIONS\",\"title\":\"POKÉMON — THAI\",\"code\":\"SET1\",\"cards_text\":\"198\",\"release_date\":\"2026-11-10\",\"image_url\":\"https://images.scrydex.com/pokemon/me6-logo/logo\",\"card_size_mode\":\"small\",\"custom_width_px\":210,\"custom_height_px\":185,\"click_mode\":\"shopify_products\",\"shopify_source_url\":\"/collections/all\",\"external_redirect_url\":\"/collections/all\",\"target_url\":\"/collections/all\",\"product_click_target_mode\":\"add_to_cart\",\"cached_products\":[{\"id\":\"pok-mon-thai-p1\",\"handle\":\"pok-mon-thai-collector-edition-1\",\"variant_id\":\"410401\",\"title\":\"POKÉMON — THAI — Near Mint (NM) / Sealed Edition #01\",\"image_url\":\"https://images.scrydex.com/pokemon/set1-1/medium\",\"price_display\":\"$28.99\",\"raw_price\":28.99,\"sku\":\"SET1-001\",\"product_type\":\"Single\",\"inventory_qty\":12,\"add_to_cart_url\":\"/products/pok-mon-thai-collector-edition-1?variant=410401\",\"checkout_url\":\"/products/pok-mon-thai-collector-edition-1?variant=410401\"},{\"id\":\"pok-mon-thai-p2\",\"handle\":\"pok-mon-thai-holo-foil-edition-2\",\"variant_id\":\"410402\",\"title\":\"POKÉMON — THAI — Holo Foil / Special Art Edition #02\",\"image_url\":\"https://images.scrydex.com/pokemon/set1-2/medium\",\"price_display\":\"$63.99\",\"raw_price\":63.99,\"sku\":\"SET1-002\",\"product_type\":\"Single\",\"inventory_qty\":8,\"add_to_cart_url\":\"/products/pok-mon-thai-holo-foil-edition-2?variant=410402\",\"checkout_url\":\"/products/pok-mon-thai-holo-foil-edition-2?variant=410402\"},{\"id\":\"pok-mon-thai-p3\",\"handle\":\"pok-mon-thai-psa10-gem-mint-slab\",\"variant_id\":\"410403\",\"title\":\"POKÉMON — THAI — PSA 10 Gem Mint Graded Collector Slab\",\"image_url\":\"https://images.scrydex.com/pokemon/set1-3/medium\",\"price_display\":\"$148.99\",\"raw_price\":148.99,\"sku\":\"SET1-PSA10\",\"product_type\":\"Graded\",\"inventory_qty\":3,\"add_to_cart_url\":\"/products/pok-mon-thai-psa10-gem-mint-slab?variant=410403\",\"checkout_url\":\"/products/pok-mon-thai-psa10-gem-mint-slab?variant=410403\"},{\"id\":\"pok-mon-thai-p4\",\"handle\":\"pok-mon-thai-sealed-booster-bundle\",\"variant_id\":\"410404\",\"title\":\"POKÉMON — THAI — Factory Sealed Booster Display / Collector Case\",\"image_url\":\"https://images.scrydex.com/pokemon/set1-4/medium\",\"price_display\":\"$113.99\",\"raw_price\":113.99,\"sku\":\"SET1-BOX\",\"product_type\":\"Sealed\",\"inventory_qty\":6,\"add_to_cart_url\":\"/products/pok-mon-thai-sealed-booster-bundle?variant=410404\",\"checkout_url\":\"/products/pok-mon-thai-sealed-booster-bundle?variant=410404\"}],\"sub_header_description\":\"Explore sealed products and singles from POKÉMON — THAI.\",\"children\":[]}]}"
+        "header_watermark_url": ""
       }
     }
   },
