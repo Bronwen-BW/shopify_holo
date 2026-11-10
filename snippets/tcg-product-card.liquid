@@ -38,10 +38,34 @@
   {%- assign card_thumb_url = 'logo-mark.png' | asset_url -%}
 {%- endif -%}
 {%- assign card_variant_price = current_variant.price | default: product.price | default: 0 -%}
+{%- assign is_custom_card = false -%}
+{%- if custom_mode == true -%}
+  {%- assign is_custom_card = true -%}
+{%- elsif product.template_suffix == 'custom' or product.handle contains 'custom' -%}
+  {%- assign is_custom_card = true -%}
+{%- else -%}
+  {%- for tag in product.tags -%}
+    {%- assign t_low = tag | downcase -%}
+    {%- if t_low == 'custom' or t_low == 'customizable' or t_low contains '定制' -%}
+      {%- assign is_custom_card = true -%}
+      {%- break -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
+{%- assign card_target_url = custom_url | default: product.url -%}
+{%- if is_custom_card and custom_url == blank and card_target_url != blank -%}
+  {%- unless card_target_url contains 'custom=' or card_target_url contains 'view=custom' -%}
+    {%- if card_target_url contains '?' -%}
+      {%- assign card_target_url = card_target_url | append: '&custom=1' -%}
+    {%- else -%}
+      {%- assign card_target_url = card_target_url | append: '?custom=1' -%}
+    {%- endif -%}
+  {%- endunless -%}
+{%- endif -%}
 
 <article data-motion-card="8" class="_card_36e53_65 _cardFill_36e53_74" data-reveal>
   {%- comment %} 媒体区（整卡可点击） {% endcomment -%}
-  <a href="{{ product.url }}" class="_cardMedia_36e53_85" aria-label="{{ product.title | escape }}">
+  <a href="{{ card_target_url }}" class="_cardMedia_36e53_85" aria-label="{{ product.title | escape }}">
     <span class="_cardArtwork_36e53_122">
       {%- if product.featured_image -%}
         <img
@@ -58,9 +82,13 @@
       {%- endif -%}
     </span>
 
-    {%- comment %} 状态徽章：预售 / 多规格 / 新品 {% endcomment -%}
+    {%- comment %} 状态徽章：预售 / 定制 / 多规格 / 新品 {% endcomment -%}
     {%- if is_preorder -%}
       <span class="_badge_36e53_217 _badgePreorder_36e53_232">Pre-order</span>
+    {%- elsif is_custom_card and product.variants.size > 1 -%}
+      <span class="_badge_36e53_217">Custom · {{ product.variants.size }} SKUs</span>
+    {%- elsif is_custom_card -%}
+      <span class="_badge_36e53_217">Custom</span>
     {%- elsif product.variants.size > 1 -%}
       <span class="_badge_36e53_217">{{ product.variants.size }} SKUs</span>
     {%- else -%}
@@ -75,12 +103,14 @@
 
   {%- comment %} 信息区 {% endcomment -%}
   <div class="_cardBody_36e53_256">
-    <a href="{{ product.url }}" class="_cardInfo_36e53_264">
+    <a href="{{ card_target_url }}" class="_cardInfo_36e53_264">
       <span class="_cardName_36e53_275">{{ product.title }}</span>
       {%- if product.type != blank -%}
         <span class="_cardSet_36e53_289">{{ product.type }}{% if current_variant.sku != blank %} · {{ current_variant.sku }}{% endif %}</span>
       {%- elsif current_variant.sku != blank -%}
         <span class="_cardSet_36e53_289">SKU: {{ current_variant.sku }}</span>
+      {%- elsif is_custom_card -%}
+        <span class="_cardSet_36e53_289">Custom Extended Art · Multi-SKU</span>
       {%- endif -%}
     </a>
 
@@ -94,27 +124,39 @@
         </span>
       </span>
 
-      {%- comment %} 加购按钮（使用 Shopify 官方 /cart/add.js 接口 + 本地购物车兜底同步） {% endcomment -%}
-      <button
-        type="button"
-        class="_addBtn_36e53_338"
-        data-add
-        data-variant="{{ current_variant.id | default: product.id }}"
-        data-product-id="{{ product.id }}"
-        data-product-handle="{{ product.handle | escape }}"
-        data-product-title="{{ product.title | escape }}"
-        data-variant-title="{% if current_variant.title != 'Default Title' %}{{ current_variant.title | escape }}{% endif %}"
-        data-variant-sku="{{ current_variant.sku | escape }}"
-        data-variant-price="{{ card_variant_price }}"
-        data-variant-price-formatted="{{ card_variant_price | money | escape }}"
-        data-product-url="{{ product.url | default: routes.all_products_collection_url }}"
-        data-product-image="{{ card_thumb_url }}"
-        {% unless card_available %}disabled{% endunless %}
-        aria-label="Add {{ product.title | escape }} to cart"
-      >
-        <span>{% if card_available == false %}Sold out{% elsif is_preorder %}Pre-order{% else %}Add{% endif %}</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
-      </button>
+      {%- if is_custom_card -%}
+        <a
+          href="{{ card_target_url }}"
+          class="_addBtn_36e53_338"
+          aria-label="Customize {{ product.title | escape }}"
+          style="text-decoration:none;"
+        >
+          <span>Customize</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
+        </a>
+      {%- else -%}
+        {%- comment %} 加购按钮（使用 Shopify 官方 /cart/add.js 接口 + 本地购物车兜底同步） {% endcomment -%}
+        <button
+          type="button"
+          class="_addBtn_36e53_338"
+          data-add
+          data-variant="{{ current_variant.id | default: product.id }}"
+          data-product-id="{{ product.id }}"
+          data-product-handle="{{ product.handle | escape }}"
+          data-product-title="{{ product.title | escape }}"
+          data-variant-title="{% if current_variant.title != 'Default Title' %}{{ current_variant.title | escape }}{% endif %}"
+          data-variant-sku="{{ current_variant.sku | escape }}"
+          data-variant-price="{{ card_variant_price }}"
+          data-variant-price-formatted="{{ card_variant_price | money | escape }}"
+          data-product-url="{{ product.url | default: routes.all_products_collection_url }}"
+          data-product-image="{{ card_thumb_url }}"
+          {% unless card_available %}disabled{% endunless %}
+          aria-label="Add {{ product.title | escape }} to cart"
+        >
+          <span>{% if card_available == false %}Sold out{% elsif is_preorder %}Pre-order{% else %}Add{% endif %}</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
+        </button>
+      {%- endif -%}
     </div>
   </div>
 </article>

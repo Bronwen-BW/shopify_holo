@@ -3889,6 +3889,774 @@ html[data-theme="light"] ._cardBody_36e53_256 {
   font-size: 0.78rem;
 }
 
+/* ==========================================================================
+   TCG Custom Catalog & Custom Product Detail System
+   (Reference: animeholder.com/products/custom-your-premium-card-extended-art-display-cases-collection)
+   ========================================================================== */
+
+/* 1. 定制商品列表页顶部工具栏与筛选标签 */
+.tcg-custom-hero-banner {
+  margin-bottom: 1.5rem;
+}
+
+.tcg-custom-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 0.9rem 1.15rem;
+  border-radius: 1rem;
+  background: var(--tcg-surface);
+  border: 1px solid var(--tcg-border);
+}
+
+.tcg-custom-filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tcg-custom-filter-btn {
+  appearance: none;
+  padding: 0.48rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid var(--tcg-border);
+  background: var(--tcg-surface-soft);
+  color: var(--tcg-text-muted);
+  font-family: Rubik, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.tcg-custom-filter-btn:hover {
+  border-color: var(--tcg-accent);
+  color: var(--tcg-text);
+}
+
+.tcg-custom-filter-btn.is-active {
+  background: var(--tcg-accent);
+  border-color: var(--tcg-accent);
+  color: #ffffff;
+  box-shadow: 0 6px 18px -6px rgba(99, 102, 241, 0.55);
+}
+
+.tcg-custom-toolbar-right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.tcg-custom-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.tcg-custom-search-box svg {
+  position: absolute;
+  left: 0.75rem;
+  width: 1rem;
+  height: 1rem;
+  color: var(--tcg-text-muted);
+  pointer-events: none;
+}
+
+.tcg-custom-search-input {
+  padding: 0.48rem 0.85rem 0.48rem 2.25rem;
+  border-radius: 999px;
+  border: 1px solid var(--tcg-border);
+  background: var(--tcg-bg-elevated, var(--tcg-surface-soft));
+  color: var(--tcg-text);
+  font-size: 0.84rem;
+  min-width: 240px;
+}
+
+.tcg-custom-search-input:focus {
+  outline: none;
+  border-color: var(--tcg-accent);
+}
+
+.tcg-custom-count-pill {
+  font-size: 0.8rem;
+  color: var(--tcg-text-muted);
+  font-weight: 600;
+}
+
+.tcg-custom-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.15rem;
+}
+
+@media (max-width: 1100px) {
+  .tcg-custom-catalog-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 780px) {
+  .tcg-custom-catalog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .tcg-custom-catalog-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tcg-custom-card-cta {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tcg-custom-load-more-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+/* 2. 定制商品详情页画廊、实时徽章与流程步进面板 */
+.tcg-custom-stage {
+  position: relative;
+}
+
+.tcg-custom-stage-badges {
+  position: absolute;
+  top: 0.9rem;
+  left: 0.9rem;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.tcg-custom-stage-pill {
+  padding: 0.32rem 0.72rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #f8fafc;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.tcg-custom-stage-pill--accent {
+  border-color: var(--tcg-accent);
+  color: #a5b4fc;
+}
+
+.tcg-custom-uploaded-overlay {
+  position: absolute;
+  right: 0.9rem;
+  bottom: 0.9rem;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4rem 0.65rem 0.4rem 0.4rem;
+  border-radius: 0.75rem;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid var(--tcg-accent);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+}
+
+.tcg-custom-uploaded-overlay img {
+  width: 38px;
+  height: 38px;
+  border-radius: 0.45rem;
+  object-fit: cover;
+}
+
+.tcg-custom-uploaded-overlay span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.tcg-custom-steps-panel {
+  margin-top: 1.25rem;
+  padding: 1.15rem;
+  border-radius: 1rem;
+  background: var(--tcg-surface);
+  border: 1px solid var(--tcg-border);
+}
+
+.tcg-custom-steps-title {
+  margin: 0 0 0.85rem;
+  font-family: Rubik, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--tcg-text);
+}
+
+.tcg-custom-steps-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.tcg-custom-step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 0.75rem;
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+}
+
+.tcg-custom-step-num {
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  border-radius: 0.5rem;
+  background: rgba(99, 102, 241, 0.16);
+  color: var(--tcg-accent-hover, #818cf8);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.tcg-custom-step-item strong {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--tcg-text);
+}
+
+.tcg-custom-step-item p {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  color: var(--tcg-text-muted);
+  line-height: 1.45;
+}
+
+/* 3. 可增删 SKU 选择系统（Style / Color / 自助管理面板） */
+.tcg-custom-order-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.tcg-custom-sku-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--tcg-border);
+}
+
+.tcg-custom-sku-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.tcg-custom-sku-sub {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  color: var(--tcg-text-muted);
+}
+
+.tcg-custom-sku-manage-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  padding: 0.38rem 0.78rem;
+  border-radius: 0.6rem;
+  border: 1px dashed var(--tcg-accent);
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--tcg-text);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.tcg-custom-sku-manage-toggle:hover,
+.tcg-custom-sku-manage-toggle.is-open {
+  background: var(--tcg-accent);
+  border-style: solid;
+  color: #ffffff;
+}
+
+.tcg-custom-option-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tcg-custom-option-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.tcg-custom-field-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--tcg-text);
+  display: block;
+}
+
+.tcg-custom-field-label strong {
+  color: var(--tcg-accent-hover, #818cf8);
+}
+
+.tcg-custom-field-hint {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.76rem;
+  font-weight: 400;
+  color: var(--tcg-text-muted);
+}
+
+.tcg-custom-option-count {
+  font-size: 0.74rem;
+  color: var(--tcg-text-muted);
+}
+
+.tcg-custom-pills-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.tcg-custom-sku-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 0.7rem;
+  border: 1px solid var(--tcg-border);
+  background: var(--tcg-surface-soft);
+  color: var(--tcg-text);
+  font-family: Rubik, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.tcg-custom-sku-pill:hover {
+  border-color: var(--tcg-accent);
+}
+
+.tcg-custom-sku-pill.is-active {
+  border-color: var(--tcg-accent);
+  background: rgba(99, 102, 241, 0.16);
+  box-shadow: 0 0 0 1px var(--tcg-accent);
+}
+
+.tcg-custom-pill-price {
+  font-size: 0.74rem;
+  color: var(--tcg-text-muted);
+  font-weight: 700;
+}
+
+.tcg-custom-color-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: 0.48rem;
+}
+
+.tcg-custom-color-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.48rem;
+  padding: 0.46rem 0.68rem;
+  border-radius: 0.65rem;
+  border: 1px solid var(--tcg-border);
+  background: var(--tcg-surface-soft);
+  color: var(--tcg-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.16s ease;
+}
+
+.tcg-custom-color-chip:hover {
+  border-color: var(--tcg-accent);
+}
+
+.tcg-custom-color-chip.is-active {
+  border-color: var(--tcg-accent);
+  background: rgba(99, 102, 241, 0.16);
+  box-shadow: 0 0 0 1px var(--tcg-accent);
+}
+
+.tcg-custom-color-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  flex-shrink: 0;
+}
+
+.tcg-custom-pill-del {
+  margin-left: auto;
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  font-size: 0.85rem;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.tcg-custom-pill-del:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.tcg-custom-sku-manager {
+  padding: 0.9rem;
+  border-radius: 0.85rem;
+  background: var(--tcg-surface-soft);
+  border: 1px dashed var(--tcg-accent);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.tcg-custom-sku-manager-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  font-size: 0.78rem;
+}
+
+.tcg-custom-sku-manager-head strong {
+  color: var(--tcg-text);
+}
+
+.tcg-custom-sku-manager-head span {
+  color: var(--tcg-text-muted);
+}
+
+.tcg-custom-sku-manager-controls {
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 0.8fr auto auto auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+@media (max-width: 780px) {
+  .tcg-custom-sku-manager-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.tcg-custom-color-picker {
+  width: 38px;
+  height: 38px;
+  padding: 2px;
+  border-radius: 0.5rem;
+  border: 1px solid var(--tcg-border);
+  background: var(--tcg-surface);
+  cursor: pointer;
+}
+
+/* 4. Email、多张图片上传与 10,000 字备注表单域 */
+.tcg-custom-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.tcg-custom-required {
+  color: #f87171;
+}
+
+.tcg-custom-field-error {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #f87171;
+}
+
+.tcg-custom-upload-counter,
+.tcg-custom-char-counter {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--tcg-accent-hover, #818cf8);
+}
+
+.tcg-custom-upload-dropzone {
+  position: relative;
+  padding: 1.15rem;
+  border-radius: 0.85rem;
+  border: 1.5px dashed var(--tcg-border);
+  background: var(--tcg-surface-soft);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.tcg-custom-upload-dropzone:hover,
+.tcg-custom-upload-dropzone.is-dragover {
+  border-color: var(--tcg-accent);
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.tcg-custom-file-picker-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tcg-custom-upload-prompt {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.tcg-custom-upload-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 0.75rem;
+  background: rgba(99, 102, 241, 0.14);
+  color: var(--tcg-accent-hover, #818cf8);
+  flex-shrink: 0;
+}
+
+.tcg-custom-upload-prompt strong {
+  display: block;
+  font-size: 0.86rem;
+  color: var(--tcg-text);
+}
+
+.tcg-custom-upload-prompt span {
+  display: block;
+  margin-top: 0.18rem;
+  font-size: 0.75rem;
+  color: var(--tcg-text-muted);
+}
+
+.tcg-custom-upload-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.45rem;
+}
+
+.tcg-custom-upload-thumb-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.tcg-custom-upload-thumb-img-wrap {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 0.65rem;
+  overflow: hidden;
+  border: 1px solid var(--tcg-border);
+  background: var(--tcg-surface);
+}
+
+.tcg-custom-upload-thumb-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tcg-custom-upload-thumb-index {
+  position: absolute;
+  left: 0.35rem;
+  bottom: 0.35rem;
+  padding: 0.12rem 0.38rem;
+  border-radius: 0.35rem;
+  background: rgba(15, 23, 42, 0.82);
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.tcg-custom-upload-remove-btn {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(239, 68, 68, 0.9);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+}
+
+.tcg-custom-upload-thumb-name {
+  font-size: 0.7rem;
+  color: var(--tcg-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tcg-custom-notes-textarea {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.tcg-custom-summary-box {
+  padding: 0.85rem 1rem;
+  border-radius: 0.8rem;
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+}
+
+.tcg-custom-summary-title {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--tcg-accent-hover, #818cf8);
+  margin-bottom: 0.45rem;
+}
+
+.tcg-custom-summary-rows {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem 0.85rem;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 600px) {
+  .tcg-custom-summary-rows {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tcg-custom-summary-rows span {
+  color: var(--tcg-text-muted);
+}
+
+.tcg-custom-summary-rows strong {
+  color: var(--tcg-text);
+}
+
+.tcg-custom-feedback-msg {
+  margin: 0;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.tcg-custom-feedback-msg.is-info {
+  background: rgba(59, 130, 246, 0.14);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.tcg-custom-feedback-msg.is-success {
+  background: rgba(16, 185, 129, 0.14);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.tcg-custom-feedback-msg.is-error {
+  background: rgba(239, 68, 68, 0.14);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+/* 5. 折叠说明手风琴与购物车定制属性行展示 */
+.tcg-custom-accordions {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.tcg-custom-accordion {
+  border-radius: 0.85rem;
+  background: var(--tcg-surface);
+  border: 1px solid var(--tcg-border);
+  padding: 0.75rem 1rem;
+}
+
+.tcg-custom-accordion summary {
+  font-family: Rubik, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--tcg-text);
+  cursor: pointer;
+}
+
+.tcg-custom-accordion-body {
+  margin-top: 0.6rem;
+  font-size: 0.82rem;
+  color: var(--tcg-text-muted);
+  line-height: 1.55;
+}
+
+.tcg-custom-accordion-body ul {
+  margin: 0.45rem 0 0;
+  padding-left: 1.15rem;
+}
+
+.tcg-cart-custom-props {
+  margin-top: 0.45rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.6rem;
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+  font-size: 0.76rem;
+}
+
+.tcg-cart-custom-prop-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  line-height: 1.4;
+}
+
+.tcg-cart-custom-prop-key {
+  font-weight: 700;
+  color: var(--tcg-text);
+}
+
+.tcg-cart-custom-prop-val {
+  color: var(--tcg-text-muted);
+  word-break: break-word;
+}
+
+
 
 
 

@@ -1,0 +1,128 @@
+{%- comment -%}
+  TCG 专属定制商品详情 Section (sections/tcg-custom-product.liquid)
+  用于 templates/product.custom.json，支持无数量上限的 Style / Color / 独立 SKU Block 增删与完整定制表单
+{%- endcomment -%}
+
+{% render 'tcg-custom-product-form', section: section, custom_product: product %}
+
+{% schema %}
+{
+  "name": "TCG 定制商品详情",
+  "tag": "section",
+  "class": "tcg-custom-product-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "brand_name",
+      "label": "品牌/工作室名称",
+      "default": "AnimeHolder Studio"
+    },
+    {
+      "type": "text",
+      "id": "reference_url",
+      "label": "参考定制链接",
+      "default": "https://animeholder.com/products/custom-your-premium-card-extended-art-display-cases-collection"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "style_option",
+      "name": "SKU 款式 (Style)",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "款式名称",
+          "default": "PSA Slab Case"
+        },
+        {
+          "type": "text",
+          "id": "sku_code",
+          "label": "SKU 编码前缀",
+          "default": "PSA-SLAB"
+        },
+        {
+          "type": "number",
+          "id": "price_cents",
+          "label": "价格（美分，如 3599 = $35.99）",
+          "default": 3599
+        },
+        {
+          "type": "number",
+          "id": "compare_price_cents",
+          "label": "原价（美分，如 3600 = $36.00）",
+          "default": 3600
+        },
+        {
+          "type": "text",
+          "id": "price_label",
+          "label": "价格标签展示",
+          "default": "$35.99"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "切换此款式时展示的主图（可选）"
+        },
+        {
+          "type": "text",
+          "id": "image_url",
+          "label": "外链图片 URL（可选）"
+        }
+      ]
+    },
+    {
+      "type": "color_option",
+      "name": "SKU 颜色 (Color)",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "颜色名称",
+          "default": "Opal Mint"
+        },
+        {
+          "type": "text",
+          "id": "swatch_color",
+          "label": "色块 CSS 值（HEX 或渐变）",
+          "default": "#6ee7b7"
+        }
+      ]
+    },
+    {
+      "type": "sku_item",
+      "name": "自定义独立 SKU 项",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "SKU 规格名称",
+          "default": "Custom Graded Guard Bundle"
+        },
+        {
+          "type": "text",
+          "id": "sku_code",
+          "label": "SKU 编码",
+          "default": "CUSTOM-SKU-01"
+        },
+        {
+          "type": "number",
+          "id": "price_cents",
+          "label": "价格（美分）",
+          "default": 3599
+        },
+        {
+          "type": "text",
+          "id": "variant_id",
+          "label": "关联 Shopify Variant ID（可选）"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "TCG 定制商品详情"
+    }
+  ]
+}
+{% endschema %}

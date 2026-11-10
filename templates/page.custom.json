@@ -1,0 +1,151 @@
+{
+  "sections": {
+    "main": {
+      "type": "tcg-custom",
+      "blocks": {
+        "cp_1": {
+          "type": "custom_product",
+          "settings": {
+            "product": "",
+            "title": "Custom Your Premium Card Extended Art Display Cases Collection",
+            "subtitle": "Extended Art Display Case · 4 Styles × 15 Colors",
+            "badge": "60 SKUs",
+            "price": "$35.99",
+            "compare_at_price": "$36.00",
+            "image_url": "https://animeholder.com/cdn/shop/files/CardRequestYourCardPSASlabAcrylicCaseFrontSBlack.jpg?v=1780547492&width=800",
+            "category": "psa",
+            "handle_slug": "custom-your-premium-card-extended-art-display-cases-collection",
+            "custom_url": "/products/custom-your-premium-card-extended-art-display-cases-collection"
+          }
+        },
+        "cp_2": {
+          "type": "custom_product",
+          "settings": {
+            "product": "",
+            "title": "Custom PSA Slab Aluminum Extended Art Display Case",
+            "subtitle": "PSA Graded Slab Armor · 15 Anodized Colors",
+            "badge": "15 SKUs",
+            "price": "$35.99",
+            "compare_at_price": "$39.99",
+            "image_url": "https://animeholder.com/cdn/shop/files/CardRequestYourCardPSASlabAcrylicCaseFrontSRainbow.jpg?v=1780547492&width=800",
+            "category": "psa",
+            "handle_slug": "custom-psa-slab-aluminum-extended-art-case",
+            "custom_url": "/products/custom-your-premium-card-extended-art-display-cases-collection"
+          }
+        },
+        "cp_3": {
+          "type": "custom_product",
+          "settings": {
+            "product": "",
+            "title": "Custom Magnetic Load Extended Art Card Case",
+            "subtitle": "Zero-Tool Magnetic Closure · Crystal Acrylic",
+            "badge": "12 SKUs",
+            "price": "$32.99",
+            "compare_at_price": "$36.00",
+            "image_url": "https://animeholder.com/cdn/shop/files/Card_Request_Your_Card_Magnetic_Case_Front_S.jpg?v=1780548249&width=800",
+            "category": "magnetic",
+            "handle_slug": "custom-magnetic-one-touch-extended-art-case",
+            "custom_url": "/products/custom-your-premium-card-extended-art-display-cases-collection"
+          }
+        },
+        "cp_4": {
+          "type": "custom_product",
+          "settings": {
+            "product": "",
+            "title": "Custom Metal Screw Extended Art Collector Case",
+            "subtitle": "4-Corner Screw Lock · Double-Layer Acrylic",
+            "badge": "12 SKUs",
+            "price": "$31.99",
+            "compare_at_price": "$35.00",
+            "image_url": "https://animeholder.com/cdn/shop/files/Card_Request_Your_Card_Screws_Case_Front_S.jpg?v=1780548263&width=800",
+            "category": "screw",
+            "handle_slug": "custom-screw-fort-knox-extended-art-case",
+            "custom_url": "/products/custom-your-premium-card-extended-art-display-cases-collection"
+          }
+        },
+        "cp_5": {
+          "type": "custom_product",
+          "settings": {
+            "product": "",
+            "title": "Custom PSA Metal Extended Art Plate Only",
+            "subtitle": "Replacement Custom Printed Artwork Layer",
+            "badge": "15 SKUs",
+            "price": "$24.99",
+            "compare_at_price": "$28.00",
+            "image_url": "https://animeholder.com/cdn/shop/files/Card_Request_Your_Card_PSA_Metal_Art_Front_S_7b06656a-fdda-489e-94f1-0496e9598453.jpg?v=1780548429&width=800",
+            "category": "metal",
+            "handle_slug": "custom-psa-metal-art-only-replacement-plate",
+            "custom_url": "/products/custom-your-premium-card-extended-art-display-cases-collection"
+          }
+        },
+        "cp_6": {
+          "type": "custom_product",
+          "settings": {
+            "product": "",
+            "title": "Custom Sakura Edition Extended Art PSA Slab Case",
+            "subtitle": "Anodized Sakura Pink Frame · UV Protection",
+            "badge": "15 SKUs",
+            "price": "$35.99",
+            "compare_at_price": "$36.00",
+            "image_url": "https://animeholder.com/cdn/shop/files/CardRequestYourCardPSASlabAcrylicCaseFrontSSakura.jpg?v=1780547492&width=800",
+            "category": "psa",
+            "handle_slug": "custom-sakura-pink-psa-extended-art-slab-case",
+            "custom_url": "/products/custom-your-premium-card-extended-art-display-cases-collection"
+          }
+        },
+        "cp_7": {
+          "type": "custom_product",
+          "settings": {
+            "product": "",
+            "title": "Custom Golden Sea Extended Art PSA Slab Case",
+            "subtitle": "Anodized Golden Sea Frame · Custom Artwork",
+            "badge": "15 SKUs",
+            "price": "$35.99",
+            "compare_at_price": "$36.00",
+            "image_url": "https://animeholder.com/cdn/shop/files/CardRequestYourCardPSASlabAcrylicCaseFrontSGoldenSea.jpg?v=1780547491&width=800",
+            "category": "psa",
+            "handle_slug": "custom-golden-sea-extended-art-slab-case",
+            "custom_url": "/products/custom-your-premium-card-extended-art-display-cases-collection"
+          }
+        },
+        "cp_8": {
+          "type": "custom_product",
+          "settings": {
+            "product": "",
+            "title": "Custom Opal Mint Extended Art PSA Slab Case",
+            "subtitle": "Anodized Opal Mint Frame · Custom Artwork",
+            "badge": "15 SKUs",
+            "price": "$35.99",
+            "compare_at_price": "$36.00",
+            "image_url": "https://animeholder.com/cdn/shop/files/CardRequestYourCardPSASlabAcrylicCaseFrontSOpalMint.jpg?v=1780547491&width=800",
+            "category": "psa",
+            "handle_slug": "custom-opal-mint-extended-art-slab-case",
+            "custom_url": "/products/custom-your-premium-card-extended-art-display-cases-collection"
+          }
+        }
+      },
+      "block_order": [
+        "cp_1",
+        "cp_2",
+        "cp_3",
+        "cp_4",
+        "cp_5",
+        "cp_6",
+        "cp_7",
+        "cp_8"
+      ],
+      "settings": {
+        "heading": "Custom Card Display Cases & Extended Art",
+        "eyebrow": "BESPOKE EXTENDED ARTWORK · UV-PROTECTED ACRYLIC & ANODIZED METAL ARMOR",
+        "blurb": "Turn your favorite Pokémon, One Piece, Yu-Gi-Oh!, or Magic card into a museum-grade centerpiece. Choose any custom product below, select your SKU style & frame color, enter your email, upload multiple card photos, and add up to 10,000 characters of customization notes.",
+        "auto_include_custom_tagged": true,
+        "products_per_page": 24,
+        "grid_heading": "Custom Products Catalog",
+        "grid_subheading": "Click any product below to open its dedicated customization page."
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

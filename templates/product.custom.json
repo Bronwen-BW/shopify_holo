@@ -1,0 +1,194 @@
+{
+  "sections": {
+    "main": {
+      "type": "tcg-custom-product",
+      "blocks": {
+        "style_1": {
+          "type": "style_option",
+          "settings": {
+            "title": "PSA Slab Case",
+            "sku_code": "PSA-SLAB",
+            "price_cents": 3599,
+            "compare_price_cents": 3600,
+            "price_label": "$35.99",
+            "image_url": "https://animeholder.com/cdn/shop/files/1_431c108e-72fb-46e4-b5e7-22a00bc9bc2e.webp?v=1770016748&width=1200"
+          }
+        },
+        "style_2": {
+          "type": "style_option",
+          "settings": {
+            "title": "Magnetic Case",
+            "sku_code": "MAG-CASE",
+            "price_cents": 2599,
+            "compare_price_cents": 2800,
+            "price_label": "$25.99",
+            "image_url": "https://animeholder.com/cdn/shop/files/3_73efab44-7605-4e92-a844-57efbd7eb3aa.webp?v=1770016748&width=1200"
+          }
+        },
+        "style_3": {
+          "type": "style_option",
+          "settings": {
+            "title": "Screws Case",
+            "sku_code": "SCR-CASE",
+            "price_cents": 2599,
+            "compare_price_cents": 2800,
+            "price_label": "$25.99",
+            "image_url": "https://animeholder.com/cdn/shop/files/4_0c342da1-6d5d-40f9-9434-7b17ee068757.webp?v=1770016748&width=1200"
+          }
+        },
+        "style_4": {
+          "type": "style_option",
+          "settings": {
+            "title": "PSA Metal Art Only",
+            "sku_code": "PSA-ART",
+            "price_cents": 1999,
+            "compare_price_cents": 2400,
+            "price_label": "$19.99",
+            "image_url": "https://animeholder.com/cdn/shop/files/2_e9266260-3d84-49d7-9eb2-d1d66f3a37db.webp?v=1770016748&width=1200"
+          }
+        },
+        "color_1": {
+          "type": "color_option",
+          "settings": {
+            "title": "Opal Mint",
+            "swatch_color": "#6ee7b7"
+          }
+        },
+        "color_2": {
+          "type": "color_option",
+          "settings": {
+            "title": "Rainbow",
+            "swatch_color": "linear-gradient(135deg,#f43f5e,#f59e0b,#10b981,#3b82f6,#a855f7)"
+          }
+        },
+        "color_3": {
+          "type": "color_option",
+          "settings": {
+            "title": "Ash Gold",
+            "swatch_color": "#d4af37"
+          }
+        },
+        "color_4": {
+          "type": "color_option",
+          "settings": {
+            "title": "Jade Green",
+            "swatch_color": "#10b981"
+          }
+        },
+        "color_5": {
+          "type": "color_option",
+          "settings": {
+            "title": "Sunset",
+            "swatch_color": "linear-gradient(135deg,#f97316,#ec4899)"
+          }
+        },
+        "color_6": {
+          "type": "color_option",
+          "settings": {
+            "title": "Blue Lilac",
+            "swatch_color": "#818cf8"
+          }
+        },
+        "color_7": {
+          "type": "color_option",
+          "settings": {
+            "title": "Black",
+            "swatch_color": "#18181b"
+          }
+        },
+        "color_8": {
+          "type": "color_option",
+          "settings": {
+            "title": "Sakura",
+            "swatch_color": "#f472b6"
+          }
+        },
+        "color_9": {
+          "type": "color_option",
+          "settings": {
+            "title": "Ice Pink",
+            "swatch_color": "#fbcfe8"
+          }
+        },
+        "color_10": {
+          "type": "color_option",
+          "settings": {
+            "title": "Grey",
+            "swatch_color": "#71717a"
+          }
+        },
+        "color_11": {
+          "type": "color_option",
+          "settings": {
+            "title": "Navy",
+            "swatch_color": "#1e3a8a"
+          }
+        },
+        "color_12": {
+          "type": "color_option",
+          "settings": {
+            "title": "Golden Sea",
+            "swatch_color": "#eab308"
+          }
+        },
+        "color_13": {
+          "type": "color_option",
+          "settings": {
+            "title": "Ruby",
+            "swatch_color": "#e11d48"
+          }
+        },
+        "color_14": {
+          "type": "color_option",
+          "settings": {
+            "title": "Sand",
+            "swatch_color": "#d6d3d1"
+          }
+        },
+        "color_15": {
+          "type": "color_option",
+          "settings": {
+            "title": "White",
+            "swatch_color": "#f8fafc"
+          }
+        },
+        "color_16": {
+          "type": "color_option",
+          "settings": {
+            "title": "Standard",
+            "swatch_color": "#64748b"
+          }
+        }
+      },
+      "block_order": [
+        "style_1",
+        "style_2",
+        "style_3",
+        "style_4",
+        "color_1",
+        "color_2",
+        "color_3",
+        "color_4",
+        "color_5",
+        "color_6",
+        "color_7",
+        "color_8",
+        "color_9",
+        "color_10",
+        "color_11",
+        "color_12",
+        "color_13",
+        "color_14",
+        "color_15",
+        "color_16"
+      ],
+      "settings": {
+        "brand_name": "AnimeHolder Studio",
+        "reference_url": "https://animeholder.com/products/custom-your-premium-card-extended-art-display-cases-collection"
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

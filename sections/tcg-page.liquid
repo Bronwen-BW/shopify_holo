@@ -6,6 +6,8 @@
 
 {%- if h contains 'expansion' or h contains 'magicthegathering' or h == 'sets' -%}
   {% render 'tcg-expansions-view', section: section %}
+{%- elsif h contains 'custom' or h contains '定制' -%}
+  {% render 'tcg-custom-catalog-view', section: section %}
 {%- else -%}
 <div class="_page_4xdw3_1">
   <div class="_wide_4xdw3_6">

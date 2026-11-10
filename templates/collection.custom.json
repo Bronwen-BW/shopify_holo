@@ -1,0 +1,19 @@
+{
+  "sections": {
+    "main": {
+      "type": "tcg-custom",
+      "settings": {
+        "heading": "Custom Card Display Cases & Extended Art",
+        "eyebrow": "BESPOKE EXTENDED ARTWORK · UV-PROTECTED ACRYLIC & ANODIZED METAL ARMOR",
+        "blurb": "Turn your favorite Pokémon, One Piece, Yu-Gi-Oh!, or Magic card into a museum-grade centerpiece. Choose any custom product below, select your SKU style & frame color, enter your email, upload multiple card photos, and add up to 10,000 characters of customization notes.",
+        "auto_include_custom_tagged": true,
+        "products_per_page": 24,
+        "grid_heading": "Custom Products Catalog",
+        "grid_subheading": "Click any product below to open its dedicated customization page."
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}
