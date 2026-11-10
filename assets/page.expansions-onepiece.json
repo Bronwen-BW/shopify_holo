@@ -1,0 +1,10 @@
+{
+  "template_file_name": "page.expansions-onepiece.json",
+  "template_key": "onepiece",
+  "header_title": "ONEPIECE",
+  "header_description": "Explore all cards, sealed products, and collector items in ONEPIECE.",
+  "header_icon_url": "",
+  "header_watermark_url": "",
+  "default_view_mode": "grid",
+  "blocks": []
+}
