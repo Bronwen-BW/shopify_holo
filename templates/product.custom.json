@@ -107,7 +107,7 @@
           "type": "color_option",
           "settings": {
             "title": "Ice Pink",
-            "swatch_color": "linear-gradient(150deg, #fbcfe8, #3b82f6)"
+            "swatch_color": "#fbcfe8"
           }
         },
         "color_10": {

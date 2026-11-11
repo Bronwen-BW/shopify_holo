@@ -595,16 +595,56 @@
     return normalized;
   }
 
-  function addVariantViaStorefrontCartApi(variantId, quantity) {
+  function extractFormCustomLineAttributes(formEl, extraAttrs) {
+    var attrs = [];
+    var seen = {};
+    function pushAttr(k, v) {
+      if (!k || v === undefined || v === null) return;
+      var ks = String(k).trim();
+      var vs = String(v).trim();
+      if (!ks || !vs) return;
+      if (vs.length > 2000) vs = vs.slice(0, 2000);
+      seen[ks] = vs;
+    }
+    if (formEl && formEl.querySelectorAll) {
+      formEl.querySelectorAll('input[name^="properties["], textarea[name^="properties["], select[name^="properties["]').forEach(function (el) {
+        if (el.type === 'file') return;
+        var m = String(el.name || '').match(/^properties\[(.+)\]$/);
+        if (m && m[1]) {
+          pushAttr(m[1], el.value);
+        }
+      });
+    }
+    if (Array.isArray(extraAttrs)) {
+      extraAttrs.forEach(function (a) {
+        if (a && a.key) pushAttr(a.key, a.value);
+      });
+    }
+    Object.keys(seen).forEach(function (k) {
+      attrs.push({ key: k, value: seen[k] });
+    });
+    return attrs;
+  }
+
+  function addVariantViaStorefrontCartApi(variantId, quantity, customLineAttributes, customNote) {
     var qty = Math.max(1, parseInt(quantity, 10) || 1);
     var merchGid = toVariantGid(variantId);
     var saved = loadSavedStorefrontCart();
+    var cleanAttrs = Array.isArray(customLineAttributes) && customLineAttributes.length > 0 ? customLineAttributes : [];
+    var noteToUse = (typeof customNote === 'string' && customNote.trim()) ? customNote.trim() : '';
 
     function createNewSfCart() {
       var lineItemInput = { merchandiseId: merchGid, quantity: qty };
+      if (cleanAttrs.length > 0) {
+        lineItemInput.attributes = cleanAttrs;
+      }
       var cartInput = {
         lines: [lineItemInput]
       };
+      if (noteToUse) {
+        cartInput.note = noteToUse;
+        cartInput.attributes = cleanAttrs;
+      }
       var createMut = SF_CART_FRAGMENT + '\nmutation CartCreate($input: CartInput!) {\n  cartCreate(input: $input) {\n    cart { ...CartFields }\n    userErrors { field message code }\n  }\n}';
       return executeStorefrontGraphql(createMut, {
         input: cartInput
@@ -628,6 +668,9 @@
 
     if (saved && saved.id) {
       var addLineItem = { merchandiseId: merchGid, quantity: qty };
+      if (cleanAttrs.length > 0) {
+        addLineItem.attributes = cleanAttrs;
+      }
       var addLinesMut = SF_CART_FRAGMENT + '\nmutation CartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) {\n  cartLinesAdd(cartId: $cartId, lines: $lines) {\n    cart { ...CartFields }\n    userErrors { field message code }\n  }\n}';
       return executeStorefrontGraphql(addLinesMut, {
         cartId: saved.id,
@@ -635,6 +678,28 @@
       }).then(function (res) {
         var payload = res && res.data && res.data.cartLinesAdd;
         if (payload && payload.cart) {
+          if (noteToUse) {
+            var noteMut = SF_CART_FRAGMENT + '\nmutation SyncCustomCartNote($cartId: ID!, $note: String!, $attrs: [AttributeInput!]!) {\n  cartNoteUpdate(cartId: $cartId, note: $note) { cart { ...CartFields } }\n  cartAttributesUpdate(cartId: $cartId, attributes: $attrs) { cart { ...CartFields } }\n}';
+            return executeStorefrontGraphql(noteMut, {
+              cartId: saved.id,
+              note: noteToUse,
+              attrs: cleanAttrs
+            }).then(function (nRes) {
+              var updatedCart = (nRes && nRes.data && nRes.data.cartAttributesUpdate && nRes.data.cartAttributesUpdate.cart) || payload.cart;
+              var norm = normalizeStorefrontCart(updatedCart, SF_CART_STORAGE_KEY);
+              updateCartCount(getCombinedCartItemCount(null, norm), true);
+              syncCheckoutLinksWithUrl(norm.checkoutUrl);
+              return {
+                ok: true,
+                source: 'storefront_api',
+                checkoutUrl: norm.checkoutUrl,
+                cart: norm
+              };
+            }).catch(function () {
+              var normFallback = normalizeStorefrontCart(payload.cart, SF_CART_STORAGE_KEY);
+              return { ok: true, source: 'storefront_api', checkoutUrl: normFallback.checkoutUrl, cart: normFallback };
+            });
+          }
           var norm = normalizeStorefrontCart(payload.cart, SF_CART_STORAGE_KEY);
           updateCartCount(getCombinedCartItemCount(null, norm), true);
           syncCheckoutLinksWithUrl(norm.checkoutUrl);
@@ -655,19 +720,29 @@
   }
 
   /**
-   * 立即购买（Buy it now）专属：创建仅包含当前商品与数量的单品独立官方支付会话（Single-item Checkout Session）
-   * 保存在 BUY_NOW_CART_STORAGE_KEY，并引导用户进入与购物车同款界面的单品确认中间页（/cart?buy_now=1），支持输入备注、折扣码、增减数量后再跳转至官方支付收银台
-   * 绝不把当前商品追加到已有购物车，绝不让顶部购物车角标 +1，且进入中间页时无任何历史备注和折扣码缓存
+   * 立即购买（Buy it now）专属：创建仅包含当前商品与数量（及定制属性/备注）的单品独立官方支付会话
    */
-  function createBuyNowStandaloneCheckoutUrl(variantId, quantity) {
+  function createBuyNowStandaloneCheckoutUrl(variantId, quantity, customLineAttributes, customNote) {
     var qty = Math.max(1, parseInt(quantity, 10) || 1);
     var merchGid = toVariantGid(variantId);
-    saveOrderNoteLocal('');
+    var cleanAttrs = Array.isArray(customLineAttributes) && customLineAttributes.length > 0 ? customLineAttributes : [];
+    var noteToUse = (typeof customNote === 'string' && customNote.trim()) ? customNote.trim() : '';
+
+    saveOrderNoteLocal(noteToUse);
     saveDiscountCodesLocal([]);
     var lineItemInput = { merchandiseId: merchGid, quantity: qty };
+    if (cleanAttrs.length > 0) {
+      lineItemInput.attributes = cleanAttrs;
+    }
     var cartInput = {
       lines: [lineItemInput]
     };
+    if (noteToUse) {
+      cartInput.note = noteToUse;
+    }
+    if (cleanAttrs.length > 0) {
+      cartInput.attributes = cleanAttrs;
+    }
 
     var createMut = SF_CART_FRAGMENT + '\nmutation BuyNowSingleCheckout($input: CartInput!) {\n  cartCreate(input: $input) {\n    cart { ...CartFields }\n    userErrors { field message code }\n  }\n}';
     var intermediateUrl = apiUrl('cart?buy_now=1');
@@ -848,9 +923,10 @@
     return true;
   }
 
-  function addVariantToCart(variantId, quantity, formEl) {
+  function addVariantToCart(variantId, quantity, formEl, customLineAttributes, customNote) {
     var qty = Math.max(1, parseInt(quantity, 10) || 1);
     var addUrl = getThemeRoute('cart_add_url', 'cart/add.js');
+    var extractedAttrs = extractFormCustomLineAttributes(formEl, customLineAttributes);
     var sectionIds = [];
     document.querySelectorAll('[data-tcg-cart-section][data-section-id], cart-items-component[data-section-id]').forEach(function (el) {
       var sid = el.getAttribute('data-section-id');
@@ -868,6 +944,11 @@
       if (formData && typeof formData.set === 'function') {
         formData.set('id', String(variantId));
         formData.set('quantity', String(qty));
+        extractedAttrs.forEach(function (a) {
+          if (a && a.key && a.value) {
+            formData.set('properties[' + a.key + ']', a.value);
+          }
+        });
         if (sectionIds.length > 0 && typeof formData.append === 'function') {
           formData.append('sections', sectionIds.join(','));
         }
@@ -881,7 +962,11 @@
     }
 
     if (!reqPromise) {
-      var payload = { id: Number(variantId) || String(variantId), quantity: qty };
+      var propsObj = {};
+      extractedAttrs.forEach(function (a) {
+        if (a && a.key) propsObj[a.key] = a.value;
+      });
+      var payload = { id: Number(variantId) || String(variantId), quantity: qty, properties: propsObj };
       if (sectionIds.length > 0) payload.sections = sectionIds.join(',');
       reqPromise = fetch(addUrl, fetchConfig('json', { body: JSON.stringify(payload) }));
     }
@@ -900,9 +985,9 @@
       .then(function (resObj) {
         var data = resObj.data || {};
         if (data.status || !resObj.httpOk) {
-          // 当商品实际有库存且处于上架状态，但 /cart/add.js 返回 422 时，自动通过 Shopify 官方 Storefront GraphQL Cart API 加购并生成官方 Checkout URL
-          if (isSelectedVariantAvailableInDom(variantId)) {
-            return addVariantViaStorefrontCartApi(variantId, qty).then(function (sfRes) {
+          // 当商品实际有库存且处于上架状态，但 /cart/add.js 返回 422 时，自动通过 Shopify 官方 Storefront GraphQL Cart API 加购并携带完整定制属性与备注
+          if (isSelectedVariantAvailableInDom(variantId) || extractedAttrs.length > 0) {
+            return addVariantViaStorefrontCartApi(variantId, qty, extractedAttrs, customNote).then(function (sfRes) {
               if (sfRes && sfRes.ok) {
                 return sfRes;
               }
@@ -2197,6 +2282,9 @@
       }
 
       function openLightbox(srcOverride) {
+        if (lightbox.parentNode !== document.body) {
+          document.body.appendChild(lightbox);
+        }
         var curSrc = srcOverride || (mainImg && (mainImg.getAttribute('src') || mainImg.src)) || '';
         if (lbImg && curSrc) {
           lbImg.setAttribute('src', curSrc);
@@ -2209,12 +2297,14 @@
         setLightboxScale2x(false);
         lightbox.removeAttribute('hidden');
         lightbox.hidden = false;
+        document.documentElement.style.overflow = 'hidden';
       }
 
       function closeLightbox() {
         setLightboxScale2x(false);
         lightbox.setAttribute('hidden', '');
         lightbox.hidden = true;
+        document.documentElement.style.overflow = '';
       }
 
       function stepLightboxImage(delta) {
@@ -2525,9 +2615,41 @@
     return detectCurrencyPrefix() + num.toFixed(2);
   }
 
+  function isCartHoldingCustomOrder(cartObj) {
+    if (!cartObj) return false;
+    if (cartObj.note && String(cartObj.note).indexOf('[Custom Order]') !== -1) return true;
+    if (Array.isArray(cartObj.items)) {
+      for (var i = 0; i < cartObj.items.length; i++) {
+        var attrs = cartObj.items[i] && cartObj.items[i].attributes;
+        if (Array.isArray(attrs)) {
+          for (var j = 0; j < attrs.length; j++) {
+            var k = attrs[j] && attrs[j].key ? String(attrs[j].key) : '';
+            if (k === 'Customer Email' || k === 'Customization Notes' || k.indexOf('Custom Image') === 0 || k === 'Custom Folder') {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   function clearEntryNoteAndDiscountCacheOnPageLoad() {
     if (hasClearedEntryNoteAndDiscount) return;
     hasClearedEntryNoteAndDiscount = true;
+
+    // 检查当前购物车是否包含定制商品（含客户上传的定制图片、邮箱、备注）：若包含则保留全部定制数据，绝不清空！
+    var sfSaved = loadSavedStorefrontCart(SF_CART_STORAGE_KEY);
+    var bnSaved = loadSavedStorefrontCart(BUY_NOW_CART_STORAGE_KEY);
+    var hasCustomOrder = isCartHoldingCustomOrder(sfSaved) || isCartHoldingCustomOrder(bnSaved);
+
+    if (hasCustomOrder) {
+      var preservedNote = (bnSaved && bnSaved.note) || (sfSaved && sfSaved.note) || '';
+      if (preservedNote) {
+        saveOrderNoteLocal(preservedNote);
+      }
+      return;
+    }
 
     saveOrderNoteLocal('');
     saveDiscountCodesLocal([]);
@@ -2557,7 +2679,7 @@
     // 2. 重置本地存储的 Storefront Cart / BuyNow Cart 中的历史备注与折扣缓存，恢复商品原价显示
     [SF_CART_STORAGE_KEY, BUY_NOW_CART_STORAGE_KEY].forEach(function (key) {
       var c = loadSavedStorefrontCart(key);
-      if (c && c.id) {
+      if (c && c.id && !isCartHoldingCustomOrder(c)) {
         c.note = '';
         c.discount_codes = [];
         c.total_discount = 0;
@@ -2738,10 +2860,27 @@
           var imgSrc = escapeHtml(item.image || '');
           var url = escapeHtml(item.url || apiUrl('collections/all'));
           var noteAttrVal = '';
-          if (Array.isArray(item.attributes)) {
+          var customPropsHtml = '';
+          if (Array.isArray(item.attributes) && item.attributes.length > 0) {
+            var propRows = [];
             item.attributes.forEach(function (attr) {
-              if (attr && attr.key === 'Order Note' && attr.value) noteAttrVal = attr.value;
+              if (!attr || !attr.key || !attr.value) return;
+              if (attr.key === 'Order Note') {
+                noteAttrVal = attr.value;
+                return;
+              }
+              var kEsc = escapeHtml(attr.key);
+              var vRaw = String(attr.value);
+              var vEsc = escapeHtml(vRaw);
+              if (vRaw.indexOf('http://') === 0 || vRaw.indexOf('https://') === 0 || vRaw.indexOf('/cdn/shop/') !== -1) {
+                propRows.push('<div class="tcg-cart-custom-prop-row"><strong>' + kEsc + ':</strong> <a href="' + vEsc + '" target="_blank" rel="noopener" style="color:#34d399;text-decoration:underline;">View Uploaded Image ↗</a></div>');
+              } else {
+                propRows.push('<div class="tcg-cart-custom-prop-row"><strong>' + kEsc + ':</strong> <span class="tcg-cart-custom-prop-val">' + vEsc + '</span></div>');
+              }
             });
+            if (propRows.length > 0) {
+              customPropsHtml = '<div class="tcg-cart-custom-props">' + propRows.join('') + '</div>';
+            }
           }
           if (!noteAttrVal && activeNote) noteAttrVal = activeNote;
 
@@ -2757,6 +2896,7 @@
                   (sku ? '<code class="tcg-sku-code">SKU: ' + sku + '</code>' : '') +
                   '<span class="_rowUnitPrice_1z0wo_94" data-row-unit-price>' + escapeHtml(formatMoneyCents(origUnitCents)) + ' each</span>' +
                 '</div>' +
+                customPropsHtml +
                 (noteAttrVal
                   ? '<div class="tcg-cart-meta" style="margin-top:0.2rem;"><span class="_rowUnitPrice_1z0wo_94" style="color:#34d399;">Order Note: ' + escapeHtml(noteAttrVal) + '</span></div>'
                   : '') +
@@ -5836,18 +5976,180 @@
         return valid;
       }
 
-      function syncCustomDetailsToBackendOrderNote() {
+      function formatTimestampNow() {
+        var d = new Date();
+        function pad(n) { return n < 10 ? '0' + n : String(n); }
+        return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' +
+               pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+      }
+
+      function formatCompactTimestampNow() {
+        var d = new Date();
+        function pad(n) { return n < 10 ? '0' + n : String(n); }
+        return String(d.getFullYear()) + pad(d.getMonth() + 1) + pad(d.getDate()) + '_' +
+               pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
+      }
+
+      // 将客户上传的定制图片上传至 Shopify 内容（定制）文件夹（带上传时间戳）
+      function uploadCustomerFilesToShopifyCustomFolder(emailVal, skuVal) {
+        var uploadTimeStr = formatTimestampNow();
+        var compactTs = formatCompactTimestampNow();
+        var cloudCfg = window.TCG_CUSTOM_CLOUD_CONFIG || {};
+
+        var tasks = uploadedFiles.map(function (entry, idx) {
+          var cleanName = String(entry.name || ('card-' + (idx + 1) + '.png')).replace(/[^a-zA-Z0-9._-\u4e00-\u9fa5]/g, '_');
+          var customFolderFileName = '定制_CustomOrder_' + compactTs + '_' + (idx + 1) + '_' + cleanName;
+          entry.uploadedAt = uploadTimeStr;
+          entry.customFolderFileName = customFolderFileName;
+
+          // 若已获得 Shopify CDN URL，直接复用
+          if (entry.shopifyCdnUrl) {
+            return Promise.resolve({
+              index: idx + 1,
+              fileName: customFolderFileName,
+              uploadedAt: uploadTimeStr,
+              url: entry.shopifyCdnUrl,
+              fileId: entry.shopifyFileId || ''
+            });
+          }
+
+          // 若存在直连 Shopify Files API 配置或自定义上传代理端点，直接上传到 Shopify 内容（定制）文件夹
+          if (cloudCfg.uploadEndpoint || (cloudCfg.shopDomain && cloudCfg.accessToken && entry.file)) {
+            var gqlEndpoint = cloudCfg.uploadEndpoint || ('https://' + cloudCfg.shopDomain + '/admin/api/' + (cloudCfg.apiVersion || '2024-10') + '/graphql.json');
+            var stagedMut = 'mutation stagedUploadsCreate($input: [StagedUploadInput!]!) { stagedUploadsCreate(input: $input) { stagedTargets { url resourceUrl parameters { name value } } userErrors { field message } } }';
+            return fetch(gqlEndpoint, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Shopify-Access-Token': cloudCfg.accessToken || ''
+              },
+              body: JSON.stringify({
+                query: stagedMut,
+                variables: {
+                  input: [{
+                    filename: customFolderFileName,
+                    mimeType: (entry.file && entry.file.type) || 'image/png',
+                    httpMethod: 'POST',
+                    resource: 'FILE',
+                    fileSize: String((entry.file && entry.file.size) || 1024)
+                  }]
+                }
+              })
+            })
+              .then(function (r) { return r.json(); })
+              .then(function (sJson) {
+                var target = sJson && sJson.data && sJson.data.stagedUploadsCreate && sJson.data.stagedUploadsCreate.stagedTargets && sJson.data.stagedUploadsCreate.stagedTargets[0];
+                if (!target || !target.url || !target.resourceUrl) throw new Error('Staged target unavailable');
+                var fd = new FormData();
+                (target.parameters || []).forEach(function (p) { fd.append(p.name, p.value); });
+                fd.append('file', entry.file, customFolderFileName);
+                return fetch(target.url, { method: 'POST', body: fd }).then(function () { return target.resourceUrl; });
+              })
+              .then(function (resourceUrl) {
+                var createMut = 'mutation fileCreate($files: [FileCreateInput!]!) { fileCreate(files: $files) { files { id ... on MediaImage { image { url } } ... on GenericFile { url } } } }';
+                return fetch(gqlEndpoint, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'X-Shopify-Access-Token': cloudCfg.accessToken || ''
+                  },
+                  body: JSON.stringify({
+                    query: createMut,
+                    variables: {
+                      files: [{
+                        originalSource: resourceUrl,
+                        contentType: 'IMAGE',
+                        alt: '[内容（定制）] UploadedAt: ' + uploadTimeStr + ' | Email: ' + emailVal + ' | SKU: ' + skuVal
+                      }]
+                    }
+                  })
+                }).then(function (r) { return r.json(); }).then(function (cJson) {
+                  var fNode = cJson && cJson.data && cJson.data.fileCreate && cJson.data.fileCreate.files && cJson.data.fileCreate.files[0];
+                  var finalUrl = (fNode && fNode.image && fNode.image.url) || (fNode && fNode.url) || resourceUrl;
+                  entry.shopifyCdnUrl = finalUrl;
+                  entry.shopifyFileId = (fNode && fNode.id) || '';
+                  return {
+                    index: idx + 1,
+                    fileName: customFolderFileName,
+                    uploadedAt: uploadTimeStr,
+                    url: finalUrl,
+                    fileId: entry.shopifyFileId
+                  };
+                });
+              })
+              .catch(function () {
+                return {
+                  index: idx + 1,
+                  fileName: customFolderFileName,
+                  uploadedAt: uploadTimeStr,
+                  url: entry.shopifyCdnUrl || ('[Shopify 内容（定制）] ' + customFolderFileName),
+                  fileId: ''
+                };
+              });
+          }
+
+          return Promise.resolve({
+            index: idx + 1,
+            fileName: customFolderFileName,
+            uploadedAt: uploadTimeStr,
+            url: entry.shopifyCdnUrl || ('[Shopify 内容（定制）] ' + customFolderFileName),
+            fileId: ''
+          });
+        });
+
+        return Promise.all(tasks);
+      }
+
+      function buildCustomOrderPayload(uploadedImageRecords) {
         var emailVal = emailInput ? String(emailInput.value || '').trim() : '';
         var skuVal = propSkuInput ? String(propSkuInput.value || '') : '';
         var prodVal = propProductInput ? String(propProductInput.value || '') : '';
-        var imgSummary = imagesSummaryInput ? String(imagesSummaryInput.value || '') : '';
         var notesVal = notesTextarea ? String(notesTextarea.value || '').trim() : '';
+        var uploadTimeStr = (uploadedImageRecords && uploadedImageRecords[0] && uploadedImageRecords[0].uploadedAt) || formatTimestampNow();
+
+        var imgDescList = (uploadedImageRecords || []).map(function (rec) {
+          return rec.fileName + ' (' + rec.uploadedAt + ')' + (rec.url && rec.url.indexOf('http') === 0 ? ' -> ' + rec.url : '');
+        });
+        var imgSummary = imgDescList.length > 0 ? imgDescList.join(' | ') : (imagesSummaryInput ? String(imagesSummaryInput.value || '') : '');
+        if (imagesSummaryInput) {
+          imagesSummaryInput.value = imgSummary;
+        }
+
+        var lineAttrs = [
+          { key: 'Customer Email', value: emailVal },
+          { key: 'Selected SKU', value: skuVal },
+          { key: 'Custom Folder', value: 'Shopify 内容（定制）' },
+          { key: 'Image Upload Time', value: uploadTimeStr }
+        ];
+
+        // 附加各层选中的 SKU
+        form.querySelectorAll('[data-tier-hidden-inputs] input[name^="properties["]').forEach(function (inp) {
+          var m = String(inp.name || '').match(/^properties\[(.+)\]$/);
+          if (m && m[1] && inp.value) {
+            lineAttrs.push({ key: m[1], value: String(inp.value) });
+          }
+        });
+
+        // 附加每张定制图片及上传时间
+        (uploadedImageRecords || []).forEach(function (rec) {
+          var keyName = 'Custom Image ' + rec.index + ' (' + rec.uploadedAt + ')';
+          var valStr = (rec.url && rec.url.indexOf('http') === 0)
+            ? (rec.url + ' [文件夹: 内容（定制） | 上传时间: ' + rec.uploadedAt + ']')
+            : (rec.fileName + ' [文件夹: 内容（定制） | 上传时间: ' + rec.uploadedAt + ']');
+          lineAttrs.push({ key: keyName, value: valStr });
+        });
+
+        if (notesVal) {
+          lineAttrs.push({ key: 'Customization Notes', value: notesVal.slice(0, 1800) });
+        }
 
         var orderNoteHeader =
           '[Custom Order] ' + prodVal +
-          ' | SKU: ' + skuVal +
-          ' | Customer Email: ' + emailVal +
-          ' | Images: ' + imgSummary;
+          '\nSKU: ' + skuVal +
+          '\nCustomer Email: ' + emailVal +
+          '\nShopify Folder: 内容（定制）' +
+          '\nUpload Time: ' + uploadTimeStr +
+          '\nCustom Images: ' + imgSummary;
         var combinedNote = notesVal ? (orderNoteHeader + '\nCustomization Notes:\n' + notesVal) : orderNoteHeader;
         if (combinedNote.length > 10000) {
           combinedNote = combinedNote.slice(0, 10000);
@@ -5855,18 +6157,52 @@
 
         saveOrderNoteLocal(combinedNote);
 
-        return fetch(apiUrl('cart/update.js'), fetchConfig('json', {
+        // 持久化最近一次定制订单详情到 localStorage，供购物车/结算页与邮件通知读取
+        try {
+          localStorage.setItem('tcg_latest_custom_order_payload_v1', JSON.stringify({
+            productTitle: prodVal,
+            sku: skuVal,
+            customerEmail: emailVal,
+            notes: notesVal,
+            uploadedAt: uploadTimeStr,
+            folder: '内容（定制）',
+            images: (uploadedImageRecords || []).map(function (r, idx) {
+              var rawEntry = uploadedFiles[idx] || {};
+              return {
+                index: r.index,
+                fileName: r.fileName,
+                uploadedAt: r.uploadedAt,
+                url: r.url,
+                dataUrl: rawEntry.dataUrl || ''
+              };
+            }),
+            lineAttributes: lineAttrs,
+            combinedNote: combinedNote
+          }));
+        } catch (e) {}
+
+        var cartAttrObj = {
+          'Custom_Order_Product': prodVal,
+          'Custom_Order_SKU': skuVal,
+          'Customer_Email': emailVal,
+          'Custom_Folder': 'Shopify 内容（定制）',
+          'Custom_Image_Upload_Time': uploadTimeStr,
+          'Custom_Uploaded_Images': imgSummary.slice(0, 1500),
+          'Customization_Notes': notesVal.slice(0, 1500)
+        };
+
+        var updatePromise = fetch(apiUrl('cart/update.js'), fetchConfig('json', {
           body: JSON.stringify({
             note: combinedNote,
-            attributes: {
-              'Custom_Order_Product': prodVal,
-              'Custom_Order_SKU': skuVal,
-              'Custom_Customer_Email': emailVal,
-              'Custom_Uploaded_Images': imgSummary,
-              'Custom_Notes_Length': String(notesVal.length)
-            }
+            attributes: cartAttrObj
           })
         })).catch(function () { return null; });
+
+        return {
+          lineAttributes: lineAttrs,
+          combinedNote: combinedNote,
+          updatePromise: updatePromise
+        };
       }
 
       // 与模板商品 sections/tcg-product.liquid 100% 一致的加购 (Add to cart) 与立即购买 (Buy it now) 处理流程
@@ -5876,28 +6212,35 @@
         var submitBtn = form.querySelector('[data-custom-submit-cart], [data-add-to-cart-btn]');
         var submitTextEl = form.querySelector('[data-add-to-cart-text]');
         var buyNowBtn = form.querySelector('[data-custom-buy-now], [data-buy-now-btn]');
+        var emailVal = emailInput ? String(emailInput.value || '').trim() : '';
+        var skuVal = propSkuInput ? String(propSkuInput.value || '') : '';
 
         if (submitBtn) submitBtn.disabled = true;
         if (buyNowBtn) buyNowBtn.disabled = true;
         if (feedbackEl) {
-          feedbackEl.textContent = isBuyNowCheckout
-            ? 'Preparing your custom order & redirecting to checkout…'
-            : 'Adding your custom order to cart…';
+          feedbackEl.textContent = 'Uploading custom images to Shopify 内容（定制） folder & syncing order details…';
           feedbackEl.className = 'tcg-custom-feedback-msg is-info';
           feedbackEl.removeAttribute('hidden');
         }
 
-        ensureValidStoreVariantId()
-          .then(function (resolvedVid) {
+        Promise.all([
+          ensureValidStoreVariantId(),
+          uploadCustomerFilesToShopifyCustomFolder(emailVal, skuVal)
+        ])
+          .then(function (pair) {
+            var resolvedVid = pair[0];
+            var uploadedImageRecords = pair[1] || [];
             var vid = (resolvedVid && resolvedVid !== '0') ? resolvedVid : '52665896730963';
             if (variantIdInput) variantIdInput.value = vid;
 
+            var orderPayload = buildCustomOrderPayload(uploadedImageRecords);
+
             if (isBuyNowCheckout) {
-              // 立即购买：先将包含定制文件与属性的表单写入购物车并同步备注，再同模板商品一样调用 createBuyNowStandaloneCheckoutUrl 进入结算流程
-              return addVariantToCart(vid, customQty, form)
+              // 立即购买：将完整定制属性 (Customer Email, Custom Images, Notes) 同时写入 /cart/add.js 与 Storefront BuyNow 单品结账会话
+              return addVariantToCart(vid, customQty, form, orderPayload.lineAttributes, orderPayload.combinedNote)
                 .then(function (addRes) {
-                  return syncCustomDetailsToBackendOrderNote().then(function () {
-                    return createBuyNowStandaloneCheckoutUrl(vid, customQty).then(function (bnRes) {
+                  return orderPayload.updatePromise.then(function () {
+                    return createBuyNowStandaloneCheckoutUrl(vid, customQty, orderPayload.lineAttributes, orderPayload.combinedNote).then(function (bnRes) {
                       return { addRes: addRes, bnRes: bnRes };
                     });
                   });
@@ -5917,10 +6260,10 @@
                 });
             }
 
-            // 加入购物车：调用与模板商品完全相同的 addVariantToCart，展示 _addedNotice_4xdw3_750 横幅（含 View cart 与 Checkout now）
-            return addVariantToCart(vid, customQty, form)
+            // 加入购物车：调用与模板商品完全相同的 addVariantToCart 并携带完整定制属性与备注
+            return addVariantToCart(vid, customQty, form, orderPayload.lineAttributes, orderPayload.combinedNote)
               .then(function (res) {
-                return syncCustomDetailsToBackendOrderNote().then(function () {
+                return orderPayload.updatePromise.then(function () {
                   return res;
                 });
               })

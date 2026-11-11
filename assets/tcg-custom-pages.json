@@ -10,7 +10,7 @@
     {
       "handle": "custom-your-premium-card-extended-art-display-cases-collection",
       "url": "/pages/custom-your-premium-card-extended-art-display-cases-collection",
-      "title": "custom-item",
+      "title": "Custom Your Premium Card Extended Art Display Cases Collection",
       "subtitle": "Bespoke Extended Art · 1~5 Tiers Multi-Type SKU",
       "vendor": "AnimeHolder Studio",
       "category": "psa",
@@ -249,12 +249,12 @@
               "price_label": "",
               "image_url": "",
               "shopify_file_id": "",
-              "color_swatch": "linear-gradient(150deg, #fbcfe8, #3b82f6)",
-              "is_gradient": true,
+              "color_swatch": "#fbcfe8",
+              "is_gradient": false,
               "color1": "#fbcfe8",
               "color2": "#3b82f6",
               "color3": "",
-              "gradient_angle": 150
+              "gradient_angle": 135
             },
             {
               "title": "Grey",
@@ -504,7 +504,7 @@
         },
         {
           "title": "Ice Pink",
-          "swatch": "linear-gradient(150deg, #fbcfe8, #3b82f6)"
+          "swatch": "#fbcfe8"
         },
         {
           "title": "Grey",

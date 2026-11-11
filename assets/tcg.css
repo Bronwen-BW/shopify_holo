@@ -865,36 +865,52 @@ html[data-theme="light"] ._productMedia_4xdw3_145 > ._interactiveCard_4xdw3_176 
   border-radius: 0.45rem;
 }
 
-/* 主图点击放大全屏灯箱（Lightbox） */
+/* 主图点击放大全屏灯箱（Lightbox）—— 强制固定于浏览器当前视口正中央 */
 .tcg-lightbox {
-  position: fixed;
-  z-index: 9999;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: clamp(1rem, 3vw, 2.5rem);
+  position: fixed !important;
+  z-index: 2147483640 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  padding: clamp(1rem, 2.5vw, 2rem) !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
 }
 .tcg-lightbox[hidden] {
   display: none !important;
 }
 .tcg-lightbox-backdrop {
-  position: absolute;
-  inset: 0;
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
   background: rgba(9, 11, 16, 0.88);
   backdrop-filter: blur(12px);
 }
 .tcg-lightbox-dialog {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  width: min(92vw, 68rem);
-  max-height: 92dvh;
-  padding: 1.25rem;
-  border-radius: 1.35rem;
+  position: relative !important;
+  z-index: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  margin: auto !important;
+  width: min(90vw, 56rem) !important;
+  max-height: 88vh !important;
+  max-height: 88dvh !important;
+  padding: 1.25rem !important;
+  border-radius: 1.35rem !important;
   background: var(--tcg-surface);
   border: 1px solid var(--tcg-border-strong);
   box-shadow: 0 32px 64px -16px rgba(0, 0, 0, 0.85);
+  box-sizing: border-box !important;
 }
 .tcg-lightbox-close {
   position: absolute;
@@ -925,8 +941,8 @@ html[data-theme="light"] ._productMedia_4xdw3_145 > ._interactiveCard_4xdw3_176 
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: min(68dvh, 44rem);
-  max-height: 76dvh;
+  height: min(68vh, 38rem);
+  max-height: calc(88vh - 5rem);
   overflow: hidden;
   border-radius: 1rem;
   background: radial-gradient(ellipse 60% 55% at 50% 50%, rgba(16, 185, 129, 0.14), transparent 72%), #111317;
@@ -937,7 +953,7 @@ html[data-theme="light"] ._productMedia_4xdw3_145 > ._interactiveCard_4xdw3_176 
   justify-content: center;
   width: 100%;
   height: 100%;
-  max-height: 74dvh;
+  max-height: 100%;
   overflow: auto;
   cursor: zoom-in;
 }
@@ -946,9 +962,10 @@ html[data-theme="light"] ._productMedia_4xdw3_145 > ._interactiveCard_4xdw3_176 
 }
 .tcg-lightbox-img-wrap img {
   max-width: 100%;
-  max-height: 72dvh;
+  max-height: min(64vh, 36rem);
   width: auto;
   height: auto;
+  margin: auto;
   object-fit: contain;
   border-radius: 0.75rem;
   transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
