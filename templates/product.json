@@ -10,7 +10,9 @@
         "default_condition": "",
         "default_language": "English / Japanese",
         "dispatch_time": "Within 1 business day"
-      }
+      },
+      "blocks": {},
+      "block_order": []
     }
   },
   "order": [

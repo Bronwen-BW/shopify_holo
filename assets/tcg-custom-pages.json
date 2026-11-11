@@ -4,7 +4,8 @@
   "catalog": {
     "heading": "Custom Card Display Cases",
     "grid_heading": "Custom Products Catalog",
-    "grid_subheading": "Click any custom product below to open its standalone customization page."
+    "grid_subheading": "Click any custom product below to open its standalone customization page.",
+    "product_page_accordions": []
   },
   "pages": [
     {
