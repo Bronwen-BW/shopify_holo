@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "main": {
@@ -10,7 +19,41 @@
         "default_condition": "",
         "default_language": "English / Japanese",
         "dispatch_time": "Within 1 business day"
-      }
+      },
+      "blocks": {
+        "acc_1": {
+          "type": "accordion_item",
+          "settings": {
+            "title": "Product Description & Specifications",
+            "open_by_default": true,
+            "include_product_description": true,
+            "content_html": "<p><strong>Premium Quality Assurance:</strong> Verified condition, carefully inspected under studio lighting before packaging.</p>"
+          }
+        },
+        "acc_2": {
+          "type": "accordion_item",
+          "settings": {
+            "title": "Materials, Dimensions & Care Guide",
+            "open_by_default": false,
+            "include_product_description": false,
+            "content_html": "<ul><li><strong>Protection Grade:</strong> Museum-grade UV-resistant enclosure &amp; acid-free inner protection.</li><li><strong>Storage Advice:</strong> Keep away from direct sunlight and high humidity.</li></ul>"
+          }
+        },
+        "acc_3": {
+          "type": "accordion_item",
+          "settings": {
+            "title": "Shipping, Packaging & 14-Day Returns",
+            "open_by_default": false,
+            "include_product_description": false,
+            "content_html": "<p>Dispatched within <strong>1 business day</strong> in reinforced crush-proof packaging with full international tracking. Covered by our 14-day hassle-free return policy.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "acc_1",
+        "acc_2",
+        "acc_3"
+      ]
     }
   },
   "order": [

@@ -419,15 +419,76 @@
       </aside>
     </section>
 
-    {%- comment %} 详情区：About（已去除右侧 6 格规格表 _specifications_4xdw3_1149） {% endcomment -%}
-    <section id="product-story" class="_detailsSection_4xdw3_1140">
-      <div class="_detailsIntro_4xdw3_1148">
-        <h2>{% if is_single %}About this card{% else %}About this product{% endif %}</h2>
-        <div class="tcg-rte">
-          {%- if product.description != blank -%}
-            {{ product.description }}
+    {%- comment %} 详情区：已将原 About this product 替换为可无限新增的可折叠富文本商品信息栏 (Accordions) {% endcomment -%}
+    {%- assign accordion_blocks = section.blocks | where: 'type', 'accordion_item' -%}
+    <section id="product-story" class="_detailsSection_4xdw3_1140" data-product-accordions-section>
+      <div class="tcg-custom-accordions-wrap" data-product-accordions-wrap style="margin-top: 0;">
+        <div class="tcg-custom-accordions-head">
+          <span class="tcg-custom-accordions-title">Product Information &amp; Specifications</span>
+        </div>
+        <div class="tcg-custom-accordions-list" data-product-accordions-list>
+          {%- if accordion_blocks.size > 0 -%}
+            {%- for block in accordion_blocks -%}
+              <details class="tcg-custom-accordion-item" {% if block.settings.open_by_default %}open{% endif %} {{ block.shopify_attributes }}>
+                <summary class="tcg-custom-accordion-summary">
+                  <span class="tcg-custom-accordion-heading">{{ block.settings.title | default: 'Product Information' }}</span>
+                  <span class="tcg-custom-accordion-icon" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+                  </span>
+                </summary>
+                <div class="tcg-custom-accordion-body tcg-rte">
+                  {%- if block.settings.include_product_description and product.description != blank -%}
+                    <div class="tcg-product-native-desc" style="margin-bottom:0.75rem;">{{ product.description }}</div>
+                  {%- endif -%}
+                  {%- if block.settings.content_html != blank -%}
+                    {{ block.settings.content_html }}
+                  {%- elsif block.settings.include_product_description == false and product.description != blank and forloop.first -%}
+                    {{ product.description }}
+                  {%- endif -%}
+                </div>
+              </details>
+            {%- endfor -%}
           {%- else -%}
-            <p>{{ product.title }} — condition checked and stored in a smoke-free, climate-stable room until dispatch.</p>
+            <details class="tcg-custom-accordion-item" open>
+              <summary class="tcg-custom-accordion-summary">
+                <span class="tcg-custom-accordion-heading">Product Description &amp; Overview</span>
+                <span class="tcg-custom-accordion-icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+                </span>
+              </summary>
+              <div class="tcg-custom-accordion-body tcg-rte">
+                {%- if product.description != blank -%}
+                  {{ product.description }}
+                {%- else -%}
+                  <p>{{ product.title }} — condition checked and stored in a smoke-free, climate-stable room until dispatch.</p>
+                {%- endif -%}
+              </div>
+            </details>
+            <details class="tcg-custom-accordion-item">
+              <summary class="tcg-custom-accordion-summary">
+                <span class="tcg-custom-accordion-heading">Authenticity &amp; Quality Inspection</span>
+                <span class="tcg-custom-accordion-icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+                </span>
+              </summary>
+              <div class="tcg-custom-accordion-body tcg-rte">
+                <ul>
+                  <li><strong>100% Authentic Guaranteed:</strong> Every item is thoroughly verified by our specialist team prior to listing.</li>
+                  <li><strong>Climate-Controlled Storage:</strong> Stored in a smoke-free, humidity-controlled vault until dispatch.</li>
+                </ul>
+              </div>
+            </details>
+            <details class="tcg-custom-accordion-item">
+              <summary class="tcg-custom-accordion-summary">
+                <span class="tcg-custom-accordion-heading">Shipping, Packing &amp; Returns</span>
+                <span class="tcg-custom-accordion-icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+                </span>
+              </summary>
+              <div class="tcg-custom-accordion-body tcg-rte">
+                <p>Dispatched within 1 business day with protective multi-layer bubble wrap, rigid reinforced box, and full international tracking. 14-day hassle-free returns supported.</p>
+              </div>
+            </details>
           {%- endif -%}
         </div>
       </div>
@@ -590,6 +651,38 @@
       "id": "dispatch_time",
       "label": "发货时效说明",
       "default": "Within 1 business day"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "accordion_item",
+      "name": "可折叠商品信息栏 (Accordion)",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "信息栏标题 (Title)",
+          "default": "Product Description & Specifications"
+        },
+        {
+          "type": "checkbox",
+          "id": "open_by_default",
+          "label": "默认展开此信息栏",
+          "default": true
+        },
+        {
+          "type": "checkbox",
+          "id": "include_product_description",
+          "label": "在此栏顶部自动显示商品自身描述 (product.description)",
+          "default": false
+        },
+        {
+          "type": "html",
+          "id": "content_html",
+          "label": "富文本 HTML 内容 (支持国际通用富文本与 Shopify 云端图片)",
+          "default": "<p>Enter rich product specifications, care instructions, or Shopify hosted images here.</p>"
+        }
+      ]
     }
   ],
   "presets": [
