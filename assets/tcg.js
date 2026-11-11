@@ -4970,27 +4970,122 @@
    * ----------------------------------------------------------------- */
   (function initTcgCustomFeature() {
     var CUSTOM_SKU_STORAGE_KEY = 'tcg_custom_sku_overrides_v1';
+    var CUSTOM_PAGES_LOCAL_KEY = 'tcg_custom_pages_local_v1';
 
-    // 1) 当普通商品页 URL 带有 ?custom=1 参数时，自动激活定制详情页视图
-    try {
-      var urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('custom') === '1' || urlParams.get('customize')) {
-        var customModeView = document.querySelector('[data-tcg-custom-mode-view]');
-        var standardProductView = document.querySelector('[data-tcg-standard-product-view]');
-        if (customModeView && standardProductView) {
-          customModeView.removeAttribute('hidden');
-          standardProductView.setAttribute('hidden', '');
-        }
+    function loadLocalCustomPages() {
+      try {
+        var raw = localStorage.getItem(CUSTOM_PAGES_LOCAL_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
       }
-    } catch (e) {}
+    }
 
-    // 2) 定制列表页（snippets/tcg-custom-catalog-view.liquid）交互：筛选、搜索、无限加载更多、内联定制路由
+    function saveLocalCustomPages(list) {
+      try {
+        localStorage.setItem(CUSTOM_PAGES_LOCAL_KEY, JSON.stringify(list || []));
+      } catch (e) {}
+    }
+
+    // 加载 assets/tcg-custom-pages.json 并合并本地新增的定制页面
+    function fetchCustomPagesRegistry(jsonUrl) {
+      var url = jsonUrl || '/assets/tcg-custom-pages.json';
+      return fetch(url)
+        .then(function (r) { return r.ok ? r.json() : { pages: [] }; })
+        .catch(function () { return { pages: [] }; })
+        .then(function (doc) {
+          var basePages = (doc && Array.isArray(doc.pages)) ? doc.pages : [];
+          var localPages = loadLocalCustomPages();
+          var map = {};
+          var merged = [];
+          basePages.concat(localPages).forEach(function (p) {
+            if (!p || !p.handle) return;
+            var h = String(p.handle).toLowerCase();
+            if (!map[h]) {
+              map[h] = p;
+              merged.push(p);
+            } else {
+              Object.assign(map[h], p);
+            }
+          });
+          window.TCG_CUSTOM_PAGES_LIST = merged;
+          return merged;
+        });
+    }
+
+    function resolveThemeAssetUrl(rawSrc, refElement) {
+      var fallback = (refElement && refElement.getAttribute('data-fallback-img-url')) || '/assets/card-charizard.png';
+      if (!rawSrc) return fallback;
+      var s = String(rawSrc).trim();
+      if (s.indexOf('http://') === 0 || s.indexOf('https://') === 0 || s.indexOf('//') === 0 || s.indexOf('data:') === 0 || s.indexOf('/') === 0) {
+        return s;
+      }
+      var jsonUrl = (refElement && refElement.getAttribute('data-custom-pages-json-url')) || '';
+      if (jsonUrl && jsonUrl.indexOf('/') !== -1) {
+        var baseDir = jsonUrl.split('?')[0].replace(/\/[^\/]+$/, '/');
+        return baseDir + s;
+      }
+      return '/assets/' + s;
+    }
+
+    function buildCustomCardArticleDom(p, refEl) {
+      var slug = String(p.handle || 'custom-your-premium-card-extended-art-display-cases-collection');
+      if (slug.indexOf('custom-') !== 0) slug = 'custom-' + slug;
+      var pageUrl = p.url || ('/pages/' + slug);
+      var title = p.title || 'Custom Card Extended Art Display Case';
+      var sub = p.subtitle || 'Bespoke Extended Art · Multi-SKU';
+      var badge = p.badge || 'Custom';
+      var priceStr = p.price_formatted || ('$' + ((Number(p.price_cents) || 3599) / 100).toFixed(2));
+      var compareStr = p.compare_at_price_formatted || (p.compare_at_price_cents ? ('$' + (Number(p.compare_at_price_cents) / 100).toFixed(2)) : '');
+      var cat = String(p.category || 'psa').toLowerCase();
+      var img = resolveThemeAssetUrl(p.featured_image, refEl);
+
+      var art = document.createElement('article');
+      art.setAttribute('data-motion-card', '8');
+      art.className = '_card_36e53_65 _cardFill_36e53_74';
+      art.setAttribute('data-reveal', '');
+      art.setAttribute('data-custom-card-item', '');
+      art.setAttribute('data-custom-slug', slug);
+      art.setAttribute('data-custom-category', cat);
+      art.setAttribute('data-custom-title', (title + ' ' + sub).toLowerCase());
+      art.innerHTML =
+        '<a href="' + escapeHtml(pageUrl) + '" class="_cardMedia_36e53_85" aria-label="' + escapeHtml(title) + '" data-custom-page-link="' + escapeHtml(slug) + '">' +
+          '<span class="_cardArtwork_36e53_122">' +
+            '<img data-motion-art src="' + escapeHtml(img) + '" alt="' + escapeHtml(title) + '" width="800" height="800" draggable="false" loading="lazy">' +
+          '</span>' +
+          (badge ? '<span class="_badge_36e53_217">' + escapeHtml(badge) + '</span>' : '') +
+        '</a>' +
+        '<div class="_cardBody_36e53_256">' +
+          '<a href="' + escapeHtml(pageUrl) + '" class="_cardInfo_36e53_264" data-custom-page-link="' + escapeHtml(slug) + '">' +
+            '<span class="_cardName_36e53_275">' + escapeHtml(title) + '</span>' +
+            '<span class="_cardSet_36e53_289">' + escapeHtml(sub) + '</span>' +
+          '</a>' +
+          '<div class="_cardFooter_36e53_309">' +
+            '<span class="_cardPricing_36e53_326">' +
+              (compareStr ? '<del>' + escapeHtml(compareStr) + '</del>' : '') +
+              '<span class="_cardPrice_36e53_317">' + escapeHtml(priceStr) + '</span>' +
+            '</span>' +
+            '<a href="' + escapeHtml(pageUrl) + '" class="_addBtn_36e53_338" data-custom-page-link="' + escapeHtml(slug) + '" style="text-decoration:none;">' +
+              '<span>Customize</span>' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>' +
+            '</a>' +
+          '</div>' +
+        '</div>';
+      return art;
+    }
+
+    // 2) 定制列表页（snippets/tcg-custom-catalog-view.liquid）交互：筛选、搜索、读取 tcg-custom-pages.json、新增独立定制页面接口
     var catalogPage = document.querySelector('[data-tcg-custom-catalog-page]');
     if (catalogPage) {
       var gridEl = catalogPage.querySelector('[data-custom-products-grid]');
       var visibleCountEl = catalogPage.querySelector('[data-custom-visible-count]');
       var emptyStateEl = catalogPage.querySelector('[data-custom-empty-state]');
       var searchInput = catalogPage.querySelector('[data-custom-search-input]');
+      var creatorToggleBtn = catalogPage.querySelector('[data-toggle-custom-page-creator]');
+      var creatorPanel = catalogPage.querySelector('[data-custom-page-creator-panel]');
+      var listView = catalogPage.querySelector('[data-custom-catalog-list-view]');
+      var standaloneView = catalogPage.querySelector('[data-custom-standalone-page-view]');
+      var jsonUrlAttr = catalogPage.getAttribute('data-custom-pages-json-url');
       var activeCat = 'all';
 
       function updateCatalogFilter() {
@@ -5021,6 +5116,7 @@
         e.preventDefault();
         activeCat = (btn.getAttribute('data-custom-filter-btn') || 'all').toLowerCase();
         catalogPage.querySelectorAll('[data-custom-filter-btn]').forEach(function (b) {
+          b.classList.toggle('_tabActive_1fncu_108', b === btn);
           b.classList.toggle('is-active', b === btn);
         });
         updateCatalogFilter();
@@ -5035,68 +5131,338 @@
         activeCat = 'all';
         if (searchInput) searchInput.value = '';
         catalogPage.querySelectorAll('[data-custom-filter-btn]').forEach(function (b, idx) {
+          b.classList.toggle('_tabActive_1fncu_108', idx === 0);
           b.classList.toggle('is-active', idx === 0);
         });
         updateCatalogFilter();
       }, catalogPage);
 
-      // 无限分页加载更多定制商品（AJAX 拉取下一页并追加到同一商品网格）
-      on('[data-custom-load-more-btn]', 'click', function (e, btn) {
+      if (creatorToggleBtn && creatorPanel) {
+        creatorToggleBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          var isOpen = !creatorPanel.hasAttribute('hidden');
+          if (isOpen) {
+            creatorPanel.setAttribute('hidden', '');
+            creatorToggleBtn.classList.remove('is-open');
+          } else {
+            creatorPanel.removeAttribute('hidden');
+            creatorToggleBtn.classList.add('is-open');
+          }
+        });
+      }
+
+      // 页面内可视化新增独立定制页面接口
+      on('[data-create-custom-page-btn]', 'click', function (e) {
         e.preventDefault();
-        var nextUrl = btn.getAttribute('data-next-url');
-        if (!nextUrl || btn.disabled) return;
-        btn.disabled = true;
-        var origText = btn.textContent;
-        btn.textContent = 'Loading more custom products…';
-        fetch(nextUrl)
-          .then(function (r) { return r.text(); })
-          .then(function (html) {
-            var doc = new DOMParser().parseFromString(html, 'text/html');
-            var newCards = doc.querySelectorAll('[data-custom-products-grid] [data-custom-card-item]');
-            if (newCards.length > 0 && gridEl) {
-              newCards.forEach(function (c) {
-                gridEl.appendChild(c);
-              });
+        var titleIn = catalogPage.querySelector('[data-new-cpage-title]');
+        var slugIn = catalogPage.querySelector('[data-new-cpage-slug]');
+        var subIn = catalogPage.querySelector('[data-new-cpage-subtitle]');
+        var priceIn = catalogPage.querySelector('[data-new-cpage-price]');
+        var compIn = catalogPage.querySelector('[data-new-cpage-compare]');
+        var catIn = catalogPage.querySelector('[data-new-cpage-category]');
+        var imgIn = catalogPage.querySelector('[data-new-cpage-image]');
+
+        var title = titleIn ? String(titleIn.value || '').trim() : '';
+        if (!title) {
+          if (titleIn) titleIn.focus();
+          return;
+        }
+        var rawSlug = slugIn ? String(slugIn.value || '').trim() : '';
+        if (!rawSlug) {
+          rawSlug = 'custom-' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        }
+        if (rawSlug.indexOf('custom-') !== 0) rawSlug = 'custom-' + rawSlug;
+
+        var priceStr = (priceIn && priceIn.value) ? String(priceIn.value).trim() : '$35.99';
+        var compStr = (compIn && compIn.value) ? String(compIn.value).trim() : '$39.99';
+        var priceCents = Math.round((parseFloat(priceStr.replace(/[^0-9.]/g, '')) || 35.99) * 100);
+        var compCents = Math.round((parseFloat(compStr.replace(/[^0-9.]/g, '')) || 39.99) * 100);
+        var newPageObj = {
+          handle: rawSlug,
+          url: '/pages/' + rawSlug,
+          title: title,
+          subtitle: (subIn && subIn.value) ? String(subIn.value).trim() : 'Custom Extended Art · Multi-SKU',
+          vendor: 'AnimeHolder Studio',
+          category: (catIn && catIn.value) ? catIn.value : 'psa',
+          badge: 'Custom',
+          price_cents: priceCents,
+          compare_at_price_cents: compCents,
+          price_formatted: priceStr.indexOf('$') === 0 ? priceStr : ('$' + (priceCents / 100).toFixed(2)),
+          compare_at_price_formatted: compStr.indexOf('$') === 0 ? compStr : ('$' + (compCents / 100).toFixed(2)),
+          featured_image: (imgIn && imgIn.value) ? String(imgIn.value).trim() : 'https://animeholder.com/cdn/shop/files/1_431c108e-72fb-46e4-b5e7-22a00bc9bc2e.webp?v=1770016748&width=1200'
+        };
+
+        var savedList = loadLocalCustomPages();
+        savedList.push(newPageObj);
+        saveLocalCustomPages(savedList);
+        if (Array.isArray(window.TCG_CUSTOM_PAGES_LIST)) {
+          window.TCG_CUSTOM_PAGES_LIST.push(newPageObj);
+        }
+        if (gridEl) {
+          gridEl.appendChild(buildCustomCardArticleDom(newPageObj));
+        }
+        if (titleIn) titleIn.value = '';
+        if (slugIn) slugIn.value = '';
+        updateCatalogFilter();
+      }, catalogPage);
+
+      on('[data-export-custom-pages-json-btn]', 'click', function (e, btn) {
+        e.preventDefault();
+        var payload = JSON.stringify({ version: '1.0', pages: window.TCG_CUSTOM_PAGES_LIST || [] }, null, 2);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(payload).then(function () {
+            var orig = btn.textContent;
+            btn.textContent = '✓ Copied JSON!';
+            setTimeout(function () { btn.textContent = orig; }, 1800);
+          });
+        }
+      }, catalogPage);
+
+      // 从 assets/tcg-custom-pages.json 加载定制页面注册表并同步卡片列表
+      fetchCustomPagesRegistry(jsonUrlAttr).then(function (pages) {
+        if (!gridEl || !Array.isArray(pages)) return;
+        pages.forEach(function (p) {
+          if (!p || !p.handle) return;
+          var existing = gridEl.querySelector('[data-custom-slug="' + p.handle + '"]');
+          if (!existing) {
+            gridEl.appendChild(buildCustomCardArticleDom(p, catalogPage));
+          }
+        });
+        updateCatalogFilter();
+      });
+
+      // 当从 /pages/custom 点击某个独立定制页面链接 /pages/custom-<slug> 时：
+      // 先探测服务端是否已创建该 Page，若存在则正常跳转 /pages/custom-<slug>；若尚未在后台新建该 Page 实体，则通过 history.pushState 切换地址栏为 /pages/custom-<slug> 并直接渲染该独立定制详情页
+      on('[data-custom-page-link]', 'click', function (e, linkEl) {
+        var slug = linkEl.getAttribute('data-custom-page-link');
+        var href = linkEl.getAttribute('href') || ('/pages/' + slug);
+        if (!slug || !standaloneView || !listView) return;
+        e.preventDefault();
+        fetch(href, { method: 'HEAD' })
+          .then(function (r) {
+            if (r && r.ok) {
+              window.location.href = href;
+              return;
             }
-            var nextBtn = doc.querySelector('[data-custom-load-more-btn]');
-            if (nextBtn && nextBtn.getAttribute('data-next-url')) {
-              btn.setAttribute('data-next-url', nextBtn.getAttribute('data-next-url'));
-              btn.disabled = false;
-              btn.textContent = origText;
-            } else {
-              btn.remove();
-            }
-            updateCatalogFilter();
+            try { window.history.pushState({ customSlug: slug }, '', href); } catch (err) {}
+            listView.setAttribute('hidden', '');
+            standaloneView.removeAttribute('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            applyCustomPageConfigToDetailDom(standaloneView, slug);
           })
           .catch(function () {
-            btn.disabled = false;
-            btn.textContent = origText;
+            window.location.href = href;
           });
       }, catalogPage);
 
-      // 检查是否通过 ?customize=<slug> 进入内联定制详情视图
-      try {
-        var cParams = new URLSearchParams(window.location.search);
-        var customizeSlug = cParams.get('customize');
-        var listView = catalogPage.querySelector('[data-custom-catalog-list-view]');
-        var detailView = catalogPage.querySelector('[data-custom-inline-detail-view]');
-        if (customizeSlug && listView && detailView) {
-          listView.setAttribute('hidden', '');
-          detailView.removeAttribute('hidden');
-          var titleParam = cParams.get('title');
-          if (titleParam) {
-            var tEl = detailView.querySelector('[data-custom-product-title]');
-            var cEl = detailView.querySelector('[data-custom-crumb-title]');
-            var pInput = detailView.querySelector('[data-custom-prop-product]');
-            if (tEl) tEl.textContent = titleParam;
-            if (cEl) cEl.textContent = titleParam;
-            if (pInput) pInput.value = titleParam;
-          }
+      window.addEventListener('popstate', function () {
+        if (!listView || !standaloneView) return;
+        var p = window.location.pathname.toLowerCase();
+        if (p === '/pages/custom' || p === '/pages/custom/') {
+          standaloneView.setAttribute('hidden', '');
+          listView.removeAttribute('hidden');
         }
-      } catch (e) {}
+      });
     }
 
-    // 3) 初始化页面上所有的定制商品详情组件（支持独立商品页 /products/... 与内联定制视图）
+    // 根据独立定制页面 handle (如 custom-your-premium-card-extended-art-display-cases-collection) 将配置应用到定制详情页 DOM
+    function applyCustomPageConfigToDetailDom(rootEl, slug) {
+      if (!rootEl || !slug) return;
+      var pages = window.TCG_CUSTOM_PAGES_LIST || [];
+      var matched = null;
+      for (var i = 0; i < pages.length; i++) {
+        if (pages[i] && String(pages[i].handle).toLowerCase() === String(slug).toLowerCase()) {
+          matched = pages[i];
+          break;
+        }
+      }
+      if (!matched && pages.length > 0) matched = pages[0];
+      if (!matched) return;
+
+      var titleEl = rootEl.querySelector('[data-custom-product-title]');
+      var crumbEl = rootEl.querySelector('[data-custom-crumb-title]');
+      var vendorEl = rootEl.querySelector('[data-custom-vendor-label]');
+      var mainImgEl = rootEl.querySelector('[data-custom-main-image]');
+      var thumbsTrack = rootEl.querySelector('[data-custom-thumbs]');
+      var shortDescEl = rootEl.querySelector('[data-custom-short-desc]');
+      var propLinkIn = rootEl.querySelector('[data-custom-prop-link]');
+      var propProdIn = rootEl.querySelector('[data-custom-prop-product]');
+      var tiersContainer = rootEl.querySelector('[data-custom-sku-tiers-container]');
+      var tiersSummaryEl = rootEl.querySelector('[data-custom-sku-tiers-summary]');
+      var accordionsListEl = rootEl.querySelector('[data-custom-accordions-list]');
+
+      if (titleEl && matched.title) titleEl.textContent = matched.title;
+      if (crumbEl && matched.title) crumbEl.textContent = matched.title;
+      if (vendorEl && matched.vendor) vendorEl.textContent = matched.vendor;
+      if (mainImgEl && matched.featured_image) mainImgEl.src = resolveThemeAssetUrl(matched.featured_image, rootEl);
+      if (shortDescEl && matched.description) shortDescEl.textContent = matched.description;
+      if (propLinkIn) propLinkIn.value = matched.url || ('/pages/' + matched.handle);
+      if (propProdIn && matched.title) propProdIn.value = matched.title;
+
+      // 1) 渲染画廊缩略图
+      if (thumbsTrack && Array.isArray(matched.gallery) && matched.gallery.length > 0) {
+        thumbsTrack.innerHTML = '';
+        matched.gallery.forEach(function (g, idx) {
+          var rawG = typeof g === 'string' ? g : (g && g.src);
+          var src = resolveThemeAssetUrl(rawG, rootEl);
+          var alt = (g && g.alt) ? g.alt : ('View ' + (idx + 1));
+          if (!src) return;
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = '_thumb_4xdw3_201' + (idx === 0 ? ' _thumbActive_4xdw3_239' : '');
+          btn.setAttribute('data-custom-thumb', '');
+          btn.setAttribute('data-image-src', src);
+          btn.setAttribute('aria-label', alt);
+          btn.innerHTML = '<img src="' + escapeHtml(src) + '" alt="' + escapeHtml(alt) + '" loading="lazy">';
+          thumbsTrack.appendChild(btn);
+        });
+      }
+
+      // 2) 渲染无限可折叠富文本商品信息栏 (Accordions)
+      if (accordionsListEl && Array.isArray(matched.accordions) && matched.accordions.length > 0) {
+        accordionsListEl.innerHTML = '';
+        matched.accordions.forEach(function (acc, aIdx) {
+          if (!acc) return;
+          var det = document.createElement('details');
+          det.className = 'tcg-custom-accordion-item';
+          if (acc.is_open || (acc.is_open === undefined && aIdx === 0)) {
+            det.setAttribute('open', '');
+          }
+          var titleStr = acc.title || ('Information #' + (aIdx + 1));
+          var htmlBody = acc.content_html || '';
+          det.innerHTML =
+            '<summary class="tcg-custom-accordion-header">' +
+              '<span class="tcg-custom-accordion-title">' + escapeHtml(titleStr) + '</span>' +
+              '<span class="tcg-custom-accordion-icon" aria-hidden="true">' +
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="m6 9 6 6 6-6"></path></svg>' +
+              '</span>' +
+            '</summary>' +
+            '<div class="tcg-custom-accordion-body tcg-rte">' + htmlBody + '</div>';
+          accordionsListEl.appendChild(det);
+        });
+      }
+
+      // 3) 渲染 1~5 层多类型 SKU (sku_tiers: text / image_text / color_text)
+      var tiers = Array.isArray(matched.sku_tiers) ? matched.sku_tiers.slice(0, 5) : [];
+      if (tiers.length === 0 && (Array.isArray(matched.styles) || Array.isArray(matched.colors))) {
+        if (Array.isArray(matched.styles) && matched.styles.length > 0) {
+          tiers.push({
+            tier_name: 'Case Style',
+            tier_type: 'image_text',
+            options: matched.styles.map(function (s) {
+              return {
+                title: s.title,
+                sku_code: s.sku_prefix,
+                price_cents: s.price_cents,
+                compare_price_cents: s.compare_price_cents,
+                price_label: s.price_label,
+                image_url: s.image
+              };
+            })
+          });
+        }
+        if (Array.isArray(matched.colors) && matched.colors.length > 0) {
+          tiers.push({
+            tier_name: 'Frame Color',
+            tier_type: 'color_text',
+            options: matched.colors.map(function (c) {
+              return {
+                title: c.title,
+                sku_code: String(c.title || 'CLR').toUpperCase().replace(/[^A-Z0-9]+/g, '-'),
+                color_swatch: c.swatch
+              };
+            })
+          });
+        }
+      }
+
+      if (tiersContainer && tiers.length > 0) {
+        tiersContainer.innerHTML = '';
+        if (tiersSummaryEl) {
+          tiersSummaryEl.textContent = 'Select Custom SKU Options (' + tiers.length + (tiers.length === 1 ? ' Tier)' : ' Tiers)');
+        }
+        tiers.forEach(function (tier, tIdx) {
+          var tName = tier.tier_name || ('Option ' + (tIdx + 1));
+          var tType = tier.tier_type || 'text';
+          var opts = Array.isArray(tier.options) ? tier.options : [];
+          if (opts.length === 0) return;
+
+          var grp = document.createElement('div');
+          grp.className = 'tcg-option-group';
+          grp.setAttribute('data-sku-tier-group', '');
+          grp.setAttribute('data-tier-index', String(tIdx));
+          grp.setAttribute('data-tier-name', tName);
+          grp.setAttribute('data-tier-type', tType);
+
+          var firstOptTitle = (opts[0] && opts[0].title) ? opts[0].title : 'Standard';
+          var listCls = 'tcg-option-values';
+          if (tType === 'image_text') listCls = 'tcg-sku-tier-options tcg-sku-tier-options--image-text';
+          else if (tType === 'color_text') listCls = 'tcg-custom-color-grid';
+
+          var html =
+            '<span class="tcg-option-name">' +
+              escapeHtml(tName) + ': <strong data-tier-selected-val>' + escapeHtml(firstOptTitle) + '</strong>' +
+            '</span>' +
+            '<div class="' + listCls + '" data-tier-options-list>';
+
+          opts.forEach(function (opt, oIdx) {
+            var oTitle = opt.title || ('Option ' + (oIdx + 1));
+            var oSku = opt.sku_code || oTitle.toUpperCase().replace(/[^A-Z0-9]+/g, '-');
+            var oPrice = Number(opt.price_cents) || 0;
+            var oCompare = Number(opt.compare_price_cents) || 0;
+            var oPriceLbl = opt.price_label || (oPrice > 0 ? ('$' + (oPrice / 100).toFixed(2)) : '');
+            var oImg = opt.image_url ? resolveThemeAssetUrl(opt.image_url, rootEl) : '';
+            var oSwatch = opt.color_swatch || '#10b981';
+            var activeCls = oIdx === 0 ? ' is-selected is-active' : '';
+
+            var commonAttrs =
+              ' type="button"' +
+              ' data-sku-opt-btn' +
+              ' data-tier-idx="' + tIdx + '"' +
+              ' data-opt-title="' + escapeHtml(oTitle) + '"' +
+              ' data-opt-sku="' + escapeHtml(oSku) + '"' +
+              (oPrice > 0 ? ' data-opt-price="' + oPrice + '"' : '') +
+              (oCompare > 0 ? ' data-opt-compare="' + oCompare + '"' : '') +
+              (oImg ? ' data-opt-image="' + escapeHtml(oImg) + '"' : '') +
+              (oSwatch ? ' data-opt-swatch="' + escapeHtml(oSwatch) + '"' : '');
+
+            if (tType === 'image_text') {
+              var thumbUrl = oImg || resolveThemeAssetUrl(matched.featured_image, rootEl);
+              html +=
+                '<button class="tcg-sku-img-text-pill' + activeCls + '"' + commonAttrs + '>' +
+                  '<img src="' + escapeHtml(thumbUrl) + '" alt="' + escapeHtml(oTitle) + '" class="tcg-sku-img-text-thumb">' +
+                  '<span class="tcg-sku-img-text-meta">' +
+                    '<span class="tcg-custom-pill-text">' + escapeHtml(oTitle) + '</span>' +
+                    (oPriceLbl ? '<small class="tcg-custom-pill-price">' + escapeHtml(oPriceLbl) + '</small>' : '') +
+                  '</span>' +
+                '</button>';
+            } else if (tType === 'color_text') {
+              html +=
+                '<button class="tcg-custom-color-chip' + activeCls + '"' + commonAttrs + '>' +
+                  '<span class="tcg-custom-color-dot" style="background:' + escapeHtml(oSwatch) + ';"></span>' +
+                  '<span class="tcg-custom-pill-text">' + escapeHtml(oTitle) + '</span>' +
+                '</button>';
+            } else {
+              html +=
+                '<button class="tcg-option-pill' + activeCls + '"' + commonAttrs + '>' +
+                  '<span class="tcg-custom-pill-text">' + escapeHtml(oTitle) + '</span>' +
+                  (oPriceLbl ? ' <small class="tcg-custom-pill-price">' + escapeHtml(oPriceLbl) + '</small>' : '') +
+                '</button>';
+            }
+          });
+
+          html += '</div>';
+          grp.innerHTML = html;
+          tiersContainer.appendChild(grp);
+        });
+      }
+
+      if (typeof rootEl._syncMultiTierSkuState === 'function') {
+        rootEl._syncMultiTierSkuState();
+      }
+    }
+
+    // 3) 初始化页面上所有的定制商品详情组件（支持 1~5 层多类型 SKU、可折叠富文本信息栏、原生加购与立即购买结账）
     var customProductContainers = document.querySelectorAll('[data-tcg-custom-product]');
     customProductContainers.forEach(function (container) {
       if (container.getAttribute('data-custom-initialized') === 'true') return;
@@ -5106,37 +5472,14 @@
       if (!form) return;
 
       var mainImage = container.querySelector('[data-custom-main-image]');
-      var liveStyleBadge = container.querySelector('[data-custom-live-style-badge]');
-      var liveColorBadge = container.querySelector('[data-custom-live-color-badge]');
-      var stageUploadOverlay = container.querySelector('[data-custom-stage-upload-overlay]');
-      var stageUploadImg = container.querySelector('[data-custom-stage-upload-img]');
-      var stageUploadCount = container.querySelector('[data-custom-stage-upload-count]');
-
       var priceEl = container.querySelector('[data-custom-price]');
       var comparePriceEl = container.querySelector('[data-custom-compare-price]');
       var skuCodeEl = container.querySelector('[data-custom-sku-code]');
 
       var variantIdInput = form.querySelector('[data-custom-variant-id]');
       var propSkuInput = form.querySelector('[data-custom-prop-sku]');
-      var propStyleInput = form.querySelector('[data-custom-prop-style]');
-      var propColorInput = form.querySelector('[data-custom-prop-color]');
       var propProductInput = form.querySelector('[data-custom-prop-product]');
-
-      var selectedStyleLabel = form.querySelector('[data-selected-style-label]');
-      var selectedColorLabel = form.querySelector('[data-selected-color-label]');
-      var styleListEl = form.querySelector('[data-custom-style-list]');
-      var colorListEl = form.querySelector('[data-custom-color-list]');
-      var directSkuWrap = form.querySelector('[data-custom-direct-sku-wrap]');
-      var directSkuListEl = form.querySelector('[data-custom-direct-sku-list]');
-      var styleCountBadge = form.querySelector('[data-style-count-badge]');
-      var colorCountBadge = form.querySelector('[data-color-count-badge]');
-
-      var skuManagerToggle = form.querySelector('[data-sku-manager-toggle]');
-      var skuManagerPanel = form.querySelector('[data-sku-manager-panel]');
-      var newSkuTypeSelect = form.querySelector('[data-new-sku-type]');
-      var newSkuNameInput = form.querySelector('[data-new-sku-name]');
-      var newSkuPriceInput = form.querySelector('[data-new-sku-price]');
-      var newSkuColorInput = form.querySelector('[data-new-sku-color]');
+      var tierHiddenInputsWrap = form.querySelector('[data-custom-tier-hidden-inputs]');
 
       var emailInput = form.querySelector('[data-custom-email-input]');
       var emailError = form.querySelector('[data-custom-email-error]');
@@ -5152,33 +5495,128 @@
       var notesTextarea = form.querySelector('[data-custom-notes-textarea]');
       var notesCounter = form.querySelector('[data-custom-notes-counter]');
 
-      var summarySkuEl = form.querySelector('[data-summary-sku]');
-      var summaryEmailEl = form.querySelector('[data-summary-email]');
-      var summaryImagesEl = form.querySelector('[data-summary-images]');
-      var summaryNotesEl = form.querySelector('[data-summary-notes]');
-
       var qtyMinusBtn = form.querySelector('[data-qty-minus]');
       var qtyPlusBtn = form.querySelector('[data-qty-plus]');
       var qtyDisplay = form.querySelector('[data-qty-display]');
       var qtyInput = form.querySelector('[data-qty-input]');
       var feedbackEl = form.querySelector('[data-custom-form-feedback]');
+      var addedNoticeEl = form.querySelector('[data-custom-added-notice], [data-added-notice]');
 
-      // 支持 URL 参数覆盖预设标题与款式（当从无限列表卡片点击不同定制项进入时）
-      try {
-        var presetParams = new URLSearchParams(window.location.search);
-        var presetTitle = presetParams.get('title');
-        var presetImg = presetParams.get('img');
-        if (presetTitle) {
-          var h1El = container.querySelector('[data-custom-product-title]');
-          var crumbEl = container.querySelector('[data-custom-crumb-title]');
-          if (h1El) h1El.textContent = presetTitle;
-          if (crumbEl) crumbEl.textContent = presetTitle;
-          if (propProductInput) propProductInput.value = presetTitle;
+      // 若页面上尚未绑定有效商品 variant_id (如在独立 Page 路由下为 0)，自动从店铺 /products.json 获取首个可售 variant_id，确保加购与付款 100% 走通
+      function ensureValidStoreVariantId() {
+        var curVid = variantIdInput ? String(variantIdInput.value || '').trim() : '';
+        if (curVid && curVid !== '0') return Promise.resolve(curVid);
+        return fetch(apiUrl('products.json?limit=10'))
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            var prods = (data && Array.isArray(data.products)) ? data.products : [];
+            for (var i = 0; i < prods.length; i++) {
+              var vars = prods[i] && Array.isArray(prods[i].variants) ? prods[i].variants : [];
+              for (var j = 0; j < vars.length; j++) {
+                if (vars[j] && vars[j].id) {
+                  var foundId = String(vars[j].id);
+                  if (variantIdInput) variantIdInput.value = foundId;
+                  return foundId;
+                }
+              }
+            }
+            return curVid || '0';
+          })
+          .catch(function () { return curVid || '0'; });
+      }
+      ensureValidStoreVariantId();
+
+      function formatUsdCents(cents) {
+        var n = Number(cents);
+        if (isNaN(n) || n <= 0) return '$35.99';
+        return '$' + (n / 100).toFixed(2);
+      }
+
+      // 同步 1~5 层 SKU 的选中状态到价格、SKU 编码与表单隐藏属性域
+      function syncMultiTierSkuState() {
+        var tierGroups = Array.prototype.slice.call(form.querySelectorAll('[data-sku-tier-group]'));
+        var selectedTitles = [];
+        var selectedCodes = [];
+        var activePriceCents = Number(container.getAttribute('data-base-price-cents')) || 3599;
+        var activeCompareCents = Number(container.getAttribute('data-compare-price-cents')) || 3600;
+
+        if (tierHiddenInputsWrap) tierHiddenInputsWrap.innerHTML = '';
+
+        tierGroups.forEach(function (grp, idx) {
+          var tName = grp.getAttribute('data-tier-name') || ('Tier ' + (idx + 1));
+          var activeBtn = grp.querySelector('[data-sku-opt-btn].is-active, [data-sku-opt-btn].is-selected') || grp.querySelector('[data-sku-opt-btn]');
+          if (!activeBtn) return;
+
+          var oTitle = activeBtn.getAttribute('data-opt-title') || 'Standard';
+          var oSku = activeBtn.getAttribute('data-opt-sku') || oTitle.toUpperCase().replace(/[^A-Z0-9]+/g, '-');
+          var oPrice = Number(activeBtn.getAttribute('data-opt-price') || 0);
+          var oCompare = Number(activeBtn.getAttribute('data-opt-compare') || 0);
+
+          var valLabel = grp.querySelector('[data-tier-selected-val]');
+          if (valLabel) valLabel.textContent = oTitle;
+
+          if (oPrice > 0) {
+            activePriceCents = oPrice;
+            activeCompareCents = oCompare > oPrice ? oCompare : 0;
+          }
+
+          selectedTitles.push(tName + ': ' + oTitle);
+          selectedCodes.push(oSku);
+
+          if (tierHiddenInputsWrap) {
+            var hIn = document.createElement('input');
+            hIn.type = 'hidden';
+            hIn.name = 'properties[' + tName + ']';
+            hIn.value = oTitle;
+            tierHiddenInputsWrap.appendChild(hIn);
+          }
+        });
+
+        var combinedCode = selectedCodes.length > 0 ? selectedCodes.join('-') : 'CUSTOM-01';
+        var combinedSummary = selectedTitles.join(' | ') + ' (' + formatUsdCents(activePriceCents) + ')';
+
+        if (skuCodeEl) skuCodeEl.textContent = combinedCode;
+        if (priceEl) priceEl.textContent = formatUsdCents(activePriceCents);
+        if (comparePriceEl) {
+          if (activeCompareCents > activePriceCents) {
+            comparePriceEl.textContent = formatUsdCents(activeCompareCents);
+            comparePriceEl.removeAttribute('hidden');
+          } else {
+            comparePriceEl.setAttribute('hidden', '');
+          }
         }
-        if (presetImg && mainImage) {
-          mainImage.src = presetImg;
+        if (propSkuInput) propSkuInput.value = combinedSummary + ' [' + combinedCode + ']';
+      }
+
+      container._syncMultiTierSkuState = syncMultiTierSkuState;
+      syncMultiTierSkuState();
+
+      // 点击任意层 (1~5 层) 的 SKU 选项按钮
+      on('[data-sku-opt-btn]', 'click', function (e, btn) {
+        e.preventDefault();
+        var grp = btn.closest('[data-sku-tier-group]');
+        if (grp) {
+          grp.querySelectorAll('[data-sku-opt-btn]').forEach(function (b) {
+            var isTarget = (b === btn);
+            b.classList.toggle('is-selected', isTarget);
+            b.classList.toggle('is-active', isTarget);
+          });
         }
-      } catch (e) {}
+        var optImg = btn.getAttribute('data-opt-image');
+        if (optImg && mainImage) {
+          mainImage.src = optImg;
+        }
+        syncMultiTierSkuState();
+      }, form);
+
+      // 根据当前独立定制页面 handle 从 assets/tcg-custom-pages.json 同步专属配置
+      var currentHandle = container.getAttribute('data-custom-page-handle') || '';
+      var detailJsonUrl = container.getAttribute('data-custom-pages-json-url');
+      if (currentHandle) {
+        fetchCustomPagesRegistry(detailJsonUrl).then(function () {
+          applyCustomPageConfigToDetailDom(container, currentHandle);
+        });
+      }
 
       // 缩略图切换
       on('[data-custom-thumb]', 'click', function (e, thumbBtn) {
@@ -5189,381 +5627,44 @@
         }
         container.querySelectorAll('[data-custom-thumb]').forEach(function (b) {
           var active = b === thumbBtn;
-          b.classList.toggle('_thumbActive_4xdw3_284', active);
+          b.classList.toggle('_thumbActive_4xdw3_239', active);
           b.setAttribute('aria-selected', active ? 'true' : 'false');
         });
       }, container);
 
-      // 格式化美分价格
-      function formatUsdCents(cents) {
-        var n = Number(cents);
-        if (isNaN(n) || n <= 0) return '$35.99';
-        return '$' + (n / 100).toFixed(2);
-      }
-
-      // 恢复或保存商家自定义新增/删除的 SKU 数据
-      function loadSkuOverrides() {
-        try {
-          var raw = localStorage.getItem(CUSTOM_SKU_STORAGE_KEY);
-          return raw ? JSON.parse(raw) : { added: [], deletedStyles: [], deletedColors: [], deletedSkus: [] };
-        } catch (e) {
-          return { added: [], deletedStyles: [], deletedColors: [], deletedSkus: [] };
-        }
-      }
-
-      function saveSkuOverrides(state) {
-        try {
-          localStorage.setItem(CUSTOM_SKU_STORAGE_KEY, JSON.stringify(state));
-        } catch (e) {}
-      }
-
-      var isManageMode = false;
-
-      function syncDeleteBadgesVisibility() {
-        form.querySelectorAll('[data-delete-style], [data-delete-color], [data-delete-direct-sku]').forEach(function (badge) {
-          if (isManageMode) badge.removeAttribute('hidden');
-          else badge.setAttribute('hidden', '');
-        });
-      }
-
-      function createStylePillDom(name, priceCents, compareCents, skuPrefix) {
-        var btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'tcg-custom-sku-pill';
-        btn.setAttribute('data-style-pill', '');
-        btn.setAttribute('data-style-name', name);
-        btn.setAttribute('data-style-price', String(priceCents || 3599));
-        btn.setAttribute('data-style-compare', String(compareCents || Math.round((priceCents || 3599) * 1.1)));
-        btn.setAttribute('data-style-sku-prefix', skuPrefix || name.toUpperCase().replace(/[^A-Z0-9]+/g, '-'));
-        btn.innerHTML =
-          '<span class="tcg-custom-pill-text">' + escapeHtml(name) + '</span>' +
-          '<small class="tcg-custom-pill-price">' + formatUsdCents(priceCents || 3599) + '</small>' +
-          '<span class="tcg-custom-pill-del" data-delete-style="' + escapeHtml(name) + '" title="Delete this SKU option"' + (isManageMode ? '' : ' hidden') + '>&times;</span>';
-        return btn;
-      }
-
-      function createColorPillDom(name, swatchColor) {
-        var btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'tcg-custom-color-chip';
-        btn.setAttribute('data-color-pill', '');
-        btn.setAttribute('data-color-name', name);
-        btn.setAttribute('data-color-swatch', swatchColor || '#38bdf8');
-        btn.innerHTML =
-          '<span class="tcg-custom-color-dot" style="background:' + escapeHtml(swatchColor || '#38bdf8') + ';"></span>' +
-          '<span class="tcg-custom-pill-text">' + escapeHtml(name) + '</span>' +
-          '<span class="tcg-custom-pill-del" data-delete-color="' + escapeHtml(name) + '" title="Delete this Color SKU"' + (isManageMode ? '' : ' hidden') + '>&times;</span>';
-        return btn;
-      }
-
-      function createDirectSkuPillDom(name, priceCents, skuCode) {
-        var btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'tcg-custom-sku-pill';
-        btn.setAttribute('data-direct-sku-pill', '');
-        btn.setAttribute('data-sku-title', name);
-        btn.setAttribute('data-sku-code', skuCode || name.toUpperCase().replace(/[^A-Z0-9]+/g, '-'));
-        btn.setAttribute('data-sku-price', String(priceCents || 3599));
-        btn.innerHTML =
-          '<span class="tcg-custom-pill-text">' + escapeHtml(name) + '</span>' +
-          '<small class="tcg-custom-pill-price">' + formatUsdCents(priceCents || 3599) + '</small>' +
-          '<span class="tcg-custom-pill-del" data-delete-direct-sku="' + escapeHtml(name) + '" title="Delete SKU"' + (isManageMode ? '' : ' hidden') + '>&times;</span>';
-        return btn;
-      }
-
-      // 应用已保存的自定义 SKU 新增/删除记录
-      function applySavedSkuOverrides() {
-        var state = loadSkuOverrides();
-        if (Array.isArray(state.deletedStyles)) {
-          state.deletedStyles.forEach(function (name) {
-            form.querySelectorAll('[data-style-pill]').forEach(function (el) {
-              if (el.getAttribute('data-style-name') === name) el.remove();
-            });
-          });
-        }
-        if (Array.isArray(state.deletedColors)) {
-          state.deletedColors.forEach(function (name) {
-            form.querySelectorAll('[data-color-pill]').forEach(function (el) {
-              if (el.getAttribute('data-color-name') === name) el.remove();
-            });
-          });
-        }
-        if (Array.isArray(state.deletedSkus)) {
-          state.deletedSkus.forEach(function (name) {
-            form.querySelectorAll('[data-direct-sku-pill]').forEach(function (el) {
-              if (el.getAttribute('data-sku-title') === name) el.remove();
-            });
-          });
-        }
-        if (Array.isArray(state.added)) {
-          state.added.forEach(function (item) {
-            if (!item || !item.name) return;
-            if (item.type === 'style' && styleListEl) {
-              styleListEl.appendChild(createStylePillDom(item.name, item.priceCents, item.compareCents, item.skuCode));
-            } else if (item.type === 'color' && colorListEl) {
-              colorListEl.appendChild(createColorPillDom(item.name, item.swatch));
-            } else if (item.type === 'sku' && directSkuListEl) {
-              if (directSkuWrap) directSkuWrap.removeAttribute('hidden');
-              directSkuListEl.appendChild(createDirectSkuPillDom(item.name, item.priceCents, item.skuCode));
-            }
-          });
-        }
-      }
-
-      applySavedSkuOverrides();
-
-      // 同步当前选中的 SKU 状态到表单隐藏域、价格栏与汇总区
-      function syncSkuSelectionState() {
-        var activeStyleBtn = styleListEl ? (styleListEl.querySelector('[data-style-pill].is-active') || styleListEl.querySelector('[data-style-pill]')) : null;
-        if (activeStyleBtn && !activeStyleBtn.classList.contains('is-active')) {
-          activeStyleBtn.classList.add('is-active');
-        }
-        var activeColorBtn = colorListEl ? (colorListEl.querySelector('[data-color-pill].is-active') || colorListEl.querySelector('[data-color-pill]')) : null;
-        if (activeColorBtn && !activeColorBtn.classList.contains('is-active')) {
-          activeColorBtn.classList.add('is-active');
-        }
-        var activeDirectBtn = directSkuListEl ? directSkuListEl.querySelector('[data-direct-sku-pill].is-active') : null;
-
-        var styleName = activeStyleBtn ? (activeStyleBtn.getAttribute('data-style-name') || 'PSA Slab Case') : 'PSA Slab Case';
-        var colorName = activeColorBtn ? (activeColorBtn.getAttribute('data-color-name') || 'Opal Mint') : 'Opal Mint';
-        var stylePrefix = activeStyleBtn ? (activeStyleBtn.getAttribute('data-style-sku-prefix') || 'PSA-SLAB') : 'PSA-SLAB';
-        var priceCents = activeStyleBtn ? Number(activeStyleBtn.getAttribute('data-style-price') || 3599) : 3599;
-        var compareCents = activeStyleBtn ? Number(activeStyleBtn.getAttribute('data-style-compare') || 3600) : 3600;
-
-        var combinedTitle = styleName + ' / ' + colorName;
-        var combinedCode = stylePrefix + '-' + colorName.toUpperCase().replace(/[^A-Z0-9]+/g, '-');
-
-        if (activeDirectBtn) {
-          var directTitle = activeDirectBtn.getAttribute('data-sku-title');
-          var directCode = activeDirectBtn.getAttribute('data-sku-code');
-          var directPrice = Number(activeDirectBtn.getAttribute('data-sku-price') || 0);
-          var directVid = activeDirectBtn.getAttribute('data-sku-variant-id');
-          if (directTitle) combinedTitle = directTitle + ' (' + styleName + ' · ' + colorName + ')';
-          if (directCode) combinedCode = directCode;
-          if (directPrice > 0) priceCents = directPrice;
-          if (directVid && variantIdInput) variantIdInput.value = directVid;
-        }
-
-        if (selectedStyleLabel) selectedStyleLabel.textContent = styleName;
-        if (selectedColorLabel) selectedColorLabel.textContent = colorName;
-        if (liveStyleBadge) liveStyleBadge.textContent = styleName;
-        if (liveColorBadge) liveColorBadge.textContent = colorName;
-        if (skuCodeEl) skuCodeEl.textContent = combinedCode;
-
-        if (priceEl) priceEl.textContent = formatUsdCents(priceCents);
-        if (comparePriceEl) {
-          if (compareCents > priceCents) {
-            comparePriceEl.textContent = formatUsdCents(compareCents);
-            comparePriceEl.removeAttribute('hidden');
-          } else {
-            comparePriceEl.setAttribute('hidden', '');
-          }
-        }
-
-        if (propStyleInput) propStyleInput.value = styleName;
-        if (propColorInput) propColorInput.value = colorName;
-        if (propSkuInput) propSkuInput.value = combinedTitle + ' [' + combinedCode + ']';
-        if (summarySkuEl) summarySkuEl.textContent = combinedTitle;
-
-        if (styleCountBadge && styleListEl) {
-          var sCount = styleListEl.querySelectorAll('[data-style-pill]').length;
-          styleCountBadge.textContent = sCount + ' options';
-        }
-        if (colorCountBadge && colorListEl) {
-          var cCount = colorListEl.querySelectorAll('[data-color-pill]').length;
-          colorCountBadge.textContent = cCount + ' colors';
-        }
-      }
-
-      syncSkuSelectionState();
-
-      // 点击切换 Style SKU
-      on('[data-style-pill]', 'click', function (e, btn) {
-        if (e.target && e.target.hasAttribute && e.target.hasAttribute('data-delete-style')) return;
+      // 主图点击放大灯箱
+      var lightbox = container.querySelector('[data-image-lightbox]');
+      var lightboxImg = container.querySelector('[data-lightbox-image]');
+      on('[data-zoom-trigger]', 'click', function (e) {
+        if (!lightbox || !lightboxImg || !mainImage) return;
         e.preventDefault();
-        if (styleListEl) {
-          styleListEl.querySelectorAll('[data-style-pill]').forEach(function (b) {
-            b.classList.toggle('is-active', b === btn);
-          });
-        }
-        var styleImg = btn.getAttribute('data-style-image');
-        if (styleImg && mainImage) {
-          mainImage.src = styleImg;
-        }
-        syncSkuSelectionState();
-      }, form);
-
-      // 点击切换 Color SKU
-      on('[data-color-pill]', 'click', function (e, btn) {
-        if (e.target && e.target.hasAttribute && e.target.hasAttribute('data-delete-color')) return;
+        lightboxImg.src = mainImage.src;
+        lightbox.removeAttribute('hidden');
+      }, container);
+      on('[data-lightbox-close]', 'click', function (e) {
+        if (!lightbox) return;
         e.preventDefault();
-        if (colorListEl) {
-          colorListEl.querySelectorAll('[data-color-pill]').forEach(function (b) {
-            b.classList.toggle('is-active', b === btn);
-          });
-        }
-        syncSkuSelectionState();
-      }, form);
+        lightbox.setAttribute('hidden', '');
+      }, container);
 
-      // 点击切换独立 SKU
-      on('[data-direct-sku-pill]', 'click', function (e, btn) {
-        if (e.target && e.target.hasAttribute && e.target.hasAttribute('data-delete-direct-sku')) return;
-        e.preventDefault();
-        var alreadyActive = btn.classList.contains('is-active');
-        if (directSkuListEl) {
-          directSkuListEl.querySelectorAll('[data-direct-sku-pill]').forEach(function (b) {
-            b.classList.remove('is-active');
-          });
-        }
-        if (!alreadyActive) btn.classList.add('is-active');
-        syncSkuSelectionState();
-      }, form);
-
-      // 展开/收起自助 SKU 新增与删除管理面板
-      if (skuManagerToggle && skuManagerPanel) {
-        skuManagerToggle.addEventListener('click', function (e) {
-          e.preventDefault();
-          isManageMode = !isManageMode;
-          skuManagerToggle.setAttribute('aria-expanded', isManageMode ? 'true' : 'false');
-          skuManagerToggle.classList.toggle('is-open', isManageMode);
-          if (isManageMode) skuManagerPanel.removeAttribute('hidden');
-          else skuManagerPanel.setAttribute('hidden', '');
-          syncDeleteBadgesVisibility();
-        });
-      }
-
-      // 删除某个 Style SKU
-      on('[data-delete-style]', 'click', function (e, delBtn) {
-        e.preventDefault();
-        e.stopPropagation();
-        var name = delBtn.getAttribute('data-delete-style');
-        var pill = delBtn.closest('[data-style-pill]');
-        if (styleListEl && styleListEl.querySelectorAll('[data-style-pill]').length <= 1) {
-          alert('Please keep at least one Style SKU option.');
-          return;
-        }
-        if (pill) pill.remove();
-        var state = loadSkuOverrides();
-        if (state.deletedStyles.indexOf(name) === -1) state.deletedStyles.push(name);
-        state.added = (state.added || []).filter(function (it) { return !(it.type === 'style' && it.name === name); });
-        saveSkuOverrides(state);
-        syncSkuSelectionState();
-      }, form);
-
-      // 删除某个 Color SKU
-      on('[data-delete-color]', 'click', function (e, delBtn) {
-        e.preventDefault();
-        e.stopPropagation();
-        var name = delBtn.getAttribute('data-delete-color');
-        var pill = delBtn.closest('[data-color-pill]');
-        if (colorListEl && colorListEl.querySelectorAll('[data-color-pill]').length <= 1) {
-          alert('Please keep at least one Color SKU option.');
-          return;
-        }
-        if (pill) pill.remove();
-        var state = loadSkuOverrides();
-        if (state.deletedColors.indexOf(name) === -1) state.deletedColors.push(name);
-        state.added = (state.added || []).filter(function (it) { return !(it.type === 'color' && it.name === name); });
-        saveSkuOverrides(state);
-        syncSkuSelectionState();
-      }, form);
-
-      // 删除某个独立 SKU
-      on('[data-delete-direct-sku]', 'click', function (e, delBtn) {
-        e.preventDefault();
-        e.stopPropagation();
-        var name = delBtn.getAttribute('data-delete-direct-sku');
-        var pill = delBtn.closest('[data-direct-sku-pill]');
-        if (pill) pill.remove();
-        var state = loadSkuOverrides();
-        if (state.deletedSkus.indexOf(name) === -1) state.deletedSkus.push(name);
-        state.added = (state.added || []).filter(function (it) { return !(it.type === 'sku' && it.name === name); });
-        saveSkuOverrides(state);
-        if (directSkuListEl && directSkuListEl.querySelectorAll('[data-direct-sku-pill]').length === 0 && directSkuWrap) {
-          directSkuWrap.setAttribute('hidden', '');
-        }
-        syncSkuSelectionState();
-      }, form);
-
-      // 新增自定义 SKU（支持新增 Style / Color / 独立 SKU）
-      on('[data-add-sku-btn]', 'click', function (e) {
-        e.preventDefault();
-        var skuType = newSkuTypeSelect ? newSkuTypeSelect.value : 'style';
-        var skuName = newSkuNameInput ? String(newSkuNameInput.value || '').trim() : '';
-        if (!skuName) {
-          if (newSkuNameInput) newSkuNameInput.focus();
-          return;
-        }
-        var rawUsd = newSkuPriceInput ? parseFloat(newSkuPriceInput.value) : 35.99;
-        var priceCents = (!isNaN(rawUsd) && rawUsd > 0) ? Math.round(rawUsd * 100) : 3599;
-        var compareCents = Math.round(priceCents * 1.1);
-        var swatch = newSkuColorInput ? (newSkuColorInput.value || '#38bdf8') : '#38bdf8';
-        var skuCode = skuName.toUpperCase().replace(/[^A-Z0-9]+/g, '-');
-
-        if (skuType === 'style' && styleListEl) {
-          var newStylePill = createStylePillDom(skuName, priceCents, compareCents, skuCode);
-          styleListEl.querySelectorAll('[data-style-pill]').forEach(function (b) { b.classList.remove('is-active'); });
-          newStylePill.classList.add('is-active');
-          styleListEl.appendChild(newStylePill);
-        } else if (skuType === 'color' && colorListEl) {
-          var newColorPill = createColorPillDom(skuName, swatch);
-          colorListEl.querySelectorAll('[data-color-pill]').forEach(function (b) { b.classList.remove('is-active'); });
-          newColorPill.classList.add('is-active');
-          colorListEl.appendChild(newColorPill);
-        } else if (directSkuListEl) {
-          if (directSkuWrap) directSkuWrap.removeAttribute('hidden');
-          var newSkuPill = createDirectSkuPillDom(skuName, priceCents, skuCode);
-          directSkuListEl.querySelectorAll('[data-direct-sku-pill]').forEach(function (b) { b.classList.remove('is-active'); });
-          newSkuPill.classList.add('is-active');
-          directSkuListEl.appendChild(newSkuPill);
-        }
-
-        var state = loadSkuOverrides();
-        state.added = state.added || [];
-        state.added.push({
-          type: skuType,
-          name: skuName,
-          priceCents: priceCents,
-          compareCents: compareCents,
-          swatch: swatch,
-          skuCode: skuCode
-        });
-        saveSkuOverrides(state);
-
-        if (newSkuNameInput) newSkuNameInput.value = '';
-        if (newSkuPriceInput) newSkuPriceInput.value = '';
-        syncSkuSelectionState();
-      }, form);
-
-      // 一键重置恢复默认 SKU
-      on('[data-reset-sku-btn]', 'click', function (e) {
-        e.preventDefault();
-        try { localStorage.removeItem(CUSTOM_SKU_STORAGE_KEY); } catch (err) {}
-        window.location.reload();
-      }, form);
-
-      // 4) Email 实时监听与校验
+      // Email 实时校验
       if (emailInput) {
         emailInput.addEventListener('input', function () {
           var val = String(emailInput.value || '').trim();
-          if (summaryEmailEl) summaryEmailEl.textContent = val || 'Not entered yet';
           if (val && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) && emailError) {
             emailError.setAttribute('hidden', '');
           }
         });
       }
 
-      // 5) 多张图片上传管理器（支持选择多图、多次追加、拖拽上传、缩略图预览、单张删除，并生成独立 properties[Custom Image N] 文件域随订单直传后台）
-      var uploadedFiles = []; // [{ file: File, dataUrl: string, name: string, size: number }]
+      // 多张图片上传管理器
+      var uploadedFiles = [];
 
       function rebuildDynamicFileInputsAndPreview() {
         if (previewGrid) {
           previewGrid.innerHTML = '';
-          if (uploadedFiles.length > 0) {
-            previewGrid.removeAttribute('hidden');
-          } else {
-            previewGrid.setAttribute('hidden', '');
-          }
+          if (uploadedFiles.length > 0) previewGrid.removeAttribute('hidden');
+          else previewGrid.setAttribute('hidden', '');
         }
         if (dynamicFileInputsWrap) {
           dynamicFileInputsWrap.innerHTML = '';
@@ -5574,7 +5675,6 @@
           var indexNum = idx + 1;
           fileNames.push('#' + indexNum + ' ' + entry.name);
 
-          // 渲染可视化缩略图卡片与删除按钮
           if (previewGrid) {
             var itemCard = document.createElement('div');
             itemCard.className = 'tcg-custom-upload-thumb-card';
@@ -5588,7 +5688,6 @@
             previewGrid.appendChild(itemCard);
           }
 
-          // 为每张图片创建真实的 <input type="file" name="properties[Custom Image N]">，使 Shopify /cart/add.js 原生将每张图片文件挂载到后台订单行属性
           if (dynamicFileInputsWrap && typeof DataTransfer === 'function' && entry.file) {
             try {
               var dt = new DataTransfer();
@@ -5604,7 +5703,6 @@
 
         var countText = uploadedFiles.length + (uploadedFiles.length === 1 ? ' image selected' : ' images selected');
         if (imageCountBadge) imageCountBadge.textContent = countText;
-        if (summaryImagesEl) summaryImagesEl.textContent = uploadedFiles.length + ' image(s)' + (fileNames.length ? ' (' + fileNames.join(', ') + ')' : '');
         if (imagesSummaryInput) {
           imagesSummaryInput.value = uploadedFiles.length > 0
             ? (uploadedFiles.length + ' file(s): ' + fileNames.join(' | '))
@@ -5612,17 +5710,6 @@
         }
         if (uploadedFiles.length > 0 && imagesError) {
           imagesError.setAttribute('hidden', '');
-        }
-
-        // 更新左侧主画廊的实时上传卡牌角标预览
-        if (stageUploadOverlay && stageUploadImg && stageUploadCount) {
-          if (uploadedFiles.length > 0 && uploadedFiles[0].dataUrl) {
-            stageUploadImg.src = uploadedFiles[0].dataUrl;
-            stageUploadCount.textContent = uploadedFiles.length + (uploadedFiles.length === 1 ? ' Card Image Uploaded' : ' Card Images Uploaded');
-            stageUploadOverlay.removeAttribute('hidden');
-          } else {
-            stageUploadOverlay.setAttribute('hidden', '');
-          }
         }
       }
 
@@ -5690,7 +5777,7 @@
         }
       }, form);
 
-      // 6) 10,000 字备注实时字数统计与上限保障
+      // 10,000 字备注实时字数统计
       if (notesTextarea) {
         var syncNotesCount = function () {
           var val = String(notesTextarea.value || '');
@@ -5698,19 +5785,17 @@
             val = val.slice(0, 10000);
             notesTextarea.value = val;
           }
-          var lenStr = val.length.toLocaleString() + ' / 10,000 characters';
-          if (notesCounter) notesCounter.textContent = lenStr;
-          if (summaryNotesEl) summaryNotesEl.textContent = val.length.toLocaleString() + ' / 10,000 chars';
+          if (notesCounter) notesCounter.textContent = val.length.toLocaleString() + ' / 10,000 characters';
         };
         notesTextarea.addEventListener('input', syncNotesCount);
         syncNotesCount();
       }
 
-      // 7) 数量加减器
+      // 数量加减器（与模板商品一致）
       var customQty = 1;
       function updateCustomQty(nextQty) {
-        customQty = Math.max(1, Math.min(99, parseInt(nextQty, 10) || 1));
-        if (qtyDisplay) qtyDisplay.textContent = String(customQty);
+        customQty = Math.max(1, Math.min(999, parseInt(nextQty, 10) || 1));
+        if (qtyDisplay) qtyDisplay.value = String(customQty);
         if (qtyInput) qtyInput.value = String(customQty);
       }
       if (qtyMinusBtn) {
@@ -5725,8 +5810,12 @@
           updateCustomQty(customQty + 1);
         });
       }
+      if (qtyInput) {
+        qtyInput.addEventListener('change', function () {
+          updateCustomQty(qtyInput.value);
+        });
+      }
 
-      // 8) 校验定制表单并提交至 Shopify 购物车 & 后台订单系统
       function validateCustomForm() {
         var valid = true;
         var emailVal = emailInput ? String(emailInput.value || '').trim() : '';
@@ -5747,7 +5836,6 @@
         return valid;
       }
 
-      // 将定制订单的核心摘要同时写入 Shopify Cart Note & Attributes（/cart/update.js），确保不仅在订单行 Line Item Properties 显示，还在后台订单右侧的 Note / Additional Details 中双保险展示
       function syncCustomDetailsToBackendOrderNote() {
         var emailVal = emailInput ? String(emailInput.value || '').trim() : '';
         var skuVal = propSkuInput ? String(propSkuInput.value || '') : '';
@@ -5765,6 +5853,8 @@
           combinedNote = combinedNote.slice(0, 10000);
         }
 
+        saveOrderNoteLocal(combinedNote);
+
         return fetch(apiUrl('cart/update.js'), fetchConfig('json', {
           body: JSON.stringify({
             note: combinedNote,
@@ -5779,55 +5869,94 @@
         })).catch(function () { return null; });
       }
 
-      function submitCustomOrder(redirectToCheckout) {
+      // 与模板商品 sections/tcg-product.liquid 100% 一致的加购 (Add to cart) 与立即购买 (Buy it now) 处理流程
+      function submitCustomOrder(isBuyNowCheckout) {
         if (!validateCustomForm()) return;
 
-        var submitBtn = form.querySelector('[data-custom-submit-cart]');
+        var submitBtn = form.querySelector('[data-custom-submit-cart], [data-add-to-cart-btn]');
         var submitTextEl = form.querySelector('[data-add-to-cart-text]');
-        var buyNowBtn = form.querySelector('[data-custom-buy-now-btn]');
-        var vid = variantIdInput ? variantIdInput.value : '52665896730963';
+        var buyNowBtn = form.querySelector('[data-custom-buy-now], [data-buy-now-btn]');
 
         if (submitBtn) submitBtn.disabled = true;
         if (buyNowBtn) buyNowBtn.disabled = true;
         if (feedbackEl) {
-          feedbackEl.textContent = redirectToCheckout
-            ? 'Uploading custom images & preparing your Shopify checkout order…'
-            : 'Uploading custom images & adding custom order to cart…';
+          feedbackEl.textContent = isBuyNowCheckout
+            ? 'Preparing your custom order & redirecting to checkout…'
+            : 'Adding your custom order to cart…';
           feedbackEl.className = 'tcg-custom-feedback-msg is-info';
           feedbackEl.removeAttribute('hidden');
         }
 
-        addVariantToCart(vid, customQty, form)
-          .then(function (res) {
-            return syncCustomDetailsToBackendOrderNote().then(function () {
-              return res;
-            });
-          })
-          .then(function (res) {
-            if (res && res.ok) {
-              if (feedbackEl) {
-                feedbackEl.textContent = '✓ Custom order saved! Your SKU, email, ' + uploadedFiles.length + ' image(s), and notes are attached directly to your order.';
-                feedbackEl.className = 'tcg-custom-feedback-msg is-success';
-                feedbackEl.removeAttribute('hidden');
-              }
-              if (submitTextEl) {
-                var origTxt = submitTextEl.textContent;
-                submitTextEl.textContent = '✓ Added Custom Order to Cart';
-                setTimeout(function () {
-                  submitTextEl.textContent = origTxt;
-                }, 2200);
-              }
-              if (redirectToCheckout) {
-                var targetCheckout = (res && res.checkoutUrl) ? res.checkoutUrl : getThemeRoute('cart_checkout_url', '/checkout');
-                window.location.href = targetCheckout;
-              }
-            } else {
-              if (feedbackEl) {
-                feedbackEl.textContent = (res && res.message) ? res.message : 'Unable to submit custom order. Please check your inputs and try again.';
-                feedbackEl.className = 'tcg-custom-feedback-msg is-error';
-                feedbackEl.removeAttribute('hidden');
-              }
+        ensureValidStoreVariantId()
+          .then(function (resolvedVid) {
+            var vid = (resolvedVid && resolvedVid !== '0') ? resolvedVid : '52665896730963';
+            if (variantIdInput) variantIdInput.value = vid;
+
+            if (isBuyNowCheckout) {
+              // 立即购买：先将包含定制文件与属性的表单写入购物车并同步备注，再同模板商品一样调用 createBuyNowStandaloneCheckoutUrl 进入结算流程
+              return addVariantToCart(vid, customQty, form)
+                .then(function (addRes) {
+                  return syncCustomDetailsToBackendOrderNote().then(function () {
+                    return createBuyNowStandaloneCheckoutUrl(vid, customQty).then(function (bnRes) {
+                      return { addRes: addRes, bnRes: bnRes };
+                    });
+                  });
+                })
+                .then(function (combined) {
+                  var bnRes = combined.bnRes;
+                  var addRes = combined.addRes;
+                  if (bnRes && bnRes.intermediateUrl) {
+                    window.location.href = bnRes.intermediateUrl;
+                    return;
+                  }
+                  if (addRes && addRes.checkoutUrl) {
+                    window.location.href = addRes.checkoutUrl;
+                    return;
+                  }
+                  window.location.href = getThemeRoute('cart_checkout_url', '/checkout');
+                });
             }
+
+            // 加入购物车：调用与模板商品完全相同的 addVariantToCart，展示 _addedNotice_4xdw3_750 横幅（含 View cart 与 Checkout now）
+            return addVariantToCart(vid, customQty, form)
+              .then(function (res) {
+                return syncCustomDetailsToBackendOrderNote().then(function () {
+                  return res;
+                });
+              })
+              .then(function (res) {
+                if (res && res.ok) {
+                  if (res.checkoutUrl) {
+                    syncCheckoutLinksWithUrl(res.checkoutUrl);
+                  }
+                  if (addedNoticeEl) {
+                    addedNoticeEl.removeAttribute('hidden');
+                    addedNoticeEl.hidden = false;
+                  }
+                  if (submitBtn) {
+                    submitBtn.classList.add('_primaryButtonDone_4xdw3_728');
+                    setTimeout(function () {
+                      submitBtn.classList.remove('_primaryButtonDone_4xdw3_728');
+                    }, 1800);
+                  }
+                  if (submitTextEl) {
+                    var origTxt = submitTextEl.textContent;
+                    submitTextEl.textContent = '✓ Added to cart';
+                    setTimeout(function () {
+                      submitTextEl.textContent = origTxt;
+                    }, 2000);
+                  }
+                  if (feedbackEl) {
+                    feedbackEl.setAttribute('hidden', '');
+                  }
+                } else {
+                  if (feedbackEl) {
+                    feedbackEl.textContent = (res && res.message) ? res.message : 'Unable to add custom order to cart. Please try again.';
+                    feedbackEl.className = 'tcg-custom-feedback-msg is-error';
+                    feedbackEl.removeAttribute('hidden');
+                  }
+                }
+              });
           })
           .catch(function () {
             if (feedbackEl) {
@@ -5847,7 +5976,7 @@
         submitCustomOrder(false);
       });
 
-      on('[data-custom-buy-now-btn]', 'click', function (e) {
+      on('[data-custom-buy-now], [data-buy-now-btn]', 'click', function (e) {
         e.preventDefault();
         submitCustomOrder(true);
       }, form);

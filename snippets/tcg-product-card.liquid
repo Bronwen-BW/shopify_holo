@@ -41,27 +41,8 @@
 {%- assign is_custom_card = false -%}
 {%- if custom_mode == true -%}
   {%- assign is_custom_card = true -%}
-{%- elsif product.template_suffix == 'custom' or product.handle contains 'custom' -%}
-  {%- assign is_custom_card = true -%}
-{%- else -%}
-  {%- for tag in product.tags -%}
-    {%- assign t_low = tag | downcase -%}
-    {%- if t_low == 'custom' or t_low == 'customizable' or t_low contains '定制' -%}
-      {%- assign is_custom_card = true -%}
-      {%- break -%}
-    {%- endif -%}
-  {%- endfor -%}
 {%- endif -%}
 {%- assign card_target_url = custom_url | default: product.url -%}
-{%- if is_custom_card and custom_url == blank and card_target_url != blank -%}
-  {%- unless card_target_url contains 'custom=' or card_target_url contains 'view=custom' -%}
-    {%- if card_target_url contains '?' -%}
-      {%- assign card_target_url = card_target_url | append: '&custom=1' -%}
-    {%- else -%}
-      {%- assign card_target_url = card_target_url | append: '?custom=1' -%}
-    {%- endif -%}
-  {%- endunless -%}
-{%- endif -%}
 
 <article data-motion-card="8" class="_card_36e53_65 _cardFill_36e53_74" data-reveal>
   {%- comment %} 媒体区（整卡可点击） {% endcomment -%}

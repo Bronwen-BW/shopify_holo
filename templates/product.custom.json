@@ -11,7 +11,7 @@
             "price_cents": 3599,
             "compare_price_cents": 3600,
             "price_label": "$35.99",
-            "image_url": "https://animeholder.com/cdn/shop/files/1_431c108e-72fb-46e4-b5e7-22a00bc9bc2e.webp?v=1770016748&width=1200"
+            "image_url": "card-charizard.png"
           }
         },
         "style_2": {
@@ -22,7 +22,7 @@
             "price_cents": 2599,
             "compare_price_cents": 2800,
             "price_label": "$25.99",
-            "image_url": "https://animeholder.com/cdn/shop/files/3_73efab44-7605-4e92-a844-57efbd7eb3aa.webp?v=1770016748&width=1200"
+            "image_url": "card-blastoise.png"
           }
         },
         "style_3": {
@@ -33,7 +33,7 @@
             "price_cents": 2599,
             "compare_price_cents": 2800,
             "price_label": "$25.99",
-            "image_url": "https://animeholder.com/cdn/shop/files/4_0c342da1-6d5d-40f9-9434-7b17ee068757.webp?v=1770016748&width=1200"
+            "image_url": "card-venusaur.png"
           }
         },
         "style_4": {
@@ -44,7 +44,7 @@
             "price_cents": 1999,
             "compare_price_cents": 2400,
             "price_label": "$19.99",
-            "image_url": "https://animeholder.com/cdn/shop/files/2_e9266260-3d84-49d7-9eb2-d1d66f3a37db.webp?v=1770016748&width=1200"
+            "image_url": "card-umbreon.png"
           }
         },
         "color_1": {
@@ -58,7 +58,7 @@
           "type": "color_option",
           "settings": {
             "title": "Rainbow",
-            "swatch_color": "linear-gradient(135deg,#f43f5e,#f59e0b,#10b981,#3b82f6,#a855f7)"
+            "swatch_color": "linear-gradient(135deg, #f43f5e, #f59e0b, #3b82f6)"
           }
         },
         "color_3": {
@@ -79,7 +79,7 @@
           "type": "color_option",
           "settings": {
             "title": "Sunset",
-            "swatch_color": "linear-gradient(135deg,#f97316,#ec4899)"
+            "swatch_color": "linear-gradient(135deg, #f97316, #ec4899)"
           }
         },
         "color_6": {
@@ -107,7 +107,7 @@
           "type": "color_option",
           "settings": {
             "title": "Ice Pink",
-            "swatch_color": "#fbcfe8"
+            "swatch_color": "linear-gradient(150deg, #fbcfe8, #3b82f6)"
           }
         },
         "color_10": {
@@ -184,7 +184,7 @@
       ],
       "settings": {
         "brand_name": "AnimeHolder Studio",
-        "reference_url": "https://animeholder.com/products/custom-your-premium-card-extended-art-display-cases-collection"
+        "reference_url": "/pages/custom-your-premium-card-extended-art-display-cases-collection"
       }
     }
   },

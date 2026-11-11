@@ -1,607 +1,494 @@
 {%- comment -%}
-  TCG 定制商品详情与交互式定制表单组件 (snippets/tcg-custom-product-form.liquid)
-  参考目标：https://animeholder.com/products/custom-your-premium-card-extended-art-display-cases-collection
-  核心能力：
-  1. 完整还原主题视觉风格（_page_4xdw3_1, _layout_4xdw3_77, _gallery_4xdw3_91 等）并融合参考链接的定制交互
-  2. 支持多维度 SKU（Style 款式 / Color 边框颜色 / 商家自定义 SKU 列表），支持商家自主新增或删除（Shopify Admin 变体 + Theme Editor 无上限 Block + 页面可视化新增/删除管理面板）
-  3. 定制表单支持：
-     - 必填 Customer Email (properties[Customer Email])
-     - 上传多张图片 (properties[Custom Image 1], properties[Custom Image 2]... 支持拖拽、预览、单张删除、继续添加)
-     - 定制备注最高支持 10,000 字 (properties[Customization Notes], maxlength="10000" + 实时字数统计)
-  4. 下单直达 Shopify 后台订单：通过原生 FormData 提交到 /cart/add.js 并同步 Cart Attributes / Note 与 Checkout，所有定制项、图片与备注直接在 Shopify Admin -> Orders 订单详情中完整显示
+  TCG 独立定制商品详情页面组件 (snippets/tcg-custom-product-form.liquid)
+  核心特性：
+  1. 平衡双栏布局（彻底解决左空右挤）：
+     - 左栏：高清主图 + 缩略图画廊 + 无限可折叠富文本商品信息栏 (Accordions) + 4项服务保障
+     - 右栏：商品标题/价格 + 1~5层多类型 SKU 选择器（①纯文字 / ②图片+文字 / ③颜色+文字含渐变色）+ 定制表单（Email/多图/万字备注）+ 与模板商品完全一致的加购与立即购买付款按钮
+  2. 支持从 assets/tcg-custom-pages.json 动态水合 1~5 层 SKU、Shopify 云端图片与无限可折叠富文本信息栏
 {%- endcomment -%}
 
 {%- liquid
-  assign target_product = custom_product | default: product
-  if target_product == blank and all_products['custom-your-premium-card-extended-art-display-cases-collection'] != blank
-    assign target_product = all_products['custom-your-premium-card-extended-art-display-cases-collection']
-  endif
-  if target_product == blank and collections.all.products.size > 0
-    assign target_product = collections.all.products.first
+  assign fallback_p = custom_product | default: product
+  if fallback_p == blank and collections['all'] != blank and collections['all'].products.size > 0
+    for cand in collections['all'].products
+      if cand.available
+        assign fallback_p = cand
+        break
+      endif
+    endfor
+    if fallback_p == blank
+      assign fallback_p = collections['all'].products.first
+    endif
   endif
 
-  assign current_variant = nil
-  if target_product != blank
-    assign current_variant = target_product.selected_or_first_available_variant
+  assign active_variant = fallback_p.selected_or_first_available_variant | default: fallback_p.variants.first
+  assign default_variant_id = active_variant.id | default: 0
+
+  assign resolved_handle = custom_handle | default: page.handle | default: 'custom-your-premium-card-extended-art-display-cases-collection'
+  assign custom_title = 'Custom Your Premium Card Extended Art Display Cases Collection'
+  if custom_page != blank and custom_page.title != blank and custom_page.handle != 'custom'
+    assign custom_title = custom_page.title
+  elsif section.settings.custom_title != blank
+    assign custom_title = section.settings.custom_title
   endif
 
-  assign display_title = custom_title_override | default: target_product.title | default: 'Custom Your Premium Card Extended Art Display Cases Collection'
-  assign display_vendor = target_product.vendor | default: section.settings.brand_name | default: 'AnimeHolder Studio'
-  assign display_price = current_variant.price | default: 3599
-  assign display_compare_price = current_variant.compare_at_price | default: 3600
+  assign brand_name = section.settings.brand_name | default: 'AnimeHolder Studio'
+  assign base_price_cents = 3599
+  assign compare_price_cents = 3600
 
-  assign style_Blocks = section.blocks | where: 'type', 'style_option'
-  assign color_Blocks = section.blocks | where: 'type', 'color_option'
-  assign sku_Blocks = section.blocks | where: 'type', 'sku_item'
+  assign img_charizard = 'card-charizard.png' | asset_url
+  assign img_umbreon = 'card-umbreon.png' | asset_url
+  assign img_blastoise = 'card-blastoise.png' | asset_url
+  assign img_venusaur = 'card-venusaur.png' | asset_url
+  assign img_palkia = 'card-palkia.png' | asset_url
 -%}
 
 <div
   class="_page_4xdw3_1 tcg-custom-product-page"
   data-tcg-custom-product
-  data-product-handle="{{ target_product.handle | default: 'custom-your-premium-card-extended-art-display-cases-collection' | escape }}"
-  data-section-id="{{ section.id }}"
+  data-custom-page-handle="{{ resolved_handle | escape }}"
+  data-custom-pages-json-url="{{ 'tcg-custom-pages.json' | asset_url }}"
+  data-fallback-img-url="{{ img_charizard }}"
+  data-base-variant-id="{{ default_variant_id }}"
+  data-base-price-cents="{{ base_price_cents }}"
+  data-compare-price-cents="{{ compare_price_cents }}"
 >
   <div class="_wide_4xdw3_6">
 
-    {%- comment %} 面包屑导航 {% endcomment -%}
     <nav aria-label="Breadcrumb" class="_breadcrumb_4xdw3_11">
-      <a aria-label="Back to custom catalog" href="/pages/custom" class="_crumbBack_4xdw3_69">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+      <a aria-label="Back to Custom Catalog" href="/pages/custom" class="_crumbBack_4xdw3_69">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="18" height="18"><path d="m15 18-6-6 6-6"></path></svg>
       </a>
       <ol>
         <li><a href="{{ routes.root_url }}">Home</a></li>
-        <li><a href="/pages/custom">Custom Cases</a></li>
-        <li aria-current="page"><span data-custom-crumb-title>{{ display_title }}</span></li>
+        <li class="_crumbGame_4xdw3_89" data-game="pokemon"><a href="/pages/custom">Custom</a></li>
+        <li aria-current="page"><span data-custom-crumb-title>{{ custom_title | escape }}</span></li>
       </ol>
     </nav>
 
-    <div class="_layout_4xdw3_77 tcg-custom-detail-layout">
+    <section class="_hero_4xdw3_131 _sealedHero_4xdw3_1314 tcg-custom-balanced-hero">
 
-      {%- comment %} ================= 左侧：定制展示盒高清画廊与实时预览徽章 ================= {% endcomment -%}
-      <div class="_gallery_4xdw3_91 tcg-custom-gallery">
-        <div class="_stage_4xdw3_98 _foil_4xdw3_155 tcg-custom-stage" data-custom-gallery-stage>
-          <span class="_foilSheen_4xdw3_245" aria-hidden="true"></span>
+      {%- comment %} ================= 左栏：主图 + 缩略图画廊 + 无限可折叠富文本信息栏 (Accordions) + 4项服务保障（解决左空右挤） ================= {% endcomment -%}
+      <div class="_mediaPanel_4xdw3_138 tcg-custom-left-column">
+        <div
+          class="_productMedia_4xdw3_145 tcg-zoomable-media"
+          data-custom-gallery-stage
+          data-main-media-stage
+          data-zoom-trigger
+          role="button"
+          tabindex="0"
+          aria-label="Click to zoom product image"
+        >
+          <span aria-hidden="true" class="_floor_4xdw3_183"></span>
+          <img
+            src="{{ img_charizard }}"
+            onerror="this.onerror=null;this.src='{{ img_charizard }}';"
+            alt="{{ custom_title | escape }}"
+            width="1200"
+            height="1200"
+            draggable="false"
+            data-main-image
+            data-custom-main-image
+          >
+          <span class="tcg-zoom-hint-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.35-4.35M11 8v6M8 11h6"></path></svg>
+            <span>Click to zoom</span>
+          </span>
+        </div>
 
-          <div class="tcg-custom-stage-badges">
-            <span class="tcg-custom-stage-pill" data-custom-live-style-badge>PSA Slab Case</span>
-            <span class="tcg-custom-stage-pill tcg-custom-stage-pill--accent" data-custom-live-color-badge>Opal Mint</span>
-          </div>
-
-          {%- if target_product != blank and target_product.images.size > 0 -%}
-            <img
-              src="{{ target_product.featured_image | image_url: width: 1200 }}"
-              alt="{{ display_title | escape }}"
-              class="_heroImg_4xdw3_169"
-              loading="eager"
-              data-custom-main-image
-            >
-          {%- else -%}
-            <img
-              src="https://animeholder.com/cdn/shop/files/1_431c108e-72fb-46e4-b5e7-22a00bc9bc2e.webp?v=1770016748&width=1200"
-              alt="{{ display_title | escape }}"
-              class="_heroImg_4xdw3_169"
-              loading="eager"
-              data-custom-main-image
-            >
-          {%- endif -%}
-
-          {%- comment %} 客户上传卡牌实时缩略叠加预览窗 {% endcomment -%}
-          <div class="tcg-custom-uploaded-overlay" data-custom-stage-upload-overlay hidden>
-            <img src="" alt="Your uploaded card preview" data-custom-stage-upload-img>
-            <span data-custom-stage-upload-count>1 Card Uploaded</span>
+        <div class="tcg-thumbs-slider-bar" data-thumbs-slider-bar>
+          <div class="_thumbs_4xdw3_201 tcg-thumbs-wrap" role="list" data-thumbs data-custom-thumbs>
+            <button type="button" class="_thumb_4xdw3_201 _thumbActive_4xdw3_239" data-custom-thumb data-image-src="{{ img_charizard }}" aria-label="View 1">
+              <img src="{{ img_charizard }}" alt="PSA Slab Case Showcase" loading="lazy">
+            </button>
+            <button type="button" class="_thumb_4xdw3_201" data-custom-thumb data-image-src="{{ img_umbreon }}" aria-label="View 2">
+              <img src="{{ img_umbreon }}" alt="Extended Art View" loading="lazy">
+            </button>
+            <button type="button" class="_thumb_4xdw3_201" data-custom-thumb data-image-src="{{ img_blastoise }}" aria-label="View 3">
+              <img src="{{ img_blastoise }}" alt="Magnetic Case View" loading="lazy">
+            </button>
+            <button type="button" class="_thumb_4xdw3_201" data-custom-thumb data-image-src="{{ img_venusaur }}" aria-label="View 4">
+              <img src="{{ img_venusaur }}" alt="Screws Case View" loading="lazy">
+            </button>
+            <button type="button" class="_thumb_4xdw3_201" data-custom-thumb data-image-src="{{ img_palkia }}" aria-label="View 5">
+              <img src="{{ img_palkia }}" alt="PSA Metal Art View" loading="lazy">
+            </button>
           </div>
         </div>
 
-        {%- comment %} 多角度定制展示盒缩略图切换栏 {% endcomment -%}
-        <div class="_thumbs_4xdw3_256 tcg-custom-thumbs" role="tablist" aria-label="Product views" data-custom-thumbs>
-          {%- if target_product != blank and target_product.images.size > 1 -%}
-            {%- for image in target_product.images -%}
-              <button
-                type="button"
-                role="tab"
-                aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
-                class="_thumb_4xdw3_256 {% if forloop.first %}_thumbActive_4xdw3_284{% endif %}"
-                data-custom-thumb
-                data-image-src="{{ image | image_url: width: 1200 }}"
-              >
-                <img src="{{ image | image_url: width: 240 }}" alt="{{ image.alt | default: display_title | escape }}" loading="lazy">
-                <span>View {{ forloop.index }}</span>
-              </button>
-            {%- endfor -%}
-          {%- else -%}
-            {%- assign ref_thumbs = 'https://animeholder.com/cdn/shop/files/1_431c108e-72fb-46e4-b5e7-22a00bc9bc2e.webp?v=1770016748&width=1200|Main Showcase,https://animeholder.com/cdn/shop/files/2_e9266260-3d84-49d7-9eb2-d1d66f3a37db.webp?v=1770016748&width=1200|Extended Art,https://animeholder.com/cdn/shop/files/5_8b566aa3-9963-41bf-a646-7183c81f6215.webp?v=1770016748&width=1200|Frame Colors,https://animeholder.com/cdn/shop/files/3_73efab44-7605-4e92-a844-57efbd7eb3aa.webp?v=1770016748&width=1200|PSA & Magnetic,https://animeholder.com/cdn/shop/files/4_0c342da1-6d5d-40f9-9434-7b17ee068757.webp?v=1770016748&width=1200|Collector Slab,https://animeholder.com/cdn/shop/files/6_b6572271-6df1-451f-9614-bc22a9992396.webp?v=1770016748&width=1200|Craft Details' | split: ',' -%}
-            {%- for item in ref_thumbs -%}
-              {%- assign parts = item | split: '|' -%}
-              <button
-                type="button"
-                role="tab"
-                aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
-                class="_thumb_4xdw3_256 {% if forloop.first %}_thumbActive_4xdw3_284{% endif %}"
-                data-custom-thumb
-                data-image-src="{{ parts[0] }}"
-              >
-                <img src="{{ parts[0] }}" alt="{{ parts[1] | escape }}" loading="lazy">
-                <span>{{ parts[1] }}</span>
-              </button>
-            {%- endfor -%}
-          {%- endif -%}
+        {%- comment %} 可折叠商品信息栏（支持无限新增，富文本 HTML 内容与 Shopify 云端图片展示） {% endcomment -%}
+        <div class="tcg-custom-accordions-wrap" data-custom-accordions-list>
+          <details class="tcg-custom-accordion-item" open>
+            <summary class="tcg-custom-accordion-header">
+              <span class="tcg-custom-accordion-title">Product Specifications &amp; Materials</span>
+              <span class="tcg-custom-accordion-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="m6 9 6 6 6-6"></path></svg>
+              </span>
+            </summary>
+            <div class="tcg-custom-accordion-body tcg-rte">
+              <ul>
+                <li><strong>Frame Material:</strong> CNC-machined aerospace aluminum alloy with anodized finish</li>
+                <li><strong>Acrylic Glass:</strong> 99.6% UV-resistant crystal clear cast acrylic</li>
+                <li><strong>Compatibility:</strong> Fits PSA, BGS, CGC graded slabs &amp; standard 35pt~130pt raw cards</li>
+                <li><strong>Artwork Printing:</strong> High-definition 12-color archival pigment ink on metal/art board</li>
+              </ul>
+            </div>
+          </details>
+
+          <details class="tcg-custom-accordion-item">
+            <summary class="tcg-custom-accordion-header">
+              <span class="tcg-custom-accordion-title">How 1-on-1 Custom Extended Art Works</span>
+              <span class="tcg-custom-accordion-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="m6 9 6 6 6-6"></path></svg>
+              </span>
+            </summary>
+            <div class="tcg-custom-accordion-body tcg-rte">
+              <ol>
+                <li><strong>Select SKU &amp; Upload Photos:</strong> Choose your preferred case style, frame color, and upload your card photos or reference images.</li>
+                <li><strong>Artist Draft &amp; Email Proof:</strong> Within 48–72 hours, our illustrator creates your bespoke extended background and sends the preview proof to your email.</li>
+                <li><strong>Unlimited Revisions &amp; Ship:</strong> Once you approve the artwork proof, we manufacture and ship with full tracking.</li>
+              </ol>
+            </div>
+          </details>
+
+          <details class="tcg-custom-accordion-item">
+            <summary class="tcg-custom-accordion-header">
+              <span class="tcg-custom-accordion-title">Shipping, Packaging &amp; Guarantee</span>
+              <span class="tcg-custom-accordion-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="m6 9 6 6 6-6"></path></svg>
+              </span>
+            </summary>
+            <div class="tcg-custom-accordion-body tcg-rte">
+              <p>Every custom display case is packed in a custom-molded protective presentation box with microfiber cleaning cloth. Worldwide tracked shipping included.</p>
+            </div>
+          </details>
         </div>
 
-        {%- comment %} 参考 animeholder 的定制流程说明卡片 {% endcomment -%}
-        <div class="tcg-custom-steps-panel">
-          <h3 class="tcg-custom-steps-title">How Your Custom Extended Art Case Works</h3>
-          <div class="tcg-custom-steps-grid">
-            <div class="tcg-custom-step-item">
-              <span class="tcg-custom-step-num">01</span>
-              <div>
-                <strong>Select SKU &amp; Case Style</strong>
-                <p>Choose your holder type (PSA Slab, Magnetic, Screws, or Metal Art) and frame color.</p>
-              </div>
-            </div>
-            <div class="tcg-custom-step-item">
-              <span class="tcg-custom-step-num">02</span>
-              <div>
-                <strong>Upload Photos &amp; Leave Notes</strong>
-                <p>Enter your email, upload multiple card/reference images, and add up to 10,000 characters of notes.</p>
-              </div>
-            </div>
-            <div class="tcg-custom-step-item">
-              <span class="tcg-custom-step-num">03</span>
-              <div>
-                <strong>1-on-1 Artist Proof &amp; Ship</strong>
-                <p>Your order appears directly in our backend. Our artists send an artwork preview to your email before crafting.</p>
-              </div>
-            </div>
+        {%- comment %} 左栏底部 2×2 紧凑服务保障带，使左右双栏视觉完全平齐 {% endcomment -%}
+        <div class="tcg-custom-left-service-grid">
+          <div class="tcg-custom-left-service-card">
+            <strong>1-on-1 Artist Proof</strong>
+            <span>Email preview before production</span>
+          </div>
+          <div class="tcg-custom-left-service-card">
+            <strong>99.6% UV Protection</strong>
+            <span>Museum-grade acrylic &amp; anodized frame</span>
+          </div>
+          <div class="tcg-custom-left-service-card">
+            <strong>Tracked Delivery</strong>
+            <span>Worldwide insured air shipping</span>
+          </div>
+          <div class="tcg-custom-left-service-card">
+            <strong>Direct Order Sync</strong>
+            <span>All photos &amp; notes synced to order</span>
           </div>
         </div>
       </div>
 
-      {%- comment %} ================= 右侧：定制商品信息、可增删 SKU 选择器与定制表单 ================= {% endcomment -%}
-      <div class="_info_4xdw3_298 tcg-custom-info-col">
-
-        <div class="_metaTop_4xdw3_306">
-          <span class="_gameTag_4xdw3_313">{{ display_vendor }}</span>
-          <span class="_setName_4xdw3_327">1-on-1 Custom Extended Art</span>
-          <span class="_number_4xdw3_333" data-custom-sku-code>{{ current_variant.sku | default: 'CUSTOM-ART-CASE-01' }}</span>
-        </div>
-
-        <h1 class="_title_4xdw3_340" data-custom-product-title>{{ display_title }}</h1>
-
-        <div class="_badgeRow_4xdw3_349">
-          <span class="_rarity_4xdw3_355">Custom Commission</span>
-          <span class="_Verify_4xdw3_377">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
-            Artwork Preview Sent via Email
-          </span>
-        </div>
-
-        {%- comment %} 价格与库存区块 {% endcomment -%}
-        <div class="_priceBox_4xdw3_412">
-          <div>
-            <span class="_priceLabel_4xdw3_421">Custom Case Price</span>
-            <div class="_priceMain_4xdw3_430">
-              <span class="_price_4xdw3_412" data-custom-price>{{ display_price | money }}</span>
-              {%- if display_compare_price > display_price -%}
-                <span class="_compare_4xdw3_442" data-custom-compare-price>{{ display_compare_price | money }}</span>
-              {%- else -%}
-                <span class="_compare_4xdw3_442" data-custom-compare-price hidden></span>
-              {%- endif -%}
-            </div>
-          </div>
-          <div class="_stockCol_4xdw3_449">
-            <span class="_inStock_4xdw3_456" data-custom-stock-badge>
-              <span class="_dot_4xdw3_470"></span>
-              Made to Order · Available
+      {%- comment %} ================= 右栏：购买信息 + 1~5层多类型 SKU 选择器 + 定制表单 + 原生加购/立即付款按钮 ================= {% endcomment -%}
+      <aside class="_purchase_4xdw3_269 tcg-custom-right-column">
+        <header class="_purchaseHeader_4xdw3_280">
+          <div class="_productKicker_4xdw3_286">
+            <a href="/pages/custom" class="_gameLink_4xdw3_346" data-game="pokemon" data-custom-vendor-label>{{ brand_name | escape }}</a>
+            <span>Custom Extended Art Display Case</span>
+            <span class="tcg-kicker-sku" data-sku-wrapper>
+              SKU: <strong data-sku-value data-custom-sku-code>PSA-SLAB-OPAL-MINT-UV99</strong>
             </span>
-            <span class="_shipHint_4xdw3_478">Direct backend order sync</span>
+          </div>
+
+          <div class="_titleRow_4xdw3_379">
+            <h1 data-custom-product-title>{{ custom_title | escape }}</h1>
+          </div>
+        </header>
+
+        <div class="_priceStockRow_4xdw3_473">
+          <div class="_priceBlock_4xdw3_481">
+            <del data-compare-price data-custom-compare-price>$36.00</del>
+            <p class="_price_4xdw3_473" data-product-price data-custom-price>$35.99</p>
+          </div>
+          <div class="_stockLine_4xdw3_501" data-stock="high" data-stock-line>
+            <span></span>
+            <strong data-stock-text>In stock · Custom Made</strong>
           </div>
         </div>
 
-        {%- comment %} ================= 核心表单：提交至 /cart/add.js 及 Shopify Checkout ================= {% endcomment -%}
+        <p class="_description_4xdw3_536" data-custom-short-desc>
+          Turn your favorite trading card into a museum-grade centerpiece with our Custom Extended Art Display Case. After you place an order, our artist sends a 1-on-1 custom artwork proof to your email before production.
+        </p>
+
         <form
           action="{{ routes.cart_add_url }}"
           method="post"
           enctype="multipart/form-data"
-          class="_buyBox_4xdw3_565 tcg-custom-order-form"
+          class="tcg-product-form tcg-custom-order-form"
           data-tcg-custom-form
           novalidate
         >
-          {%- comment %} 真实 Shopify Variant ID（保障下单直接进入 Shopify 后台 Orders） {% endcomment -%}
-          <input
-            type="hidden"
-            name="id"
-            value="{{ current_variant.id | default: 52665896730963 }}"
-            data-variant-id-input
-            data-custom-variant-id
-          >
-
-          {%- comment %} 同步记录定制商品标题、链接与完整 SKU 描述到订单行属性（Line Item Properties），后台订单直接可见 {% endcomment -%}
-          <input type="hidden" name="properties[_Custom_Source_Link]" value="https://animeholder.com/products/custom-your-premium-card-extended-art-display-cases-collection" data-custom-prop-link>
-          <input type="hidden" name="properties[Custom Product]" value="{{ display_title | escape }}" data-custom-prop-product>
-          <input type="hidden" name="properties[Selected SKU]" value="{{ current_variant.sku | default: 'PSA Slab Case / Opal Mint' | escape }}" data-custom-prop-sku>
-          <input type="hidden" name="properties[Case Style]" value="PSA Slab Case" data-custom-prop-style>
-          <input type="hidden" name="properties[Frame Color]" value="Opal Mint" data-custom-prop-color>
-
-          {%- comment %} ================= 1. 可自由新增/删除的 SKU 选择系统 ================= {% endcomment -%}
-          <div class="tcg-custom-sku-section" data-custom-sku-system>
-            <div class="tcg-custom-sku-header">
-              <div>
-                <span class="_condLabel_4xdw3_575">1. Select Case Style &amp; Frame Color (SKU)</span>
-                <p class="tcg-custom-sku-sub">Choose a preset option below or manage your custom SKU list.</p>
-              </div>
-              <button
-                type="button"
-                class="tcg-custom-sku-manage-toggle"
-                data-sku-manager-toggle
-                aria-expanded="false"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
-                <span>Add / Delete SKU</span>
-              </button>
-            </div>
-
-            {%- comment %} Option Group A: Style 款式选择（参考 animeholder: PSA Slab Case, Magnetic Case, Screws Case, PSA Metal Art Only） {% endcomment -%}
-            <div class="tcg-custom-option-block">
-              <div class="tcg-custom-option-label-row">
-                <label class="tcg-custom-field-label">Style: <strong data-selected-style-label>PSA Slab Case</strong></label>
-                <span class="tcg-custom-option-count" data-style-count-badge></span>
-              </div>
-              <div class="tcg-custom-pills-wrap" data-custom-style-list role="radiogroup" aria-label="Case Style">
-                {%- if style_Blocks.size > 0 -%}
-                  {%- for block in style_Blocks -%}
-                    <button
-                      type="button"
-                      class="tcg-custom-sku-pill {% if forloop.first %}is-active{% endif %}"
-                      data-style-pill
-                      data-style-name="{{ block.settings.title | escape }}"
-                      data-style-price="{{ block.settings.price_cents | default: 3599 }}"
-                      data-style-compare="{{ block.settings.compare_price_cents | default: 3600 }}"
-                      data-style-sku-prefix="{{ block.settings.sku_code | default: 'PSA-SLAB' | escape }}"
-                      {% if block.settings.image != blank %}data-style-image="{{ block.settings.image | image_url: width: 1200 }}"{% elsif block.settings.image_url != blank %}data-style-image="{{ block.settings.image_url | escape }}"{% endif %}
-                      {{ block.shopify_attributes }}
-                    >
-                      <span class="tcg-custom-pill-text">{{ block.settings.title | escape }}</span>
-                      {%- if block.settings.price_label != blank -%}
-                        <small class="tcg-custom-pill-price">{{ block.settings.price_label | escape }}</small>
-                      {%- endif -%}
-                      <span class="tcg-custom-pill-del" data-delete-style="{{ block.settings.title | escape }}" title="Delete this SKU option" hidden>&times;</span>
-                    </button>
-                  {%- endfor -%}
-                {%- else -%}
-                  {%- assign default_styles = 'PSA Slab Case|3599|3600|PSA-SLAB|$35.99|https://animeholder.com/cdn/shop/files/1_431c108e-72fb-46e4-b5e7-22a00bc9bc2e.webp?v=1770016748&width=1200,Magnetic Case|2599|2800|MAG-CASE|$25.99|https://animeholder.com/cdn/shop/files/3_73efab44-7605-4e92-a844-57efbd7eb3aa.webp?v=1770016748&width=1200,Screws Case|2599|2800|SCR-CASE|$25.99|https://animeholder.com/cdn/shop/files/4_0c342da1-6d5d-40f9-9434-7b17ee068757.webp?v=1770016748&width=1200,PSA Metal Art Only|1999|2400|PSA-ART|$19.99|https://animeholder.com/cdn/shop/files/2_e9266260-3d84-49d7-9eb2-d1d66f3a37db.webp?v=1770016748&width=1200' | split: ',' -%}
-                  {%- for st in default_styles -%}
-                    {%- assign sp = st | split: '|' -%}
-                    <button
-                      type="button"
-                      class="tcg-custom-sku-pill {% if forloop.first %}is-active{% endif %}"
-                      data-style-pill
-                      data-style-name="{{ sp[0] }}"
-                      data-style-price="{{ sp[1] }}"
-                      data-style-compare="{{ sp[2] }}"
-                      data-style-sku-prefix="{{ sp[3] }}"
-                      data-style-image="{{ sp[5] }}"
-                    >
-                      <span class="tcg-custom-pill-text">{{ sp[0] }}</span>
-                      <small class="tcg-custom-pill-price">{{ sp[4] }}</small>
-                      <span class="tcg-custom-pill-del" data-delete-style="{{ sp[0] }}" title="Delete this SKU option" hidden>&times;</span>
-                    </button>
-                  {%- endfor -%}
-                {%- endif -%}
-              </div>
-            </div>
-
-            {%- comment %} Option Group B: Color 边框颜色选择（参考 animeholder 16 种配色 + 支持自定义增删） {% endcomment -%}
-            <div class="tcg-custom-option-block">
-              <div class="tcg-custom-option-label-row">
-                <label class="tcg-custom-field-label">Color: <strong data-selected-color-label>Opal Mint</strong></label>
-                <span class="tcg-custom-option-count" data-color-count-badge></span>
-              </div>
-              <div class="tcg-custom-color-grid" data-custom-color-list role="radiogroup" aria-label="Frame Color">
-                {%- if color_Blocks.size > 0 -%}
-                  {%- for block in color_Blocks -%}
-                    <button
-                      type="button"
-                      class="tcg-custom-color-chip {% if forloop.first %}is-active{% endif %}"
-                      data-color-pill
-                      data-color-name="{{ block.settings.title | escape }}"
-                      data-color-swatch="{{ block.settings.swatch_color | default: '#6ee7b7' | escape }}"
-                      {{ block.shopify_attributes }}
-                    >
-                      <span class="tcg-custom-color-dot" style="background: {{ block.settings.swatch_color | default: '#6ee7b7' }};"></span>
-                      <span class="tcg-custom-pill-text">{{ block.settings.title | escape }}</span>
-                      <span class="tcg-custom-pill-del" data-delete-color="{{ block.settings.title | escape }}" title="Delete this Color SKU" hidden>&times;</span>
-                    </button>
-                  {%- endfor -%}
-                {%- else -%}
-                  {%- assign default_colors = 'Opal Mint|#6ee7b7,Rainbow|linear-gradient(135deg,#f43f5e,#f59e0b,#10b981,#3b82f6,#a855f7),Ash Gold|#d4af37,Jade Green|#10b981,Sunset|linear-gradient(135deg,#f97316,#ec4899),Blue Lilac|#818cf8,Black|#18181b,Sakura|#f472b6,Ice Pink|#fbcfe8,Grey|#71717a,Navy|#1e3a8a,Golden Sea|#eab308,Ruby|#e11d48,Sand|#d6d3d1,White|#f8fafc,Standard|#64748b' | split: ',' -%}
-                  {%- for clr in default_colors -%}
-                    {%- assign cp = clr | split: '|' -%}
-                    <button
-                      type="button"
-                      class="tcg-custom-color-chip {% if forloop.first %}is-active{% endif %}"
-                      data-color-pill
-                      data-color-name="{{ cp[0] }}"
-                      data-color-swatch="{{ cp[1] }}"
-                    >
-                      <span class="tcg-custom-color-dot" style="background: {{ cp[1] }};"></span>
-                      <span class="tcg-custom-pill-text">{{ cp[0] }}</span>
-                      <span class="tcg-custom-pill-del" data-delete-color="{{ cp[0] }}" title="Delete this Color SKU" hidden>&times;</span>
-                    </button>
-                  {%- endfor -%}
-                {%- endif -%}
-              </div>
-            </div>
-
-            {%- comment %} Option Group C: 真实 Shopify Product Variants 或独立 SKU 项（如果商品配置了多变体或自定义 SKU Block） {% endcomment -%}
-            <div class="tcg-custom-option-block" data-custom-direct-sku-wrap {% if sku_Blocks.size == 0 and target_product.variants.size <= 1 %}hidden{% endif %}>
-              <div class="tcg-custom-option-label-row">
-                <label class="tcg-custom-field-label">Custom SKU Presets:</label>
-              </div>
-              <div class="tcg-custom-pills-wrap" data-custom-direct-sku-list>
-                {%- for block in sku_Blocks -%}
-                  <button
-                    type="button"
-                    class="tcg-custom-sku-pill"
-                    data-direct-sku-pill
-                    data-sku-title="{{ block.settings.title | escape }}"
-                    data-sku-code="{{ block.settings.sku_code | default: block.settings.title | escape }}"
-                    data-sku-price="{{ block.settings.price_cents | default: 3599 }}"
-                    {% if block.settings.variant_id != blank %}data-sku-variant-id="{{ block.settings.variant_id | escape }}"{% endif %}
-                    {{ block.shopify_attributes }}
-                  >
-                    <span class="tcg-custom-pill-text">{{ block.settings.title | escape }}</span>
-                    <small class="tcg-custom-pill-price">{{ block.settings.price_cents | default: 3599 | money }}</small>
-                    <span class="tcg-custom-pill-del" data-delete-direct-sku="{{ block.settings.title | escape }}" title="Delete SKU" hidden>&times;</span>
-                  </button>
-                {%- endfor -%}
-                {%- if target_product != blank and target_product.variants.size > 1 -%}
-                  {%- for variant in target_product.variants -%}
-                    <button
-                      type="button"
-                      class="tcg-custom-sku-pill {% if variant.id == current_variant.id %}is-active{% endif %}"
-                      data-direct-sku-pill
-                      data-sku-title="{{ variant.title | escape }}"
-                      data-sku-code="{{ variant.sku | default: variant.title | escape }}"
-                      data-sku-price="{{ variant.price }}"
-                      data-sku-variant-id="{{ variant.id }}"
-                    >
-                      <span class="tcg-custom-pill-text">{{ variant.title | escape }}</span>
-                      <small class="tcg-custom-pill-price">{{ variant.price | money }}</small>
-                      <span class="tcg-custom-pill-del" data-delete-direct-sku="{{ variant.title | escape }}" title="Delete SKU" hidden>&times;</span>
-                    </button>
-                  {%- endfor -%}
-                {%- endif -%}
-              </div>
-            </div>
-
-            {%- comment %} 商家自助新增 / 删除 SKU 可视化管理面板（支持一键新增 Style / Color / 独立 SKU，或开启删除按钮移除任意项） {% endcomment -%}
-            <div class="tcg-custom-sku-manager" data-sku-manager-panel hidden>
-              <div class="tcg-custom-sku-manager-head">
-                <strong>Self-Service SKU Manager (Add or Delete SKUs)</strong>
-                <span>Click the <code>&times;</code> badge on any SKU above to delete it, or add a new SKU below.</span>
-              </div>
-              <div class="tcg-custom-sku-manager-controls">
-                <select class="tcg-input tcg-custom-sku-type-select" data-new-sku-type aria-label="SKU Category">
-                  <option value="style">Style Option (e.g., BGS Slab Case / Graded Guard)</option>
-                  <option value="color">Frame Color Option (e.g., Cyber Neon / Obsidian)</option>
-                  <option value="sku">Standalone SKU Preset (with Price &amp; SKU Code)</option>
-                </select>
-                <input
-                  type="text"
-                  class="tcg-input"
-                  placeholder="SKU Name (e.g., BGS 9.5 Slab Case)"
-                  data-new-sku-name
-                  aria-label="New SKU Name"
-                >
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  class="tcg-input"
-                  placeholder="Price USD (e.g., 39.99)"
-                  data-new-sku-price
-                  aria-label="New SKU Price"
-                >
-                <input
-                  type="color"
-                  class="tcg-custom-color-picker"
-                  value="#38bdf8"
-                  data-new-sku-color
-                  title="Pick Swatch Color"
-                  aria-label="Swatch Color"
-                >
-                <button type="button" class="tcg-btn-secondary tcg-custom-sku-add-btn" data-add-sku-btn>
-                  + Add SKU
-                </button>
-                <button type="button" class="tcg-btn-ghost tcg-custom-sku-reset-btn" data-reset-sku-btn title="Restore default SKUs">
-                  Reset Defaults
-                </button>
-              </div>
-            </div>
+          <input type="hidden" name="id" value="{{ default_variant_id }}" data-variant-id-input data-custom-variant-id>
+          <input type="hidden" name="properties[_Custom Order]" value="Yes - Custom Extended Art Display Case">
+          <input type="hidden" name="properties[Custom Page Link]" value="/pages/{{ resolved_handle | escape }}" data-custom-prop-link>
+          <input type="hidden" name="properties[Custom Product]" value="{{ custom_title | escape }}" data-custom-prop-product>
+          <input type="hidden" name="properties[Selected SKU]" value="PSA Slab Case / Opal Mint / 99.6% UV Museum Grade ($35.99)" data-custom-prop-sku>
+          <div data-custom-tier-hidden-inputs>
+            <input type="hidden" name="properties[Tier 1 - Case Style]" value="PSA Slab Case">
+            <input type="hidden" name="properties[Tier 2 - Frame Color]" value="Opal Mint">
+            <input type="hidden" name="properties[Tier 3 - Acrylic Protection]" value="99.6% UV Museum Grade">
           </div>
 
-          {%- comment %} ================= 2. 必填 Email 输入框 ================= {% endcomment -%}
-          <div class="tcg-custom-field-group">
-            <label class="tcg-custom-field-label" for="CustomCustomerEmail-{{ section.id }}">
-              2. Your Email Address <span class="tcg-custom-required">*</span>
-              <small class="tcg-custom-field-hint">We will send your 1-on-1 extended art preview to this email for confirmation</small>
-            </label>
-            <input
-              type="email"
-              id="CustomCustomerEmail-{{ section.id }}"
-              name="properties[Customer Email]"
-              class="tcg-input tcg-custom-email-input"
-              placeholder="collector@example.com"
-              value="{{ customer.email | escape }}"
-              required
-              autocomplete="email"
-              data-custom-email-input
-            >
-            <p class="tcg-custom-field-error" data-custom-email-error hidden>Please enter a valid email address so we can send your custom proof.</p>
-          </div>
-
-          {%- comment %} ================= 3. 多张图片上传组件（支持无限新增多图、缩略图预览、单张删除与原生文件随单提交） ================= {% endcomment -%}
-          <div class="tcg-custom-field-group">
-            <div class="tcg-custom-option-label-row">
-              <label class="tcg-custom-field-label" for="CustomMultiImagePicker-{{ section.id }}">
-                3. Upload Your Card / Reference Images (Multiple Images Supported) <span class="tcg-custom-required">*</span>
-              </label>
-              <span class="tcg-custom-upload-counter" data-custom-image-count-badge>0 images selected</span>
+          {%- comment %} 1. 支持 1~5 层、每层 3 种类型（①纯文字 / ②图片+文字 / ③颜色+文字含渐变色）的动态 SKU 选择器 {% endcomment -%}
+          <div class="_variantPicker_4xdw3_548 tcg-sku-section" data-custom-sku-manager>
+            <div class="tcg-sku-header">
+              <span class="tcg-sku-label" data-custom-sku-tiers-summary>Select Custom SKU Options (3 Tiers)</span>
             </div>
-            <p class="tcg-custom-field-hint">
-              Upload clear photos of your card, slab, or artwork inspiration. You can select or drop multiple images at once, or keep adding more.
-            </p>
 
-            {%- comment %} 拖拽与点击上传区域 {% endcomment -%}
-            <div
-              class="tcg-custom-upload-dropzone"
-              data-custom-upload-dropzone
-              tabindex="0"
-              role="button"
-              aria-label="Upload multiple custom images"
-            >
-              <input
-                type="file"
-                id="CustomMultiImagePicker-{{ section.id }}"
-                accept="image/jpeg,image/png,image/webp,image/gif,image/heic"
-                multiple
-                class="tcg-custom-file-picker-hidden"
-                data-custom-multi-file-picker
-              >
-              <div class="tcg-custom-upload-prompt">
-                <span class="tcg-custom-upload-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            <div class="tcg-option-groups" data-custom-sku-tiers-container>
+              {%- comment %} 默认第 1 层：② 图片+文字 (image_text) {% endcomment -%}
+              <div class="tcg-option-group" data-sku-tier-group data-tier-index="0" data-tier-name="Case Style" data-tier-type="image_text">
+                <span class="tcg-option-name">
+                  Case Style: <strong data-tier-selected-val>PSA Slab Case</strong>
                 </span>
-                <div>
-                  <strong>Click to choose images or drag &amp; drop here</strong>
-                  <span>Supports uploading multiple photos (JPG, PNG, WEBP, GIF · Max 20MB per image)</span>
+                <div class="tcg-sku-tier-options tcg-sku-tier-options--image-text" data-tier-options-list>
+                  <button type="button" class="tcg-sku-img-text-pill is-selected is-active" data-sku-opt-btn data-tier-idx="0" data-opt-title="PSA Slab Case" data-opt-sku="PSA-SLAB" data-opt-price="3599" data-opt-compare="3600" data-opt-image="{{ img_charizard }}">
+                    <img src="{{ img_charizard }}" alt="PSA Slab Case" class="tcg-sku-img-text-thumb">
+                    <span class="tcg-sku-img-text-meta">
+                      <span class="tcg-custom-pill-text">PSA Slab Case</span>
+                      <small class="tcg-custom-pill-price">$35.99</small>
+                    </span>
+                  </button>
+                  <button type="button" class="tcg-sku-img-text-pill" data-sku-opt-btn data-tier-idx="0" data-opt-title="Magnetic Case" data-opt-sku="MAG-CASE" data-opt-price="2599" data-opt-compare="2800" data-opt-image="{{ img_blastoise }}">
+                    <img src="{{ img_blastoise }}" alt="Magnetic Case" class="tcg-sku-img-text-thumb">
+                    <span class="tcg-sku-img-text-meta">
+                      <span class="tcg-custom-pill-text">Magnetic Case</span>
+                      <small class="tcg-custom-pill-price">$25.99</small>
+                    </span>
+                  </button>
+                  <button type="button" class="tcg-sku-img-text-pill" data-sku-opt-btn data-tier-idx="0" data-opt-title="Screws Case" data-opt-sku="SCR-CASE" data-opt-price="2599" data-opt-compare="2800" data-opt-image="{{ img_venusaur }}">
+                    <img src="{{ img_venusaur }}" alt="Screws Case" class="tcg-sku-img-text-thumb">
+                    <span class="tcg-sku-img-text-meta">
+                      <span class="tcg-custom-pill-text">Screws Case</span>
+                      <small class="tcg-custom-pill-price">$25.99</small>
+                    </span>
+                  </button>
+                  <button type="button" class="tcg-sku-img-text-pill" data-sku-opt-btn data-tier-idx="0" data-opt-title="PSA Metal Art Only" data-opt-sku="PSA-ART" data-opt-price="1999" data-opt-compare="2400" data-opt-image="{{ img_umbreon }}">
+                    <img src="{{ img_umbreon }}" alt="PSA Metal Art Only" class="tcg-sku-img-text-thumb">
+                    <span class="tcg-sku-img-text-meta">
+                      <span class="tcg-custom-pill-text">PSA Metal Art Only</span>
+                      <small class="tcg-custom-pill-price">$19.99</small>
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {%- comment %} 默认第 2 层：③ 颜色+文字 (color_text，支持纯色与渐变色) {% endcomment -%}
+              <div class="tcg-option-group" data-sku-tier-group data-tier-index="1" data-tier-name="Frame Color" data-tier-type="color_text">
+                <span class="tcg-option-name">
+                  Frame Color: <strong data-tier-selected-val>Opal Mint</strong>
+                </span>
+                <div class="tcg-custom-color-grid" data-tier-options-list>
+                  <button type="button" class="tcg-custom-color-chip is-active is-selected" data-sku-opt-btn data-tier-idx="1" data-opt-title="Opal Mint" data-opt-sku="OPAL-MINT" data-opt-swatch="#6ee7b7"><span class="tcg-custom-color-dot" style="background:#6ee7b7;"></span><span class="tcg-custom-pill-text">Opal Mint</span></button>
+                  <button type="button" class="tcg-custom-color-chip" data-sku-opt-btn data-tier-idx="1" data-opt-title="Rainbow" data-opt-sku="RAINBOW" data-opt-swatch="linear-gradient(135deg,#f43f5e,#f59e0b,#3b82f6)"><span class="tcg-custom-color-dot" style="background:linear-gradient(135deg,#f43f5e,#f59e0b,#3b82f6);"></span><span class="tcg-custom-pill-text">Rainbow</span></button>
+                  <button type="button" class="tcg-custom-color-chip" data-sku-opt-btn data-tier-idx="1" data-opt-title="Ash Gold" data-opt-sku="ASH-GOLD" data-opt-swatch="#d4af37"><span class="tcg-custom-color-dot" style="background:#d4af37;"></span><span class="tcg-custom-pill-text">Ash Gold</span></button>
+                  <button type="button" class="tcg-custom-color-chip" data-sku-opt-btn data-tier-idx="1" data-opt-title="Jade Green" data-opt-sku="JADE-GREEN" data-opt-swatch="#10b981"><span class="tcg-custom-color-dot" style="background:#10b981;"></span><span class="tcg-custom-pill-text">Jade Green</span></button>
+                  <button type="button" class="tcg-custom-color-chip" data-sku-opt-btn data-tier-idx="1" data-opt-title="Sunset" data-opt-sku="SUNSET" data-opt-swatch="linear-gradient(135deg,#f97316,#ec4899)"><span class="tcg-custom-color-dot" style="background:linear-gradient(135deg,#f97316,#ec4899);"></span><span class="tcg-custom-pill-text">Sunset</span></button>
+                  <button type="button" class="tcg-custom-color-chip" data-sku-opt-btn data-tier-idx="1" data-opt-title="Blue Lilac" data-opt-sku="BLUE-LILAC" data-opt-swatch="#818cf8"><span class="tcg-custom-color-dot" style="background:#818cf8;"></span><span class="tcg-custom-pill-text">Blue Lilac</span></button>
+                  <button type="button" class="tcg-custom-color-chip" data-sku-opt-btn data-tier-idx="1" data-opt-title="Black" data-opt-sku="BLACK" data-opt-swatch="#18181b"><span class="tcg-custom-color-dot" style="background:#18181b;"></span><span class="tcg-custom-pill-text">Black</span></button>
+                  <button type="button" class="tcg-custom-color-chip" data-sku-opt-btn data-tier-idx="1" data-opt-title="Sakura" data-opt-sku="SAKURA" data-opt-swatch="#f472b6"><span class="tcg-custom-color-dot" style="background:#f472b6;"></span><span class="tcg-custom-pill-text">Sakura</span></button>
+                  <button type="button" class="tcg-custom-color-chip" data-sku-opt-btn data-tier-idx="1" data-opt-title="Ice Pink" data-opt-sku="ICE-PINK" data-opt-swatch="#fbcfe8"><span class="tcg-custom-color-dot" style="background:#fbcfe8;"></span><span class="tcg-custom-pill-text">Ice Pink</span></button>
+                  <button type="button" class="tcg-custom-color-chip" data-sku-opt-btn data-tier-idx="1" data-opt-title="Grey" data-opt-sku="GREY" data-opt-swatch="#71717a"><span class="tcg-custom-color-dot" style="background:#71717a;"></span><span class="tcg-custom-pill-text">Grey</span></button>
+                  <button type="button" class="tcg-custom-color-chip" data-sku-opt-btn data-tier-idx="1" data-opt-title="Navy" data-opt-sku="NAVY" data-opt-swatch="#1e3a8a"><span class="tcg-custom-color-dot" style="background:#1e3a8a;"></span><span class="tcg-custom-pill-text">Navy</span></button>
+                  <button type="button" class="tcg-custom-color-chip" data-sku-opt-btn data-tier-idx="1" data-opt-title="Golden Sea" data-opt-sku="GOLDEN-SEA" data-opt-swatch="#eab308"><span class="tcg-custom-color-dot" style="background:#eab308;"></span><span class="tcg-custom-pill-text">Golden Sea</span></button>
+                  <button type="button" class="tcg-custom-color-chip" data-sku-opt-btn data-tier-idx="1" data-opt-title="Ruby" data-opt-sku="RUBY" data-opt-swatch="#e11d48"><span class="tcg-custom-color-dot" style="background:#e11d48;"></span><span class="tcg-custom-pill-text">Ruby</span></button>
+                  <button type="button" class="tcg-custom-color-chip" data-sku-opt-btn data-tier-idx="1" data-opt-title="Sand" data-opt-sku="SAND" data-opt-swatch="#d6d3d1"><span class="tcg-custom-color-dot" style="background:#d6d3d1;"></span><span class="tcg-custom-pill-text">Sand</span></button>
+                  <button type="button" class="tcg-custom-color-chip" data-sku-opt-btn data-tier-idx="1" data-opt-title="White" data-opt-sku="WHITE" data-opt-swatch="#f8fafc"><span class="tcg-custom-color-dot" style="background:#f8fafc;"></span><span class="tcg-custom-pill-text">White</span></button>
+                  <button type="button" class="tcg-custom-color-chip" data-sku-opt-btn data-tier-idx="1" data-opt-title="Standard" data-opt-sku="STANDARD" data-opt-swatch="#64748b"><span class="tcg-custom-color-dot" style="background:#64748b;"></span><span class="tcg-custom-pill-text">Standard</span></button>
+                </div>
+              </div>
+
+              {%- comment %} 默认第 3 层：① 纯文字 (text) {% endcomment -%}
+              <div class="tcg-option-group" data-sku-tier-group data-tier-index="2" data-tier-name="Acrylic Protection" data-tier-type="text">
+                <span class="tcg-option-name">
+                  Acrylic Protection: <strong data-tier-selected-val>99.6% UV Museum Grade</strong>
+                </span>
+                <div class="tcg-option-values" data-tier-options-list>
+                  <button type="button" class="tcg-option-pill is-selected is-active" data-sku-opt-btn data-tier-idx="2" data-opt-title="99.6% UV Museum Grade" data-opt-sku="UV99">
+                    <span class="tcg-custom-pill-text">99.6% UV Museum Grade</span>
+                  </button>
+                  <button type="button" class="tcg-option-pill" data-sku-opt-btn data-tier-idx="2" data-opt-title="Holo Anti-Glare Coating" data-opt-sku="HOLO-AG">
+                    <span class="tcg-custom-pill-text">Holo Anti-Glare Coating</span>
+                  </button>
+                  <button type="button" class="tcg-option-pill" data-sku-opt-btn data-tier-idx="2" data-opt-title="Double-Sided Crystal Clear" data-opt-sku="CRYSTAL">
+                    <span class="tcg-custom-pill-text">Double-Sided Crystal Clear</span>
+                  </button>
                 </div>
               </div>
             </div>
-
-            {%- comment %} 已选多图预览网格（支持查看缩略图、文件名与单张移除） {% endcomment -%}
-            <div class="tcg-custom-upload-preview-grid" data-custom-upload-preview-grid hidden></div>
-
-            {%- comment %} 动态生成的 Shopify Line Item File Inputs 容器：properties[Custom Image 1], properties[Custom Image 2]... 确保 Shopify 原生存储每张图片至后台订单 {% endcomment -%}
-            <div data-custom-dynamic-file-inputs hidden></div>
-            <input type="hidden" name="properties[Uploaded Images Summary]" value="No images uploaded" data-custom-images-summary-input>
-            <p class="tcg-custom-field-error" data-custom-images-error hidden>Please upload at least one card or reference image for your custom order.</p>
           </div>
 
-          {%- comment %} ================= 4. 定制备注输入框（最高支持 10,000 字 + 实时字数计数器） ================= {% endcomment -%}
-          <div class="tcg-custom-field-group">
-            <div class="tcg-custom-option-label-row">
-              <label class="tcg-custom-field-label" for="CustomNotesTextarea-{{ section.id }}">
-                4. Customization Notes &amp; Special Instructions
+          {%- comment %} 2. 定制表单输入区（Email + 多张图片上传 + 10,000字备注） {% endcomment -%}
+          <div class="tcg-custom-fields-card">
+            <div class="tcg-custom-field-group">
+              <label class="tcg-custom-field-label" for="CustomCustomerEmail">
+                Customer Email <span class="tcg-custom-required">*</span>
+                <small class="tcg-custom-field-hint">We will send your 1-on-1 custom artwork proof to this email before production</small>
               </label>
-              <span class="tcg-custom-char-counter" data-custom-notes-counter>0 / 10,000 characters</span>
+              <input
+                type="email"
+                id="CustomCustomerEmail"
+                name="properties[Customer Email]"
+                class="tcg-input tcg-custom-email-input"
+                placeholder="collector@example.com"
+                value="{% if customer %}{{ customer.email | escape }}{% endif %}"
+                required
+                autocomplete="email"
+                data-custom-email-input
+              >
+              <p class="tcg-custom-field-error" data-custom-email-error hidden>Please enter a valid email address so we can send your custom proof.</p>
             </div>
-            <textarea
-              id="CustomNotesTextarea-{{ section.id }}"
-              name="properties[Customization Notes]"
-              class="tcg-textarea tcg-custom-notes-textarea"
-              rows="5"
-              maxlength="10000"
-              placeholder="Describe your vision in detail (up to 10,000 characters): card name, set number, background extension style, aura effects, text engraving, grading company slab dimensions (PSA / BGS / CGC), or any special requests..."
-              data-custom-notes-textarea
-            ></textarea>
+
+            <div class="tcg-custom-field-group">
+              <div class="tcg-custom-option-label-row">
+                <label class="tcg-custom-field-label" for="CustomImagesPicker">
+                  Upload Your Card / Reference Images (Multiple Supported) <span class="tcg-custom-required">*</span>
+                </label>
+                <span class="tcg-custom-upload-counter" data-custom-image-count-badge>0 images selected</span>
+              </div>
+
+              <div
+                class="tcg-custom-upload-dropzone"
+                data-custom-upload-dropzone
+                tabindex="0"
+                role="button"
+                aria-label="Upload multiple card or reference images"
+              >
+                <input
+                  type="file"
+                  id="CustomImagesPicker"
+                  accept="image/jpeg,image/png,image/webp,image/gif,image/heic"
+                  multiple
+                  class="tcg-custom-file-picker-hidden"
+                  data-custom-multi-file-picker
+                >
+                <div class="tcg-custom-upload-prompt">
+                  <span class="tcg-custom-upload-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="20" height="20"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                  </span>
+                  <div>
+                    <strong>Click to select multiple images or drag &amp; drop here</strong>
+                    <span>Supports JPG, PNG, WEBP, GIF — synced directly to Shopify Order</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tcg-custom-upload-preview-grid" data-custom-upload-preview-grid hidden></div>
+              <div data-custom-dynamic-file-inputs hidden></div>
+              <input type="hidden" name="properties[Uploaded Images Summary]" value="None" data-custom-images-summary-input>
+              <p class="tcg-custom-field-error" data-custom-images-error hidden>Please upload at least 1 card or reference image for your custom order.</p>
+            </div>
+
+            <div class="tcg-custom-field-group">
+              <div class="tcg-custom-option-label-row">
+                <label class="tcg-custom-field-label" for="CustomOrderNotes">
+                  Customization Notes (Up to 10,000 Characters)
+                </label>
+                <span class="tcg-custom-char-counter" data-custom-notes-counter>0 / 10,000 characters</span>
+              </div>
+              <textarea
+                id="CustomOrderNotes"
+                name="properties[Customization Notes]"
+                class="tcg-textarea tcg-custom-notes-textarea"
+                rows="3"
+                maxlength="10000"
+                placeholder="Describe your customization requests in detail (up to 10,000 characters): card name, set number, background extension style, aura effects, text engraving, grading company slab dimensions (PSA / BGS / CGC), or any special requests..."
+                data-custom-notes-textarea
+              ></textarea>
+            </div>
+
+            <p class="tcg-custom-feedback-msg" data-custom-form-feedback hidden role="status"></p>
           </div>
 
-          {%- comment %} 实时定制配置清单汇总卡（让买家与后台清晰核对所选 SKU、Email、图片数与字数） {% endcomment -%}
-          <div class="tcg-custom-summary-box" data-custom-order-summary>
-            <div class="tcg-custom-summary-title">Custom Order Specification (Synced to Backend Order)</div>
-            <div class="tcg-custom-summary-rows">
-              <div><span>Selected SKU:</span> <strong data-summary-sku>PSA Slab Case · Opal Mint</strong></div>
-              <div><span>Proof Email:</span> <strong data-summary-email>{{ customer.email | default: 'Not entered yet' }}</strong></div>
-              <div><span>Uploaded Photos:</span> <strong data-summary-images>0 image(s)</strong></div>
-              <div><span>Notes Length:</span> <strong data-summary-notes>0 / 10,000 chars</strong></div>
-            </div>
-          </div>
-
-          {%- comment %} ================= 5. 数量选择与下单操作按钮（Add Custom Order to Cart + Buy It Now 直达后台订单） ================= {% endcomment -%}
-          <div class="_buyRow_4xdw3_614 tcg-custom-buy-row">
-            <div class="_qty_4xdw3_620" role="group" aria-label="Quantity">
+          {%- comment %} 3. 购买按钮栏（与 sections/tcg-product.liquid 原生双按钮与结账流程 100% 一致） {% endcomment -%}
+          <div class="_buyArea_4xdw3_623 tcg-buy-area-inline">
+            <div aria-label="Quantity" class="_quantity_4xdw3_629" data-quantity>
               <button type="button" aria-label="Decrease quantity" data-qty-minus>−</button>
-              <span aria-live="polite" data-qty-display>1</span>
-              <input type="hidden" name="quantity" value="1" data-qty-input>
+              <input
+                type="number"
+                name="quantity"
+                value="1"
+                min="1"
+                max="999"
+                step="1"
+                aria-label="Quantity"
+                class="tcg-qty-input"
+                data-qty-input
+                data-qty-display
+              >
               <button type="button" aria-label="Increase quantity" data-qty-plus>+</button>
             </div>
 
-            <button
-              type="submit"
-              name="add"
-              class="_addBtn_4xdw3_653"
-              data-add-to-cart-btn
-              data-custom-submit-cart
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-              <span data-add-to-cart-text>Add Custom Order to Cart</span>
-            </button>
+            <div class="tcg-dual-action-btns">
+              <button
+                type="submit"
+                name="add"
+                class="_primaryButton_4xdw3_673 tcg-compact-action-btn"
+                data-add-to-cart-btn
+                data-custom-submit-cart
+                data-variant="{{ default_variant_id }}"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="17" height="17"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                <span data-add-to-cart-text>Add to cart</span>
+              </button>
+
+              <button
+                type="button"
+                class="tcg-buy-now-btn tcg-compact-action-btn"
+                data-buy-now-btn
+                data-custom-buy-now
+                data-variant="{{ default_variant_id }}"
+                data-checkout-url="{{ routes.cart_url }}?buy_now=1"
+                data-official-checkout-url="{{ routes.cart_checkout_url }}"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="17" height="17"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                <span data-buy-now-text>Buy it now</span>
+              </button>
+            </div>
           </div>
 
-          <button
-            type="button"
-            class="_buyNowBtn_4xdw3_681 tcg-custom-buy-now-btn"
-            data-custom-buy-now-btn
-          >
-            Buy It Now · Submit Custom Order to Checkout
-          </button>
+          {%- comment %} 加购成功反馈横幅（与 sections/tcg-product.liquid 原生结构完全一致，含 View cart 与 Checkout now 直达入口） {% endcomment -%}
+          <div class="_addedNotice_4xdw3_750" data-added-notice data-custom-added-notice hidden>
+            <span class="_addedCheck_4xdw3_769" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M20 6 9 17l-5-5"></path></svg>
+            </span>
+            <span class="_addedText_4xdw3_784" data-added-notice-text>Added to cart</span>
+            <div class="_addedActions_4xdw3_791">
+              <a href="{{ routes.cart_url }}" class="_viewCart_4xdw3_797">
+                <span>View cart</span>
+                <span class="_viewCartCount_4xdw3_852" data-added-cart-count>{{ cart.item_count }}</span>
+              </a>
+              <a href="{{ routes.cart_checkout_url }}" class="_checkoutNow_4xdw3_864" data-checkout-now-link>Checkout now</a>
+            </div>
+          </div>
 
-          <p class="tcg-custom-feedback-msg" data-custom-form-feedback role="status" hidden></p>
+          <div class="_purchaseFoot_4xdw3_936">
+            <div><span>Artwork Proof</span><strong>Sent via Email</strong></div>
+            <div><span>Protection</span><strong>UV &amp; Anodized Frame</strong></div>
+            <div><span>Order Sync</span><strong>Direct in Admin</strong></div>
+          </div>
         </form>
+      </aside>
+    </section>
 
-        {%- comment %} 信任保障条例 {% endcomment -%}
-        <ul class="_trustList_4xdw3_698">
-          <li>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
-            <div>
-              <strong>1-on-1 Artist Artwork Proof</strong>
-              <span>We email you the extended art draft for approval before production begins</span>
-            </div>
-          </li>
-          <li>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="3" width="15" height="13" rx="2"></rect><path d="M16 8h4l3 3v5h-7V8z"></path><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
-            <div>
-              <strong>Crystal-Clear UV &amp; Scratch Protection</strong>
-              <span>Precision-milled acrylic &amp; anodized aluminum frame built for graded slabs &amp; raw cards</span>
-            </div>
-          </li>
-          <li>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
-            <div>
-              <strong>Direct Shopify Order Tracking</strong>
-              <span>Your uploaded images, email, SKU, and notes are attached directly to your Shopify order</span>
-            </div>
-          </li>
-        </ul>
-
-        {%- comment %} 参考链接的折叠详情说明（Product Description / Shipping Details / Refunds & Exchanges） {% endcomment -%}
-        <div class="tcg-custom-accordions">
-          <details class="tcg-custom-accordion" open>
-            <summary>Product Description &amp; Specifications</summary>
-            <div class="tcg-custom-accordion-body">
-              <p>Turn your favorite trading card into a centerpiece with our <strong>Custom Extended Art Display Case</strong>. Each background is custom-illustrated by our artists to seamlessly extend the artwork of your Pokémon, One Piece, Yu-Gi-Oh!, Magic: The Gathering, or Dragon Ball card.</p>
-              <ul>
-                <li><strong>Compatible Slabs &amp; Cards:</strong> PSA Graded Slabs, Magnetic One-Touch Holders, 4-Screw Cases, or PSA Metal Art Frame Only.</li>
-                <li><strong>16+ Anodized Frame Colors:</strong> Opal Mint, Rainbow, Ash Gold, Jade Green, Sunset, Blue Lilac, Black, Sakura, Ice Pink, Grey, Navy, Golden Sea, Ruby, Sand, White, and Standard.</li>
-                <li><strong>Note:</strong> Display case and custom extended art background only — trading card/slab shown in photos is for demonstration.</li>
-              </ul>
-            </div>
-          </details>
-          <details class="tcg-custom-accordion">
-            <summary>Custom Production &amp; Shipping Details</summary>
-            <div class="tcg-custom-accordion-body">
-              <p>After placing your order, all uploaded photos, SKU choices, and up to 10,000 characters of notes are sent straight to our design queue in Shopify Admin. Within 2–4 business days, our design team will email your proof to the address provided. Worldwide tracked shipping takes 5–10 business days after proof approval.</p>
-            </div>
-          </details>
-          <details class="tcg-custom-accordion">
-            <summary>Free Revisions &amp; Collector Guarantee</summary>
-            <div class="tcg-custom-accordion-body">
-              <p>We offer free artwork revisions during the email proofing stage until you are 100% thrilled with the extended art design. If your case arrives damaged in transit, contact us within 14 days for an immediate replacement.</p>
-            </div>
-          </details>
+    {%- comment %} 主图点击放大高清灯箱（与 sections/tcg-product.liquid 原生灯箱一致） {% endcomment -%}
+    <div class="tcg-lightbox" data-image-lightbox role="dialog" aria-modal="true" aria-label="Product image zoom preview" hidden>
+      <div class="tcg-lightbox-backdrop" data-lightbox-close></div>
+      <div class="tcg-lightbox-dialog">
+        <button type="button" class="tcg-lightbox-close" data-lightbox-close aria-label="Close zoom preview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+        </button>
+        <div class="tcg-lightbox-stage">
+          <div class="tcg-lightbox-img-wrap" data-lightbox-img-wrap>
+            <img data-lightbox-image src="{{ img_charizard }}" alt="{{ custom_title | escape }}">
+          </div>
         </div>
-
       </div>
     </div>
 

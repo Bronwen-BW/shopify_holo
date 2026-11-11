@@ -6,8 +6,10 @@
 
 {%- if h contains 'expansion' or h contains 'magicthegathering' or h == 'sets' -%}
   {% render 'tcg-expansions-view', section: section %}
-{%- elsif h contains 'custom' or h contains '定制' -%}
+{%- elsif h == 'custom' or h == 'custom-catalog' or h == '定制' -%}
   {% render 'tcg-custom-catalog-view', section: section %}
+{%- elsif h contains 'custom-' or page.template_suffix == 'custom-product' -%}
+  {% render 'tcg-custom-product-form', section: section, custom_page: page, custom_handle: h %}
 {%- else -%}
 <div class="_page_4xdw3_1">
   <div class="_wide_4xdw3_6">

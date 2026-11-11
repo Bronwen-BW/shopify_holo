@@ -4656,6 +4656,268 @@ html[data-theme="light"] ._cardBody_36e53_256 {
   word-break: break-word;
 }
 
+.tcg-custom-catalog-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tcg-custom-page-creator-panel {
+  margin-bottom: 1.5rem;
+  padding: 1.15rem;
+  border-radius: 1rem;
+  background: var(--tcg-surface);
+  border: 1px dashed var(--tcg-accent);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.tcg-custom-page-creator-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.tcg-custom-page-creator-span2 {
+  grid-column: span 2;
+}
+
+.tcg-custom-page-creator-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (max-width: 820px) {
+  .tcg-custom-page-creator-grid {
+    grid-template-columns: 1fr;
+  }
+  .tcg-custom-page-creator-span2 {
+    grid-column: span 1;
+  }
+}
+
+.tcg-custom-fields-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: 1.15rem;
+  border-radius: 1rem;
+  background: var(--tcg-surface);
+  border: 1px solid var(--tcg-border);
+}
+
+.tcg-custom-product-page svg,
+.tcg-custom-hub-root svg {
+  max-width: 24px;
+  max-height: 24px;
+  flex-shrink: 0;
+}
+
+/* ===== 定制详情页平衡双栏布局（解决左空右挤）、1~5层多类型SKU与无限可折叠富文本信息栏 ===== */
+@media (min-width: 1024px) {
+  .tcg-custom-balanced-hero {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.06fr) !important;
+    align-items: start !important;
+    gap: clamp(1.75rem, 3vw, 2.75rem) !important;
+  }
+}
+
+.tcg-custom-left-column {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.9rem !important;
+}
+
+.tcg-custom-left-column ._productMedia_4xdw3_145 {
+  min-height: clamp(23rem, 38vw, 34rem) !important;
+  max-height: 36rem !important;
+}
+
+/* ② 图片+文字 (image_text) SKU 胶囊样式 */
+.tcg-sku-tier-options--image-text {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+  gap: 0.5rem;
+}
+
+.tcg-sku-img-text-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.42rem 0.65rem 0.42rem 0.42rem;
+  border-radius: 0.75rem;
+  background: var(--tcg-surface-soft);
+  border: 1px solid var(--tcg-border);
+  color: var(--tcg-text);
+  font-family: Rubik, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.tcg-sku-img-text-pill:hover {
+  border-color: var(--tcg-border-strong);
+  transform: translateY(-1px);
+}
+
+.tcg-sku-img-text-pill.is-selected,
+.tcg-sku-img-text-pill.is-active {
+  background: var(--tcg-accent-soft);
+  border-color: var(--tcg-accent);
+  box-shadow: 0 0 0 1px var(--tcg-accent);
+}
+
+.tcg-sku-img-text-thumb {
+  width: 38px;
+  height: 38px;
+  border-radius: 0.5rem;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.tcg-sku-img-text-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  gap: 0.1rem;
+}
+
+.tcg-sku-img-text-meta .tcg-custom-pill-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--tcg-text);
+}
+
+.tcg-sku-img-text-meta .tcg-custom-pill-price {
+  font-size: 0.75rem;
+  color: var(--tcg-accent-hover, #34d399);
+  font-weight: 700;
+}
+
+/* 可折叠富文本信息栏 (Accordions) */
+.tcg-custom-accordions-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 0.25rem;
+}
+
+.tcg-custom-accordion-item {
+  border-radius: 0.9rem;
+  background: var(--tcg-surface);
+  border: 1px solid var(--tcg-border);
+  overflow: hidden;
+  transition: border-color 0.18s ease;
+}
+
+.tcg-custom-accordion-item[open] {
+  border-color: var(--tcg-border-strong);
+}
+
+.tcg-custom-accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1.05rem;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  font-family: Rubik, sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--tcg-text);
+}
+
+.tcg-custom-accordion-header::-webkit-details-marker {
+  display: none;
+}
+
+.tcg-custom-accordion-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--tcg-surface-soft);
+  color: var(--tcg-text-muted);
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.tcg-custom-accordion-item[open] .tcg-custom-accordion-icon {
+  transform: rotate(180deg);
+  color: var(--tcg-accent);
+}
+
+.tcg-custom-accordion-body {
+  padding: 0 1.05rem 1rem;
+  border-top: 1px solid var(--tcg-border);
+  padding-top: 0.85rem;
+  color: var(--tcg-text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.tcg-custom-accordion-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.65rem;
+  margin: 0.5rem 0;
+  display: block;
+}
+
+.tcg-custom-accordion-body ul,
+.tcg-custom-accordion-body ol {
+  margin: 0.35rem 0;
+  padding-left: 1.25rem;
+}
+
+.tcg-custom-accordion-body p {
+  margin: 0.35rem 0;
+}
+
+/* 左栏底部 2x2 服务保障网格 */
+.tcg-custom-left-service-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.tcg-custom-left-service-card {
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.8rem;
+  background: var(--tcg-surface);
+  border: 1px solid var(--tcg-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.tcg-custom-left-service-card strong {
+  font-size: 0.82rem;
+  color: var(--tcg-text);
+  font-family: Rubik, sans-serif;
+}
+
+.tcg-custom-left-service-card span {
+  font-size: 0.75rem;
+  color: var(--tcg-text-muted);
+}
+
+
+
 
 
 

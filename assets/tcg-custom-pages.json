@@ -1,0 +1,544 @@
+{
+  "version": "2.0",
+  "documentation": "独立定制商品页面注册表 — 支持 Shopify Files API 云端图片增删查改（替换先删远端原文件）、1~5 层多类型 SKU（纯文字/图片+文字/颜色+文字含渐变色）、无限可折叠富文本信息栏。",
+  "catalog": {
+    "heading": "Custom Card Display Cases",
+    "grid_heading": "Custom Products Catalog",
+    "grid_subheading": "Click any custom product below to open its standalone customization page."
+  },
+  "pages": [
+    {
+      "handle": "custom-your-premium-card-extended-art-display-cases-collection",
+      "url": "/pages/custom-your-premium-card-extended-art-display-cases-collection",
+      "title": "custom-item",
+      "subtitle": "Bespoke Extended Art · 1~5 Tiers Multi-Type SKU",
+      "vendor": "AnimeHolder Studio",
+      "category": "psa",
+      "sku_code": "CUSTOM-EXT-ART-01",
+      "badge": "Custom",
+      "price_cents": 3599,
+      "compare_at_price_cents": 3600,
+      "price_formatted": "$35.99",
+      "compare_at_price_formatted": "$36.00",
+      "featured_image": "card-charizard.png",
+      "featured_image_file_id": "",
+      "gallery": [
+        {
+          "src": "card-charizard.png",
+          "alt": "PSA Slab Case Showcase",
+          "shopify_file_id": ""
+        },
+        {
+          "src": "card-umbreon.png",
+          "alt": "Extended Art View",
+          "shopify_file_id": ""
+        },
+        {
+          "src": "card-blastoise.png",
+          "alt": "Magnetic Case View",
+          "shopify_file_id": ""
+        },
+        {
+          "src": "card-venusaur.png",
+          "alt": "Screws Collector Slab",
+          "shopify_file_id": ""
+        },
+        {
+          "src": "card-palkia.png",
+          "alt": "Precision Craft Details",
+          "shopify_file_id": ""
+        }
+      ],
+      "description": "Turn your favorite trading card into a museum-grade centerpiece with our Custom Extended Art Display Case. After you place an order, our artist sends a 1-on-1 custom artwork proof to your email before production.",
+      "sku_tiers": [
+        {
+          "tier_name": "Case Style",
+          "tier_type": "image_text",
+          "options": [
+            {
+              "title": "PSA Slab Case",
+              "sku_code": "PSA-SLAB",
+              "price_cents": 3599,
+              "compare_price_cents": 3600,
+              "price_label": "$35.99",
+              "image_url": "card-charizard.png",
+              "shopify_file_id": "",
+              "color_swatch": "#10b981",
+              "is_gradient": false,
+              "color1": "#10b981",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 135
+            },
+            {
+              "title": "Magnetic Case",
+              "sku_code": "MAG-CASE",
+              "price_cents": 2599,
+              "compare_price_cents": 2800,
+              "price_label": "$25.99",
+              "image_url": "card-blastoise.png",
+              "shopify_file_id": "",
+              "color_swatch": "#10b981",
+              "is_gradient": false,
+              "color1": "#10b981",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 135
+            },
+            {
+              "title": "Screws Case",
+              "sku_code": "SCR-CASE",
+              "price_cents": 2599,
+              "compare_price_cents": 2800,
+              "price_label": "$25.99",
+              "image_url": "card-venusaur.png",
+              "shopify_file_id": "",
+              "color_swatch": "#10b981",
+              "is_gradient": false,
+              "color1": "#10b981",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 135
+            },
+            {
+              "title": "PSA Metal Art Only",
+              "sku_code": "PSA-ART",
+              "price_cents": 1999,
+              "compare_price_cents": 2400,
+              "price_label": "$19.99",
+              "image_url": "card-umbreon.png",
+              "shopify_file_id": "",
+              "color_swatch": "#10b981",
+              "is_gradient": false,
+              "color1": "#10b981",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 135
+            }
+          ]
+        },
+        {
+          "tier_name": "Frame Color",
+          "tier_type": "color_text",
+          "options": [
+            {
+              "title": "Opal Mint",
+              "sku_code": "OPAL-MINT",
+              "price_cents": 0,
+              "compare_price_cents": 0,
+              "price_label": "",
+              "image_url": "",
+              "shopify_file_id": "",
+              "color_swatch": "#6ee7b7",
+              "is_gradient": false,
+              "color1": "#6ee7b7",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 135
+            },
+            {
+              "title": "Rainbow",
+              "sku_code": "RAINBOW",
+              "price_cents": 0,
+              "compare_price_cents": 0,
+              "price_label": "",
+              "image_url": "",
+              "shopify_file_id": "",
+              "color_swatch": "linear-gradient(135deg, #f43f5e, #f59e0b, #3b82f6)",
+              "is_gradient": true,
+              "color1": "#f43f5e",
+              "color2": "#f59e0b",
+              "color3": "#3b82f6",
+              "gradient_angle": 135
+            },
+            {
+              "title": "Ash Gold",
+              "sku_code": "ASH-GOLD",
+              "price_cents": 0,
+              "compare_price_cents": 0,
+              "price_label": "",
+              "image_url": "",
+              "shopify_file_id": "",
+              "color_swatch": "#d4af37",
+              "is_gradient": false,
+              "color1": "#d4af37",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 135
+            },
+            {
+              "title": "Jade Green",
+              "sku_code": "JADE-GREEN",
+              "price_cents": 0,
+              "compare_price_cents": 0,
+              "price_label": "",
+              "image_url": "",
+              "shopify_file_id": "",
+              "color_swatch": "#10b981",
+              "is_gradient": false,
+              "color1": "#10b981",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 135
+            },
+            {
+              "title": "Sunset",
+              "sku_code": "SUNSET",
+              "price_cents": 0,
+              "compare_price_cents": 0,
+              "price_label": "",
+              "image_url": "",
+              "shopify_file_id": "",
+              "color_swatch": "linear-gradient(135deg, #f97316, #ec4899)",
+              "is_gradient": true,
+              "color1": "#f97316",
+              "color2": "#ec4899",
+              "color3": "",
+              "gradient_angle": 135
+            },
+            {
+              "title": "Blue Lilac",
+              "sku_code": "BLUE-LILAC",
+              "price_cents": 0,
+              "compare_price_cents": 0,
+              "price_label": "",
+              "image_url": "",
+              "shopify_file_id": "",
+              "color_swatch": "#818cf8",
+              "is_gradient": false,
+              "color1": "#818cf8",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 135
+            },
+            {
+              "title": "Black",
+              "sku_code": "BLACK",
+              "price_cents": 0,
+              "compare_price_cents": 0,
+              "price_label": "",
+              "image_url": "",
+              "shopify_file_id": "",
+              "color_swatch": "#18181b",
+              "is_gradient": false,
+              "color1": "#18181b",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 135
+            },
+            {
+              "title": "Sakura",
+              "sku_code": "SAKURA",
+              "price_cents": 0,
+              "compare_price_cents": 0,
+              "price_label": "",
+              "image_url": "",
+              "shopify_file_id": "",
+              "color_swatch": "#f472b6",
+              "is_gradient": false,
+              "color1": "#f472b6",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 135
+            },
+            {
+              "title": "Ice Pink",
+              "sku_code": "ICE-PINK",
+              "price_cents": 0,
+              "compare_price_cents": 0,
+              "price_label": "",
+              "image_url": "",
+              "shopify_file_id": "",
+              "color_swatch": "linear-gradient(150deg, #fbcfe8, #3b82f6)",
+              "is_gradient": true,
+              "color1": "#fbcfe8",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 150
+            },
+            {
+              "title": "Grey",
+              "sku_code": "GREY",
+              "price_cents": 0,
+              "compare_price_cents": 0,
+              "price_label": "",
+              "image_url": "",
+              "shopify_file_id": "",
+              "color_swatch": "#71717a",
+              "is_gradient": false,
+              "color1": "#71717a",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 135
+            },
+            {
+              "title": "Navy",
+              "sku_code": "NAVY",
+              "price_cents": 0,
+              "compare_price_cents": 0,
+              "price_label": "",
+              "image_url": "",
+              "shopify_file_id": "",
+              "color_swatch": "#1e3a8a",
+              "is_gradient": false,
+              "color1": "#1e3a8a",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 135
+            },
+            {
+              "title": "Golden Sea",
+              "sku_code": "GOLDEN-SEA",
+              "price_cents": 0,
+              "compare_price_cents": 0,
+              "price_label": "",
+              "image_url": "",
+              "shopify_file_id": "",
+              "color_swatch": "#eab308",
+              "is_gradient": false,
+              "color1": "#eab308",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 135
+            },
+            {
+              "title": "Ruby",
+              "sku_code": "RUBY",
+              "price_cents": 0,
+              "compare_price_cents": 0,
+              "price_label": "",
+              "image_url": "",
+              "shopify_file_id": "",
+              "color_swatch": "#e11d48",
+              "is_gradient": false,
+              "color1": "#e11d48",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 135
+            },
+            {
+              "title": "Sand",
+              "sku_code": "SAND",
+              "price_cents": 0,
+              "compare_price_cents": 0,
+              "price_label": "",
+              "image_url": "",
+              "shopify_file_id": "",
+              "color_swatch": "#d6d3d1",
+              "is_gradient": false,
+              "color1": "#d6d3d1",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 135
+            },
+            {
+              "title": "White",
+              "sku_code": "WHITE",
+              "price_cents": 0,
+              "compare_price_cents": 0,
+              "price_label": "",
+              "image_url": "",
+              "shopify_file_id": "",
+              "color_swatch": "#f8fafc",
+              "is_gradient": false,
+              "color1": "#f8fafc",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 135
+            },
+            {
+              "title": "Standard",
+              "sku_code": "STANDARD",
+              "price_cents": 0,
+              "compare_price_cents": 0,
+              "price_label": "",
+              "image_url": "",
+              "shopify_file_id": "",
+              "color_swatch": "#64748b",
+              "is_gradient": false,
+              "color1": "#64748b",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 135
+            }
+          ]
+        },
+        {
+          "tier_name": "Acrylic Protection",
+          "tier_type": "text",
+          "options": [
+            {
+              "title": "99.6% UV Museum Grade",
+              "sku_code": "UV99",
+              "price_cents": 0,
+              "compare_price_cents": 0,
+              "price_label": "",
+              "image_url": "",
+              "shopify_file_id": "",
+              "color_swatch": "#10b981",
+              "is_gradient": false,
+              "color1": "#10b981",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 135
+            },
+            {
+              "title": "Holo Anti-Glare Coating",
+              "sku_code": "HOLO-AG",
+              "price_cents": 0,
+              "compare_price_cents": 0,
+              "price_label": "",
+              "image_url": "",
+              "shopify_file_id": "",
+              "color_swatch": "#10b981",
+              "is_gradient": false,
+              "color1": "#10b981",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 135
+            },
+            {
+              "title": "Double-Sided Crystal Clear",
+              "sku_code": "CRYSTAL",
+              "price_cents": 0,
+              "compare_price_cents": 0,
+              "price_label": "",
+              "image_url": "",
+              "shopify_file_id": "",
+              "color_swatch": "#10b981",
+              "is_gradient": false,
+              "color1": "#10b981",
+              "color2": "#3b82f6",
+              "color3": "",
+              "gradient_angle": 135
+            }
+          ]
+        }
+      ],
+      "accordions": [
+        {
+          "id": "specs",
+          "title": "Product Specifications & Materials",
+          "is_open": true,
+          "content_html": "<ul><li><strong>Frame Material:</strong> CNC-machined aerospace aluminum alloy with anodized finish</li><li><strong>Acrylic Glass:</strong> 99.6% UV-resistant crystal clear cast acrylic</li><li><strong>Compatibility:</strong> Fits PSA, BGS, CGC graded slabs &amp; standard 35pt~130pt raw cards</li><li><strong>Artwork Printing:</strong> High-definition 12-color archival pigment ink on metal/art board</li></ul>"
+        },
+        {
+          "id": "workflow",
+          "title": "How 1-on-1 Custom Extended Art Works",
+          "is_open": false,
+          "content_html": "<ol><li><strong>Select SKU &amp; Upload Photos:</strong> Choose your preferred case style, frame color, and upload your card photos or reference images.</li><li><strong>Artist Draft &amp; Email Proof:</strong> Within 48–72 hours, our illustrator creates your bespoke extended background and sends the preview proof to your email.</li><li><strong>Unlimited Revisions &amp; Ship:</strong> Once you approve the artwork proof, we manufacture and ship with full tracking.</li></ol>"
+        },
+        {
+          "id": "shipping",
+          "title": "Shipping, Packaging & Guarantee",
+          "is_open": false,
+          "content_html": "<p>Every custom display case is packed in a custom-molded protective presentation box with microfiber cleaning cloth. Worldwide tracked shipping included.</p>"
+        }
+      ],
+      "styles": [
+        {
+          "title": "PSA Slab Case",
+          "sku_prefix": "PSA-SLAB",
+          "price_cents": 3599,
+          "compare_price_cents": 3600,
+          "price_label": "$35.99",
+          "image": "card-charizard.png"
+        },
+        {
+          "title": "Magnetic Case",
+          "sku_prefix": "MAG-CASE",
+          "price_cents": 2599,
+          "compare_price_cents": 2800,
+          "price_label": "$25.99",
+          "image": "card-blastoise.png"
+        },
+        {
+          "title": "Screws Case",
+          "sku_prefix": "SCR-CASE",
+          "price_cents": 2599,
+          "compare_price_cents": 2800,
+          "price_label": "$25.99",
+          "image": "card-venusaur.png"
+        },
+        {
+          "title": "PSA Metal Art Only",
+          "sku_prefix": "PSA-ART",
+          "price_cents": 1999,
+          "compare_price_cents": 2400,
+          "price_label": "$19.99",
+          "image": "card-umbreon.png"
+        }
+      ],
+      "colors": [
+        {
+          "title": "Opal Mint",
+          "swatch": "#6ee7b7"
+        },
+        {
+          "title": "Rainbow",
+          "swatch": "linear-gradient(135deg, #f43f5e, #f59e0b, #3b82f6)"
+        },
+        {
+          "title": "Ash Gold",
+          "swatch": "#d4af37"
+        },
+        {
+          "title": "Jade Green",
+          "swatch": "#10b981"
+        },
+        {
+          "title": "Sunset",
+          "swatch": "linear-gradient(135deg, #f97316, #ec4899)"
+        },
+        {
+          "title": "Blue Lilac",
+          "swatch": "#818cf8"
+        },
+        {
+          "title": "Black",
+          "swatch": "#18181b"
+        },
+        {
+          "title": "Sakura",
+          "swatch": "#f472b6"
+        },
+        {
+          "title": "Ice Pink",
+          "swatch": "linear-gradient(150deg, #fbcfe8, #3b82f6)"
+        },
+        {
+          "title": "Grey",
+          "swatch": "#71717a"
+        },
+        {
+          "title": "Navy",
+          "swatch": "#1e3a8a"
+        },
+        {
+          "title": "Golden Sea",
+          "swatch": "#eab308"
+        },
+        {
+          "title": "Ruby",
+          "swatch": "#e11d48"
+        },
+        {
+          "title": "Sand",
+          "swatch": "#d6d3d1"
+        },
+        {
+          "title": "White",
+          "swatch": "#f8fafc"
+        },
+        {
+          "title": "Standard",
+          "swatch": "#64748b"
+        }
+      ],
+      "email_placeholder": "collector@example.com",
+      "max_notes_length": 10000,
+      "notes_placeholder": "Describe your customization requests in detail (up to 10,000 characters): card name, set number, background extension style, aura effects, text engraving, grading company slab dimensions (PSA / BGS / CGC), or any special requests...",
+      "allow_multi_images": true
+    }
+  ]
+}

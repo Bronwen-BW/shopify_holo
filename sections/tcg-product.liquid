@@ -56,28 +56,7 @@
   {%- assign main_img_src = 'logo-mark.png' | asset_url -%}
 {%- endif -%}
 
-{%- liquid
-  assign is_custom_product = false
-  assign p_handle_down = product.handle | downcase
-  assign p_type_down = product.type | downcase
-  if p_handle_down contains 'custom' or p_type_down contains 'custom' or product.template_suffix == 'custom'
-    assign is_custom_product = true
-  endif
-  for t in product.tags
-    assign t_down = t | downcase
-    if t_down == 'custom' or t_down == 'customizable' or t_down contains '定制'
-      assign is_custom_product = true
-    endif
-  endfor
--%}
-
-{%- if is_custom_product -%}
-  {% render 'tcg-custom-product-form', section: section, custom_product: product %}
-{%- else -%}
-<div data-tcg-custom-mode-view hidden>
-  {% render 'tcg-custom-product-form', section: section, custom_product: product %}
-</div>
-<div class="_page_4xdw3_1" data-tcg-product-section data-tcg-standard-product-view>
+<div class="_page_4xdw3_1" data-tcg-product-section>
   <div class="_wide_4xdw3_6">
 
     {%- comment %} 面包屑：返回 + Shop / 系列 / 当前产品 {% endcomment -%}
@@ -566,7 +545,6 @@
     ]
   </script>
 </div>
-{%- endif -%}
 
 {% schema %}
 {

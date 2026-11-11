@@ -3,6 +3,13 @@
   创意：数字 4 + 卡牌槽（月亮伊布）+ 数字 4
 {%- endcomment -%}
 
+{%- assign req_path_down = request.path | downcase -%}
+{%- assign req_slug = req_path_down | split: '/' | last | split: '?' | first -%}
+{%- if req_path_down == '/pages/custom' or req_path_down == '/pages/custom/' or req_slug == 'custom' or req_slug == 'custom-catalog' -%}
+  {% render 'tcg-custom-catalog-view', section: section %}
+{%- elsif req_path_down contains '/pages/custom-' or req_path_down contains '/products/custom-' or req_slug contains 'custom-' -%}
+  {% render 'tcg-custom-product-form', section: section, custom_handle: req_slug %}
+{%- else -%}
 <main class="_page_5xn5p_1">
   <section class="_content_5xn5p_34" aria-labelledby="not-found-title">
     <span class="_eyebrow_5xn5p_44">Lost in the collection</span>
@@ -24,6 +31,7 @@
 
   <span class="_reference_5xn5p_45" aria-hidden="true">MLH / 404</span>
 </main>
+{%- endif -%}
 
 {% schema %}
 {
