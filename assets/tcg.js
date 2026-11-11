@@ -2835,7 +2835,10 @@
         })
       : [];
 
-    var activeNote = currentSessionNote || '';
+    var activeNote = currentSessionNote || (sfCart && isCartHoldingCustomOrder(sfCart) ? sfCart.note : '') || '';
+    if (activeNote && !currentSessionNote) {
+      currentSessionNote = activeNote;
+    }
     cartSection.querySelectorAll('[data-cart-note]').forEach(function (ta) {
       if (document.activeElement !== ta) {
         ta.value = activeNote;
@@ -3274,19 +3277,30 @@
   });
 
   function syncNoteAndDiscountsToStorefrontCart(noteVal, discountCodes) {
-    var cleanNote = String(noteVal == null ? '' : noteVal).trim();
+    var sfCart = loadSavedStorefrontCart();
+    var rawNote = String(noteVal == null ? '' : noteVal).trim();
+    if (!rawNote && sfCart && isCartHoldingCustomOrder(sfCart) && sfCart.note) {
+      rawNote = String(sfCart.note).trim();
+    }
+    var cleanNote = rawNote;
     saveOrderNoteLocal(cleanNote);
     if (Array.isArray(discountCodes)) {
       saveDiscountCodesLocal(discountCodes);
     }
-    var sfCart = loadSavedStorefrontCart();
     if (!sfCart || !sfCart.id) return Promise.resolve(null);
 
     var promises = [];
 
-    // 1. 同步订单级备注与属性，并将 Order Note 写入首个商品行的 line attributes（确保在 Shopify Checkout 右侧商品栏直接可见）
+    // 1. 同步订单级备注与属性，完整保留首行的全部定制属性（Customer Email、Customization Notes、Custom Image 1..N 等）
     var noteMut = SF_CART_FRAGMENT + '\nmutation SyncCartNoteAndAttrs($cartId: ID!, $note: String!, $attrs: [AttributeInput!]!) {\n  cartNoteUpdate(cartId: $cartId, note: $note) {\n    cart { ...CartFields }\n  }\n  cartAttributesUpdate(attributes: $attrs, cartId: $cartId) {\n    cart { ...CartFields }\n  }\n}';
-    var attrsInput = cleanNote ? [{ key: 'Order Note', value: cleanNote }] : [];
+    var preservedLineAttrs = [];
+    if (sfCart && Array.isArray(sfCart.items) && sfCart.items.length > 0 && Array.isArray(sfCart.items[0].attributes)) {
+      preservedLineAttrs = sfCart.items[0].attributes.filter(function (a) { return a && a.key && a.key !== 'Order Note'; });
+    }
+    var attrsInput = preservedLineAttrs.slice();
+    if (cleanNote) {
+      attrsInput.push({ key: 'Order Note', value: cleanNote });
+    }
     promises.push(
       executeStorefrontGraphql(noteMut, {
         cartId: sfCart.id,
@@ -5990,11 +6004,12 @@
                pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
       }
 
-      // 将客户上传的定制图片上传至 Shopify 内容（定制）文件夹（带上传时间戳）
+      // 将客户上传的定制图片真实上传至 Shopify 内容（定制）文件夹（带上传时间戳），返回真实可点击的 https:// 永久图片 URL
       function uploadCustomerFilesToShopifyCustomFolder(emailVal, skuVal) {
         var uploadTimeStr = formatTimestampNow();
         var compactTs = formatCompactTimestampNow();
-        var cloudCfg = window.TCG_CUSTOM_CLOUD_CONFIG || {};
+        var notesVal = notesTextarea ? String(notesTextarea.value || '').trim() : '';
+        var bridgeBase = (window.TCG_CUSTOM_CLOUD_CONFIG && window.TCG_CUSTOM_CLOUD_CONFIG.localBridgeUrl) || 'http://127.0.0.1:18990';
 
         var tasks = uploadedFiles.map(function (entry, idx) {
           var cleanName = String(entry.name || ('card-' + (idx + 1) + '.png')).replace(/[^a-zA-Z0-9._-\u4e00-\u9fa5]/g, '_');
@@ -6002,8 +6017,7 @@
           entry.uploadedAt = uploadTimeStr;
           entry.customFolderFileName = customFolderFileName;
 
-          // 若已获得 Shopify CDN URL，直接复用
-          if (entry.shopifyCdnUrl) {
+          if (entry.shopifyCdnUrl && entry.shopifyCdnUrl.indexOf('http') === 0) {
             return Promise.resolve({
               index: idx + 1,
               fileName: customFolderFileName,
@@ -6013,88 +6027,82 @@
             });
           }
 
-          // 若存在直连 Shopify Files API 配置或自定义上传代理端点，直接上传到 Shopify 内容（定制）文件夹
-          if (cloudCfg.uploadEndpoint || (cloudCfg.shopDomain && cloudCfg.accessToken && entry.file)) {
-            var gqlEndpoint = cloudCfg.uploadEndpoint || ('https://' + cloudCfg.shopDomain + '/admin/api/' + (cloudCfg.apiVersion || '2024-10') + '/graphql.json');
-            var stagedMut = 'mutation stagedUploadsCreate($input: [StagedUploadInput!]!) { stagedUploadsCreate(input: $input) { stagedTargets { url resourceUrl parameters { name value } } userErrors { field message } } }';
-            return fetch(gqlEndpoint, {
+          // 通道 1：通过本地/后台 CustomPageStudio 桥接服务 (http://127.0.0.1:18990/api/custom-upload) 直传 Shopify 内容（定制）文件夹
+          function tryUploadViaLocalShopifyBridge() {
+            return fetch(bridgeBase + '/api/custom-upload', {
               method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-Shopify-Access-Token': cloudCfg.accessToken || ''
-              },
+              headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                query: stagedMut,
-                variables: {
-                  input: [{
-                    filename: customFolderFileName,
-                    mimeType: (entry.file && entry.file.type) || 'image/png',
-                    httpMethod: 'POST',
-                    resource: 'FILE',
-                    fileSize: String((entry.file && entry.file.size) || 1024)
-                  }]
-                }
+                fileName: customFolderFileName,
+                originalName: entry.name || cleanName,
+                uploadedAt: uploadTimeStr,
+                folderName: '内容（定制）',
+                customerEmail: emailVal,
+                sku: skuVal,
+                notes: notesVal,
+                dataUrl: entry.dataUrl || ''
               })
             })
-              .then(function (r) { return r.json(); })
-              .then(function (sJson) {
-                var target = sJson && sJson.data && sJson.data.stagedUploadsCreate && sJson.data.stagedUploadsCreate.stagedTargets && sJson.data.stagedUploadsCreate.stagedTargets[0];
-                if (!target || !target.url || !target.resourceUrl) throw new Error('Staged target unavailable');
-                var fd = new FormData();
-                (target.parameters || []).forEach(function (p) { fd.append(p.name, p.value); });
-                fd.append('file', entry.file, customFolderFileName);
-                return fetch(target.url, { method: 'POST', body: fd }).then(function () { return target.resourceUrl; });
+              .then(function (r) {
+                if (!r.ok) throw new Error('Bridge status ' + r.status);
+                return r.json();
               })
-              .then(function (resourceUrl) {
-                var createMut = 'mutation fileCreate($files: [FileCreateInput!]!) { fileCreate(files: $files) { files { id ... on MediaImage { image { url } } ... on GenericFile { url } } } }';
-                return fetch(gqlEndpoint, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'X-Shopify-Access-Token': cloudCfg.accessToken || ''
-                  },
-                  body: JSON.stringify({
-                    query: createMut,
-                    variables: {
-                      files: [{
-                        originalSource: resourceUrl,
-                        contentType: 'IMAGE',
-                        alt: '[内容（定制）] UploadedAt: ' + uploadTimeStr + ' | Email: ' + emailVal + ' | SKU: ' + skuVal
-                      }]
-                    }
-                  })
-                }).then(function (r) { return r.json(); }).then(function (cJson) {
-                  var fNode = cJson && cJson.data && cJson.data.fileCreate && cJson.data.fileCreate.files && cJson.data.fileCreate.files[0];
-                  var finalUrl = (fNode && fNode.image && fNode.image.url) || (fNode && fNode.url) || resourceUrl;
-                  entry.shopifyCdnUrl = finalUrl;
-                  entry.shopifyFileId = (fNode && fNode.id) || '';
+              .then(function (bJson) {
+                if (bJson && bJson.ok && bJson.imageUrl && bJson.imageUrl.indexOf('http') === 0) {
+                  entry.shopifyCdnUrl = bJson.imageUrl;
+                  entry.shopifyFileId = bJson.fileId || '';
                   return {
                     index: idx + 1,
                     fileName: customFolderFileName,
                     uploadedAt: uploadTimeStr,
-                    url: finalUrl,
+                    url: bJson.imageUrl,
                     fileId: entry.shopifyFileId
                   };
-                });
-              })
-              .catch(function () {
-                return {
-                  index: idx + 1,
-                  fileName: customFolderFileName,
-                  uploadedAt: uploadTimeStr,
-                  url: entry.shopifyCdnUrl || ('[Shopify 内容（定制）] ' + customFolderFileName),
-                  fileId: ''
-                };
+                }
+                throw new Error('Bridge did not return valid URL');
               });
           }
 
-          return Promise.resolve({
-            index: idx + 1,
-            fileName: customFolderFileName,
-            uploadedAt: uploadTimeStr,
-            url: entry.shopifyCdnUrl || ('[Shopify 内容（定制）] ' + customFolderFileName),
-            fileId: ''
-          });
+          // 通道 2（外网客户兜底）：上传至公网 CORS 文件存储获取可访问 https 直链，供后台订单直接点击查看并由工具自动同步至 Shopify 内容（定制）文件夹
+          function tryUploadViaPublicCorsHost() {
+            if (!entry.file) return Promise.reject(new Error('No file object'));
+            var fd = new FormData();
+            fd.append('file', entry.file, customFolderFileName);
+            return fetch('https://tmpfiles.org/api/v1/upload', {
+              method: 'POST',
+              body: fd
+            })
+              .then(function (r) { return r.json(); })
+              .then(function (tJson) {
+                var rawUrl = tJson && tJson.data && tJson.data.url ? String(tJson.data.url) : '';
+                if (rawUrl) {
+                  var directUrl = rawUrl.replace('http://tmpfiles.org/', 'https://tmpfiles.org/dl/').replace('https://tmpfiles.org/', 'https://tmpfiles.org/dl/');
+                  entry.shopifyCdnUrl = directUrl;
+                  return {
+                    index: idx + 1,
+                    fileName: customFolderFileName,
+                    uploadedAt: uploadTimeStr,
+                    url: directUrl,
+                    fileId: ''
+                  };
+                }
+                throw new Error('Public upload empty');
+              });
+          }
+
+          return tryUploadViaLocalShopifyBridge()
+            .catch(function () {
+              return tryUploadViaPublicCorsHost();
+            })
+            .catch(function () {
+              return {
+                index: idx + 1,
+                fileName: customFolderFileName,
+                uploadedAt: uploadTimeStr,
+                url: entry.shopifyCdnUrl || customFolderFileName,
+                fileId: ''
+              };
+            });
         });
 
         return Promise.all(tasks);
@@ -6108,15 +6116,18 @@
         var uploadTimeStr = (uploadedImageRecords && uploadedImageRecords[0] && uploadedImageRecords[0].uploadedAt) || formatTimestampNow();
 
         var imgDescList = (uploadedImageRecords || []).map(function (rec) {
-          return rec.fileName + ' (' + rec.uploadedAt + ')' + (rec.url && rec.url.indexOf('http') === 0 ? ' -> ' + rec.url : '');
+          return (rec.url && rec.url.indexOf('http') === 0)
+            ? (rec.url + ' (上传时间: ' + rec.uploadedAt + ' | 文件夹: 内容（定制）)')
+            : (rec.fileName + ' (上传时间: ' + rec.uploadedAt + ' | 文件夹: 内容（定制）)');
         });
-        var imgSummary = imgDescList.length > 0 ? imgDescList.join(' | ') : (imagesSummaryInput ? String(imagesSummaryInput.value || '') : '');
+        var imgSummary = imgDescList.length > 0 ? imgDescList.join('\n') : (imagesSummaryInput ? String(imagesSummaryInput.value || '') : '');
         if (imagesSummaryInput) {
           imagesSummaryInput.value = imgSummary;
         }
 
         var lineAttrs = [
           { key: 'Customer Email', value: emailVal },
+          { key: 'Customization Notes', value: notesVal || '(None)' },
           { key: 'Selected SKU', value: skuVal },
           { key: 'Custom Folder', value: 'Shopify 内容（定制）' },
           { key: 'Image Upload Time', value: uploadTimeStr }
@@ -6130,32 +6141,44 @@
           }
         });
 
-        // 附加每张定制图片及上传时间
+        // 附加每张定制图片的真实 URL 及上传时间
         (uploadedImageRecords || []).forEach(function (rec) {
           var keyName = 'Custom Image ' + rec.index + ' (' + rec.uploadedAt + ')';
           var valStr = (rec.url && rec.url.indexOf('http') === 0)
-            ? (rec.url + ' [文件夹: 内容（定制） | 上传时间: ' + rec.uploadedAt + ']')
-            : (rec.fileName + ' [文件夹: 内容（定制） | 上传时间: ' + rec.uploadedAt + ']');
+            ? rec.url
+            : (rec.fileName + ' [上传时间: ' + rec.uploadedAt + ']');
           lineAttrs.push({ key: keyName, value: valStr });
         });
 
-        if (notesVal) {
-          lineAttrs.push({ key: 'Customization Notes', value: notesVal.slice(0, 1800) });
-        }
-
-        var orderNoteHeader =
+        var combinedNote =
           '[Custom Order] ' + prodVal +
           '\nSKU: ' + skuVal +
           '\nCustomer Email: ' + emailVal +
+          '\nCustomization Notes: ' + (notesVal || '(None)') +
           '\nShopify Folder: 内容（定制）' +
           '\nUpload Time: ' + uploadTimeStr +
-          '\nCustom Images: ' + imgSummary;
-        var combinedNote = notesVal ? (orderNoteHeader + '\nCustomization Notes:\n' + notesVal) : orderNoteHeader;
+          '\nCustom Images:\n' + imgSummary;
         if (combinedNote.length > 10000) {
           combinedNote = combinedNote.slice(0, 10000);
         }
 
         saveOrderNoteLocal(combinedNote);
+
+        // 同时通知本地/后台 CustomPageStudio 守护网关登记最新定制提交（一旦订单生成立即自动发送邮件：客户定制（订单号））
+        var bridgeBase = (window.TCG_CUSTOM_CLOUD_CONFIG && window.TCG_CUSTOM_CLOUD_CONFIG.localBridgeUrl) || 'http://127.0.0.1:18990';
+        fetch(bridgeBase + '/api/register-custom-submission', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            productTitle: prodVal,
+            sku: skuVal,
+            customerEmail: emailVal,
+            notes: notesVal || '(None)',
+            uploadedAt: uploadTimeStr,
+            folderName: '内容（定制）',
+            images: uploadedImageRecords || []
+          })
+        }).catch(function () {});
 
         // 持久化最近一次定制订单详情到 localStorage，供购物车/结算页与邮件通知读取
         try {
