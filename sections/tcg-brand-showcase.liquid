@@ -1,5 +1,5 @@
 {%- comment -%}
-  TCG 品牌展示主视觉分区（参考 KAMI KAMI 双栏图文 + 右下角浮动说明卡布局，配色与全站 TCG 翠绿/暗夜主题一致）
+  TCG 品牌展示主视觉分区（参考 KAMI KAMI 左文右图布局 + 右侧多图幻灯片轮播，配色与全站 TCG 翠绿/暗夜主题一致）
 {%- endcomment -%}
 {%- assign kicker = section.settings.kicker | default: 'FROM OUR IMAGINATION TO YOURS' -%}
 {%- assign title = section.settings.title | default: 'NIOZONE' -%}
@@ -12,23 +12,9 @@
 {%- assign btn2_url = section.settings.btn2_url | default: 'https://www.instagram.com/' -%}
 {%- assign btn3_label = section.settings.btn3_label | default: '探索系列' -%}
 {%- assign btn3_url = section.settings.btn3_url | default: '/pages/expansions' -%}
+{%- assign autoplay_ms = section.settings.autoplay_ms | default: 4000 -%}
 
-{%- assign raw_img = section.settings.showcase_image | default: '' | strip -%}
-{%- if raw_img contains 'http://' or raw_img contains 'https://' -%}
-  {%- assign showcase_img_src = raw_img -%}
-{%- elsif raw_img != '' -%}
-  {%- assign asset_name = raw_img | remove: 'shopify://shop_images/' | split: '/' | last | default: 'brand-showcase-default.webp' -%}
-  {%- assign showcase_img_src = asset_name | asset_url -%}
-{%- else -%}
-  {%- assign showcase_img_src = 'brand-showcase-default.webp' | asset_url -%}
-{%- endif -%}
-
-{%- assign show_float_card = true -%}
-{%- if section.settings.show_float_card == false -%}
-  {%- assign show_float_card = false -%}
-{%- endif -%}
-{%- assign float_label = section.settings.float_label | default: 'DISPLAY DIRECTION' -%}
-{%- assign float_text = section.settings.float_text | default: '延伸卡圖的色彩與故事，以卡磚、鑑定卡殼及展示配件，呈現收藏的完整風景。' -%}
+{%- assign slide_blocks = section.blocks | where: 'type', 'slide' -%}
 
 <style>
   .tcg-kami-hero {
@@ -162,6 +148,7 @@
     justify-content: center;
   }
   .tcg-kami-hero__card {
+    position: relative;
     width: 100%;
     max-width: 520px;
     aspect-ratio: 1.02 / 1;
@@ -171,50 +158,97 @@
     border: 1px solid var(--tcg-border-strong, rgba(249, 250, 251, 0.14));
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.52);
   }
-  .tcg-kami-hero__card img {
+  .tcg-kami-hero__slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transform: scale(1.03);
+    transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1), transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .tcg-kami-hero__slide.is-active {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+    z-index: 2;
+  }
+  .tcg-kami-hero__slide img {
     width: 100% !important;
     height: 100% !important;
-    max-height: 510px !important;
+    max-height: 520px !important;
     object-fit: cover !important;
     display: block !important;
   }
-  .tcg-kami-hero__float {
+  .tcg-kami-hero__nav {
     position: absolute;
-    right: -8px;
-    bottom: 24px;
-    width: 246px;
-    padding: 18px 20px;
-    border-radius: 22px;
-    background: var(--tcg-glass, rgba(17, 19, 24, 0.86));
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid color-mix(in srgb, var(--tcg-accent, #10b981) 32%, rgba(255, 255, 255, 0.12));
-    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.62);
-    z-index: 2;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(15, 17, 22, 0.68);
+    backdrop-filter: blur(8px);
+    color: #f9fafb;
+    font-size: 20px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 4;
+    opacity: 0;
+    transition: opacity 0.22s ease, background-color 0.22s ease, border-color 0.22s ease;
   }
-  @media (max-width: 640px) {
-    .tcg-kami-hero__float {
-      position: static;
-      width: 100%;
-      margin-top: 14px;
-    }
+  .tcg-kami-hero__card:hover .tcg-kami-hero__nav {
+    opacity: 1;
   }
-  .tcg-kami-hero__float-label {
-    margin-bottom: 8px;
-    color: var(--tcg-accent-hover, #34d399);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+  .tcg-kami-hero__nav:hover {
+    background: rgba(16, 185, 129, 0.85);
+    border-color: rgba(52, 211, 153, 0.9);
+    color: #03231a;
   }
-  .tcg-kami-hero__float-text {
-    color: var(--tcg-text-secondary, #d4d4d8);
-    font-size: 13px;
-    line-height: 1.78;
+  .tcg-kami-hero__nav--prev {
+    left: 14px;
+  }
+  .tcg-kami-hero__nav--next {
+    right: 14px;
+  }
+  .tcg-kami-hero__dots {
+    position: absolute;
+    left: 50%;
+    bottom: 16px;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(15, 17, 22, 0.62);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    z-index: 4;
+  }
+  .tcg-kami-hero__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    border: none;
+    padding: 0;
+    background: rgba(255, 255, 255, 0.36);
+    cursor: pointer;
+    transition: width 0.25s ease, background-color 0.25s ease;
+  }
+  .tcg-kami-hero__dot.is-active {
+    width: 24px;
+    background: var(--tcg-accent-hover, #34d399);
   }
 </style>
 
-<section class="tcg-kami-hero" data-tcg-brand-showcase>
+<section class="tcg-kami-hero" data-tcg-brand-showcase data-autoplay-ms="{{ autoplay_ms }}">
   <div class="tcg-kami-hero__inner">
     <div class="tcg-kami-hero__copy">
       {%- if kicker != blank -%}
@@ -244,22 +278,142 @@
     </div>
 
     <div class="tcg-kami-hero__visual">
-      <div class="tcg-kami-hero__card">
-        <img src="{{ showcase_img_src }}" alt="{{ title | escape }}" loading="lazy">
+      <div class="tcg-kami-hero__card" data-kami-slider>
+        {%- if slide_blocks.size > 0 -%}
+          {%- for block in slide_blocks -%}
+            {%- assign raw_s_img = block.settings.image_url | default: '' | strip -%}
+            {%- if raw_s_img contains 'http://' or raw_s_img contains 'https://' -%}
+              {%- assign s_img_src = raw_s_img -%}
+            {%- elsif raw_s_img != '' -%}
+              {%- assign s_asset_name = raw_s_img | remove: 'shopify://shop_images/' | split: '/' | last | default: 'brand-showcase-default.webp' -%}
+              {%- assign s_img_src = s_asset_name | asset_url -%}
+            {%- else -%}
+              {%- assign s_img_src = 'brand-showcase-default.webp' | asset_url -%}
+            {%- endif -%}
+            <div class="tcg-kami-hero__slide{% if forloop.first %} is-active{% endif %}" data-kami-slide="{{ forloop.index0 }}" {{ block.shopify_attributes }}>
+              {%- if block.settings.link != blank -%}
+                <a href="{{ block.settings.link }}"><img src="{{ s_img_src }}" alt="{{ block.settings.title | default: title | escape }}" loading="lazy"></a>
+              {%- else -%}
+                <img src="{{ s_img_src }}" alt="{{ block.settings.title | default: title | escape }}" loading="lazy">
+              {%- endif -%}
+            </div>
+          {%- endfor -%}
+        {%- else -%}
+          {%- assign fallback_imgs = 'brand-showcase-default.webp,brand-showcase-2.webp,brand-showcase-3.webp' | split: ',' -%}
+          {%- if section.settings.showcase_image != blank -%}
+            {%- assign custom_list = section.settings.showcase_image -%}
+            {%- if section.settings.showcase_image_2 != blank -%}{%- assign custom_list = custom_list | append: ',' | append: section.settings.showcase_image_2 -%}{%- endif -%}
+            {%- if section.settings.showcase_image_3 != blank -%}{%- assign custom_list = custom_list | append: ',' | append: section.settings.showcase_image_3 -%}{%- endif -%}
+            {%- assign fallback_imgs = custom_list | split: ',' -%}
+          {%- endif -%}
+          {%- for raw_item in fallback_imgs -%}
+            {%- assign clean_item = raw_item | strip -%}
+            {%- if clean_item contains 'http://' or clean_item contains 'https://' -%}
+              {%- assign item_src = clean_item -%}
+            {%- else -%}
+              {%- assign item_asset = clean_item | remove: 'shopify://shop_images/' | split: '/' | last | default: 'brand-showcase-default.webp' -%}
+              {%- assign item_src = item_asset | asset_url -%}
+            {%- endif -%}
+            <div class="tcg-kami-hero__slide{% if forloop.first %} is-active{% endif %}" data-kami-slide="{{ forloop.index0 }}">
+              <img src="{{ item_src }}" alt="{{ title | escape }}" loading="lazy">
+            </div>
+          {%- endfor -%}
+        {%- endif -%}
+
+        <button type="button" class="tcg-kami-hero__nav tcg-kami-hero__nav--prev" data-kami-prev aria-label="Previous slide">&#8249;</button>
+        <button type="button" class="tcg-kami-hero__nav tcg-kami-hero__nav--next" data-kami-next aria-label="Next slide">&#8250;</button>
+        <div class="tcg-kami-hero__dots" data-kami-dots></div>
       </div>
-      {%- if show_float_card -%}
-        <div class="tcg-kami-hero__float">
-          {%- if float_label != blank -%}
-            <div class="tcg-kami-hero__float-label">{{ float_label }}</div>
-          {%- endif -%}
-          {%- if float_text != blank -%}
-            <div class="tcg-kami-hero__float-text">{{ float_text }}</div>
-          {%- endif -%}
-        </div>
-      {%- endif -%}
     </div>
   </div>
 </section>
+
+<script>
+  (function() {
+    function initKamiSliders() {
+      var sections = document.querySelectorAll('[data-tcg-brand-showcase]');
+      sections.forEach(function(sec) {
+        if (sec.dataset.kamiInitialized === '1') return;
+        sec.dataset.kamiInitialized = '1';
+        var slider = sec.querySelector('[data-kami-slider]');
+        if (!slider) return;
+        var slides = Array.prototype.slice.call(slider.querySelectorAll('[data-kami-slide]'));
+        var dotsWrap = slider.querySelector('[data-kami-dots]');
+        var prevBtn = slider.querySelector('[data-kami-prev]');
+        var nextBtn = slider.querySelector('[data-kami-next]');
+        if (slides.length <= 1) {
+          if (dotsWrap) dotsWrap.style.display = 'none';
+          if (prevBtn) prevBtn.style.display = 'none';
+          if (nextBtn) nextBtn.style.display = 'none';
+          return;
+        }
+        var current = 0;
+        slides.forEach(function(s, i) { if (s.classList.contains('is-active')) current = i; });
+        var dots = [];
+        if (dotsWrap) {
+          dotsWrap.innerHTML = '';
+          slides.forEach(function(_, idx) {
+            var d = document.createElement('button');
+            d.type = 'button';
+            d.className = 'tcg-kami-hero__dot' + (idx === current ? ' is-active' : '');
+            d.setAttribute('aria-label', 'Slide ' + (idx + 1));
+            d.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              goTo(idx);
+              restartTimer();
+            });
+            dotsWrap.appendChild(d);
+            dots.push(d);
+          });
+        }
+        function goTo(index) {
+          current = (index + slides.length) % slides.length;
+          slides.forEach(function(s, i) { s.classList.toggle('is-active', i === current); });
+          dots.forEach(function(d, i) { d.classList.toggle('is-active', i === current); });
+        }
+        if (prevBtn) {
+          prevBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            goTo(current - 1);
+            restartTimer();
+          });
+        }
+        if (nextBtn) {
+          nextBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            goTo(current + 1);
+            restartTimer();
+          });
+        }
+        var intervalMs = parseInt(sec.getAttribute('data-autoplay-ms') || '4000', 10);
+        if (isNaN(intervalMs) || intervalMs < 1500) intervalMs = 4000;
+        var timer = null;
+        function startTimer() {
+          if (timer) clearInterval(timer);
+          timer = setInterval(function() { goTo(current + 1); }, intervalMs);
+        }
+        function stopTimer() {
+          if (timer) { clearInterval(timer); timer = null; }
+        }
+        function restartTimer() {
+          stopTimer();
+          startTimer();
+        }
+        slider.addEventListener('mouseenter', stopTimer);
+        slider.addEventListener('mouseleave', startTimer);
+        startTimer();
+      });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initKamiSliders);
+    } else {
+      initKamiSliders();
+    }
+  })();
+</script>
 
 {% schema %}
 {
@@ -330,36 +484,87 @@
     },
     {
       "type": "header",
-      "content": "右侧展示大图与右下角浮动卡片"
+      "content": "右侧幻灯片轮播设置（也可在左侧结构树点击“+ 添加区块”自由增删幻灯片）"
+    },
+    {
+      "type": "range",
+      "id": "autoplay_ms",
+      "label": "幻灯片自动切换间隔 (毫秒)",
+      "min": 2000,
+      "max": 9500,
+      "step": 500,
+      "default": 4000
     },
     {
       "type": "text",
       "id": "showcase_image",
-      "label": "右侧展示主图 (图片链接或上传本地图片)",
+      "label": "默认幻灯片图 1 (未添加子区块时生效)",
       "default": "brand-showcase-default.webp"
     },
     {
-      "type": "checkbox",
-      "id": "show_float_card",
-      "label": "显示右下角浮动说明卡片",
-      "default": true
+      "type": "text",
+      "id": "showcase_image_2",
+      "label": "默认幻灯片图 2 (未添加子区块时生效)",
+      "default": "brand-showcase-2.webp"
     },
     {
       "type": "text",
-      "id": "float_label",
-      "label": "浮动卡片小标题 (Display Direction)",
-      "default": "DISPLAY DIRECTION"
-    },
+      "id": "showcase_image_3",
+      "label": "默认幻灯片图 3 (未添加子区块时生效)",
+      "default": "brand-showcase-3.webp"
+    }
+  ],
+  "blocks": [
     {
-      "type": "textarea",
-      "id": "float_text",
-      "label": "浮动卡片正文描述",
-      "default": "延伸卡圖的色彩與故事，以卡磚、鑑定卡殼及展示配件，呈現收藏的完整風景。"
+      "type": "slide",
+      "name": "轮播幻灯片 (Slide)",
+      "settings": [
+        {
+          "type": "text",
+          "id": "image_url",
+          "label": "幻灯片图片 (上传本地图片或输入链接)",
+          "default": "brand-showcase-default.webp"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "幻灯片备注标题 (可选)",
+          "default": "Showcase Slide"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "点击跳转链接 (可选)"
+        }
+      ]
     }
   ],
   "presets": [
     {
-      "name": "TCG 品牌展示主视觉 (KAMI 风格)"
+      "name": "TCG 品牌展示主视觉 (KAMI 风格)",
+      "blocks": [
+        {
+          "type": "slide",
+          "settings": {
+            "image_url": "brand-showcase-default.webp",
+            "title": "精选卡砖展示 1"
+          }
+        },
+        {
+          "type": "slide",
+          "settings": {
+            "image_url": "brand-showcase-2.webp",
+            "title": "精选卡砖展示 2"
+          }
+        },
+        {
+          "type": "slide",
+          "settings": {
+            "image_url": "brand-showcase-3.webp",
+            "title": "精选卡砖展示 3"
+          }
+        }
+      ]
     }
   ]
 }
