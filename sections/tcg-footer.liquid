@@ -11,9 +11,16 @@
   "max_blocks": 24,
   "settings": [
     {
-      "type": "image_picker",
+      "type": "text",
       "id": "logo_image",
-      "label": "网站图标 / 页脚品牌 Logo 图片"
+      "label": "网站图标 / 页脚品牌 Logo 图片",
+      "default": "logo-mark.png"
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_logo_icon",
+      "label": "隐藏左侧网站图标（仅显示品牌名称或品牌图片）",
+      "default": false
     },
     {
       "type": "select",
@@ -26,9 +33,10 @@
       ]
     },
     {
-      "type": "image_picker",
+      "type": "text",
       "id": "brand_text_image",
-      "label": "品牌名称图片（直传图片模式下展示）"
+      "label": "品牌名称图片（直传图片模式下展示）",
+      "default": "brand-wordmark.png"
     },
     {
       "type": "text",

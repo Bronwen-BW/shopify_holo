@@ -5,8 +5,12 @@
     "tcg_footer": {
       "type": "tcg-footer",
       "settings": {
-        "brand_prefix": "TCG",
-        "brand_accent": "Haven",
+        "brand_prefix": "NIO",
+        "brand_accent": "Zone",
+        "brand_display_mode": "image",
+        "brand_text_image": "brand-wordmark.png",
+        "logo_image": "logo-mark.png",
+        "hide_logo_icon": false,
         "blurb": "A haven for collectors. Singles, sealed product, and accessories across the games you play, condition-checked and shipped fast.",
         "instagram_url": "https://www.instagram.com/mylittletcghaven/",
         "payments_note": "Secure checkout powered by Shopify Payments"

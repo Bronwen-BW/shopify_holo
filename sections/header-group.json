@@ -118,8 +118,9 @@
         "enable_theme_toggle": true,
         "default_theme_mode": "dark",
         "brand_display_mode": "image",
-        "brand_text_image": "shopify://shop_images/文字层.png",
-        "logo_image": "shopify://shop_images/image.png"
+        "brand_text_image": "brand-wordmark.png",
+        "logo_image": "logo-mark.png",
+        "hide_logo_icon": false
       }
     }
   },

@@ -21,23 +21,41 @@
   <div class="_wide_23f90_6 _panel_23f90_11">
     <div class="_top_23f90_17">
 
-      {%- comment %} 品牌列 {% endcomment -%}
+      {%- comment %} 品牌列（支持隐藏左侧图标 + 支持品牌文字或直传品牌图片） {% endcomment -%}
+      {%- assign raw_logo_img = section.settings.logo_image | default: '' | strip -%}
+      {%- if raw_logo_img contains 'http://' or raw_logo_img contains 'https://' -%}
+        {%- assign logo_img_src = raw_logo_img -%}
+      {%- elsif raw_logo_img != '' -%}
+        {%- assign logo_asset_file = raw_logo_img | remove: 'shopify://shop_images/' | split: '/' | last | default: 'logo-mark.png' -%}
+        {%- assign logo_img_src = logo_asset_file | asset_url -%}
+      {%- elsif settings.logo != blank -%}
+        {%- assign logo_img_src = settings.logo | image_url: width: 68, height: 68 -%}
+      {%- elsif settings.favicon != blank -%}
+        {%- assign logo_img_src = settings.favicon | image_url: width: 68, height: 68 -%}
+      {%- else -%}
+        {%- assign logo_img_src = 'logo-mark.png' | asset_url -%}
+      {%- endif -%}
+
+      {%- assign raw_brand_img = section.settings.brand_text_image | default: '' | strip -%}
+      {%- if raw_brand_img contains 'http://' or raw_brand_img contains 'https://' -%}
+        {%- assign brand_img_src = raw_brand_img -%}
+      {%- elsif raw_brand_img != '' -%}
+        {%- assign brand_asset_file = raw_brand_img | remove: 'shopify://shop_images/' | split: '/' | last | default: 'brand-wordmark.png' -%}
+        {%- assign brand_img_src = brand_asset_file | asset_url -%}
+      {%- else -%}
+        {%- assign brand_img_src = 'brand-wordmark.png' | asset_url -%}
+      {%- endif -%}
+
       <div class="_brandCol_23f90_35">
         <a href="{{ routes.root_url }}" class="_logo_23f90_48" aria-label="{{ brand_prefix }}{{ brand_accent }}">
-          <span class="_logoMark_23f90_60">
-            {%- if section.settings.logo_image != blank -%}
-              <img src="{{ section.settings.logo_image | image_url: width: 68, height: 68 }}" alt="" width="34" height="34">
-            {%- elsif settings.logo != blank -%}
-              <img src="{{ settings.logo | image_url: width: 68, height: 68 }}" alt="" width="34" height="34">
-            {%- elsif settings.favicon != blank -%}
-              <img src="{{ settings.favicon | image_url: width: 68, height: 68 }}" alt="" width="34" height="34">
-            {%- else -%}
-              <img src="{{ 'logo-mark.png' | asset_url }}" alt="" width="34" height="34">
-            {%- endif -%}
-          </span>
+          {%- unless section.settings.hide_logo_icon == true -%}
+            <span class="_logoMark_23f90_60">
+              <img src="{{ logo_img_src }}" alt="" width="34" height="34" style="object-fit:contain;border-radius:6px;">
+            </span>
+          {%- endunless -%}
           <span class="_logoText_23f90_75">
-            {%- if section.settings.brand_display_mode == 'image' and section.settings.brand_text_image != blank -%}
-              <img src="{{ section.settings.brand_text_image | image_url: height: 68 }}" alt="{{ brand_prefix }}{{ brand_accent }}" style="height:28px;max-width:180px;width:auto;object-fit:contain;display:block;">
+            {%- if section.settings.brand_display_mode == 'image' -%}
+              <img src="{{ brand_img_src }}" alt="{{ brand_prefix }}{{ brand_accent }}" style="height:28px;max-width:180px;width:auto;object-fit:contain;display:block;">
             {%- else -%}
               {{ brand_prefix }}<span class="_logoAccent_23f90_83">{{ brand_accent }}</span>
             {%- endif -%}
