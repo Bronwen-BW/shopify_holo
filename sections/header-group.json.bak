@@ -116,7 +116,11 @@
         "brand_accent": "Zone",
         "search_placeholder": "Search cards, sets, sealed…",
         "enable_theme_toggle": true,
-        "default_theme_mode": "dark"
+        "default_theme_mode": "dark",
+        "brand_display_mode": "image",
+        "brand_text_image": "brand-wordmark.png",
+        "logo_image": "logo-mark.png",
+        "hide_logo_icon": false
       }
     }
   },

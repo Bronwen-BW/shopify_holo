@@ -120,7 +120,7 @@
         "brand_display_mode": "image",
         "brand_text_image": "brand-wordmark.png",
         "logo_image": "logo-mark.png",
-        "hide_logo_icon": false
+        "hide_logo_icon": true
       }
     }
   },
