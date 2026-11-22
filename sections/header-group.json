@@ -51,13 +51,24 @@
             "active": false,
             "open_in_new_tab": false
           }
+        },
+        "nav_item_5": {
+          "type": "nav_item",
+          "settings": {
+            "label": "Customization",
+            "sort_order": 5,
+            "active": false,
+            "open_in_new_tab": false,
+            "url": "/pages/custom"
+          }
         }
       },
       "block_order": [
         "nav_home",
         "nav_expansions",
         "nav_shop",
-        "nav_blog"
+        "nav_blog",
+        "nav_item_5"
       ],
       "settings": {
         "brand_prefix": "NIO",

@@ -35,9 +35,44 @@
     box-sizing: border-box;
   }
   @media (max-width: 760px) {
+    .tcg-kami-hero {
+      padding: 20px 0 24px;
+    }
+    body.template-index .tcg-kami-hero {
+      padding-top: 82px;
+    }
     .tcg-kami-hero__inner {
-      grid-template-columns: 1fr;
-      gap: 28px;
+      width: calc(100% - 32px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .tcg-kami-hero__visual {
+      order: 1;
+      width: 100%;
+    }
+    .tcg-kami-hero__copy {
+      order: 2;
+      width: 100%;
+      padding: 0;
+    }
+    .tcg-kami-hero__copy::before,
+    .tcg-kami-hero__kicker,
+    .tcg-kami-hero__title,
+    .tcg-kami-hero__zh,
+    .tcg-kami-hero__en {
+      display: none !important;
+    }
+    .tcg-kami-hero__actions {
+      margin-top: 0 !important;
+      justify-content: center;
+      gap: 10px;
+    }
+    .tcg-kami-hero__btn {
+      flex: 1 1 auto;
+      min-height: 42px;
+      padding: 0 14px;
+      font-size: 13px;
     }
   }
   .tcg-kami-hero__copy {
