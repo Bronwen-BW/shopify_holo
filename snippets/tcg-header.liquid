@@ -2,8 +2,16 @@
   TCG 风格顶部导航（浮动胶囊）
   含导航链接、Shopify 官方搜索、单一图标黑夜/白天模式切换按钮、账户/登录、购物车
 {%- endcomment -%}
-{%- assign brand_prefix = section.settings.brand_prefix | default: 'TCG' -%}
-{%- assign brand_accent = section.settings.brand_accent | default: 'Haven' -%}
+{%- comment -%} EDITOR_SYNC_DEFAULTS_BEGIN {%- endcomment -%}
+{%- assign editor_hide_logo_icon = true -%}
+{%- assign editor_brand_display_mode = 'image' -%}
+{%- assign editor_brand_text_image = 'brand-wordmark.png' -%}
+{%- assign editor_logo_image = 'logo-mark.png' -%}
+{%- assign editor_brand_prefix = 'NIO' -%}
+{%- assign editor_brand_accent = 'Zone' -%}
+{%- comment -%} EDITOR_SYNC_DEFAULTS_END {%- endcomment -%}
+{%- assign brand_prefix = editor_brand_prefix | default: section.settings.brand_prefix | default: 'TCG' -%}
+{%- assign brand_accent = editor_brand_accent | default: section.settings.brand_accent | default: 'Haven' -%}
 {%- assign show_theme_toggle = true -%}
 {%- if section.settings.enable_theme_toggle == false -%}
   {%- assign show_theme_toggle = false -%}
@@ -13,7 +21,7 @@
   <div class="_inner_1hxzp_10">
 
     {%- comment %} 品牌 Logo（支持隐藏左侧图标 + 支持品牌文字或直传品牌图片） {% endcomment -%}
-    {%- assign raw_logo_img = section.settings.logo_image | default: '' | strip -%}
+    {%- assign raw_logo_img = editor_logo_image | default: section.settings.logo_image | default: '' | strip -%}
     {%- if raw_logo_img contains 'http://' or raw_logo_img contains 'https://' -%}
       {%- assign logo_img_src = raw_logo_img -%}
     {%- elsif raw_logo_img != '' -%}
@@ -27,7 +35,7 @@
       {%- assign logo_img_src = 'logo-mark.png' | asset_url -%}
     {%- endif -%}
 
-    {%- assign raw_brand_img = section.settings.brand_text_image | default: '' | strip -%}
+    {%- assign raw_brand_img = editor_brand_text_image | default: section.settings.brand_text_image | default: '' | strip -%}
     {%- if raw_brand_img contains 'http://' or raw_brand_img contains 'https://' -%}
       {%- assign brand_img_src = raw_brand_img -%}
     {%- elsif raw_brand_img != '' -%}
@@ -37,10 +45,8 @@
       {%- assign brand_img_src = 'brand-wordmark.png' | asset_url -%}
     {%- endif -%}
 
-    {%- assign is_hide_logo_icon = false -%}
-    {%- if section.settings.hide_logo_icon == true or section.settings.hide_logo_icon == 'true' -%}
-      {%- assign is_hide_logo_icon = true -%}
-    {%- endif -%}
+    {%- assign active_brand_mode = editor_brand_display_mode | default: section.settings.brand_display_mode | default: 'text' -%}
+    {%- assign is_hide_logo_icon = editor_hide_logo_icon -%}
 
     <a href="{{ routes.root_url }}" class="_logo_1hxzp_32" aria-label="{{ brand_prefix }}{{ brand_accent }}">
       {%- unless is_hide_logo_icon -%}
@@ -49,7 +55,7 @@
         </span>
       {%- endunless -%}
       <span class="_logoText_1hxzp_32" style="max-width:none !important;opacity:1 !important;overflow:visible !important;display:inline-flex !important;align-items:center;">
-        {%- if section.settings.brand_display_mode == 'image' -%}
+        {%- if active_brand_mode == 'image' -%}
           <img src="{{ brand_img_src }}" alt="{{ brand_prefix }}{{ brand_accent }}" style="height:28px;max-width:180px;width:auto;object-fit:contain;display:block;">
         {%- else -%}
           {{ brand_prefix }}<span class="_logoAccent_1hxzp_103">{{ brand_accent }}</span>

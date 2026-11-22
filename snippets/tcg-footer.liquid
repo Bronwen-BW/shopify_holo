@@ -2,8 +2,16 @@
   TCG 风格浮动面板页脚
   全部页面入口均使用 Shopify 官方路由与政策接口（routes / pages / shop.policies）
 {%- endcomment -%}
-{%- assign brand_prefix = section.settings.brand_prefix | default: 'TCG' -%}
-{%- assign brand_accent = section.settings.brand_accent | default: 'Haven' -%}
+{%- comment -%} EDITOR_SYNC_DEFAULTS_BEGIN {%- endcomment -%}
+{%- assign editor_hide_logo_icon = true -%}
+{%- assign editor_brand_display_mode = 'image' -%}
+{%- assign editor_brand_text_image = 'brand-wordmark.png' -%}
+{%- assign editor_logo_image = 'logo-mark.png' -%}
+{%- assign editor_brand_prefix = 'NIO' -%}
+{%- assign editor_brand_accent = 'Zone' -%}
+{%- comment -%} EDITOR_SYNC_DEFAULTS_END {%- endcomment -%}
+{%- assign brand_prefix = editor_brand_prefix | default: section.settings.brand_prefix | default: 'TCG' -%}
+{%- assign brand_accent = editor_brand_accent | default: section.settings.brand_accent | default: 'Haven' -%}
 {%- assign blurb = section.settings.blurb | default: 'A haven for collectors. Singles, sealed product, and accessories across the games you play, condition-checked and shipped fast.' -%}
 {%- assign ig_url = section.settings.instagram_url | default: 'https://www.instagram.com/mylittletcghaven/' -%}
 {%- assign pay_note = section.settings.payments_note | default: 'Secure checkout powered by Shopify Payments' -%}
@@ -22,7 +30,7 @@
     <div class="_top_23f90_17">
 
       {%- comment %} 品牌列（支持隐藏左侧图标 + 支持品牌文字或直传品牌图片） {% endcomment -%}
-      {%- assign raw_logo_img = section.settings.logo_image | default: '' | strip -%}
+      {%- assign raw_logo_img = editor_logo_image | default: section.settings.logo_image | default: '' | strip -%}
       {%- if raw_logo_img contains 'http://' or raw_logo_img contains 'https://' -%}
         {%- assign logo_img_src = raw_logo_img -%}
       {%- elsif raw_logo_img != '' -%}
@@ -36,7 +44,7 @@
         {%- assign logo_img_src = 'logo-mark.png' | asset_url -%}
       {%- endif -%}
 
-      {%- assign raw_brand_img = section.settings.brand_text_image | default: '' | strip -%}
+      {%- assign raw_brand_img = editor_brand_text_image | default: section.settings.brand_text_image | default: '' | strip -%}
       {%- if raw_brand_img contains 'http://' or raw_brand_img contains 'https://' -%}
         {%- assign brand_img_src = raw_brand_img -%}
       {%- elsif raw_brand_img != '' -%}
@@ -46,10 +54,8 @@
         {%- assign brand_img_src = 'brand-wordmark.png' | asset_url -%}
       {%- endif -%}
 
-      {%- assign is_hide_logo_icon = false -%}
-      {%- if section.settings.hide_logo_icon == true or section.settings.hide_logo_icon == 'true' -%}
-        {%- assign is_hide_logo_icon = true -%}
-      {%- endif -%}
+      {%- assign active_brand_mode = editor_brand_display_mode | default: section.settings.brand_display_mode | default: 'text' -%}
+      {%- assign is_hide_logo_icon = editor_hide_logo_icon -%}
 
       <div class="_brandCol_23f90_35">
         <a href="{{ routes.root_url }}" class="_logo_23f90_48" aria-label="{{ brand_prefix }}{{ brand_accent }}">
@@ -59,7 +65,7 @@
             </span>
           {%- endunless -%}
           <span class="_logoText_23f90_75" style="display:inline-flex;align-items:center;">
-            {%- if section.settings.brand_display_mode == 'image' -%}
+            {%- if active_brand_mode == 'image' -%}
               <img src="{{ brand_img_src }}" alt="{{ brand_prefix }}{{ brand_accent }}" style="height:28px;max-width:180px;width:auto;object-fit:contain;display:block;">
             {%- else -%}
               {{ brand_prefix }}<span class="_logoAccent_23f90_83">{{ brand_accent }}</span>
