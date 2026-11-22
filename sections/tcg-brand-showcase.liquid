@@ -1,0 +1,366 @@
+{%- comment -%}
+  TCG 品牌展示主视觉分区（参考 KAMI KAMI 双栏图文 + 右下角浮动说明卡布局，配色与全站 TCG 翠绿/暗夜主题一致）
+{%- endcomment -%}
+{%- assign kicker = section.settings.kicker | default: 'FROM OUR IMAGINATION TO YOURS' -%}
+{%- assign title = section.settings.title | default: 'NIOZONE' -%}
+{%- assign lead_text = section.settings.lead_text | default: 'NIOZone 以擴散式卡磚、鑑定卡殼與卡牌周邊，讓收藏成為珍藏。從卡圖延伸到展示細節，為台灣與海外的收藏者呈現完整的作品風景。' -%}
+{%- assign sub_text = section.settings.sub_text | default: 'We shape collectible display into a finished presentation language. From artwork extension to the acrylic frame itself, every detail brings your collection into focus. Explore our store to find your display style.' -%}
+
+{%- assign btn1_label = section.settings.btn1_label | default: 'SHOP NOW' -%}
+{%- assign btn1_url = section.settings.btn1_url | default: '/collections/all' -%}
+{%- assign btn2_label = section.settings.btn2_label | default: 'View on Instagram' -%}
+{%- assign btn2_url = section.settings.btn2_url | default: 'https://www.instagram.com/' -%}
+{%- assign btn3_label = section.settings.btn3_label | default: '探索系列' -%}
+{%- assign btn3_url = section.settings.btn3_url | default: '/pages/expansions' -%}
+
+{%- assign raw_img = section.settings.showcase_image | default: '' | strip -%}
+{%- if raw_img contains 'http://' or raw_img contains 'https://' -%}
+  {%- assign showcase_img_src = raw_img -%}
+{%- elsif raw_img != '' -%}
+  {%- assign asset_name = raw_img | remove: 'shopify://shop_images/' | split: '/' | last | default: 'brand-showcase-default.webp' -%}
+  {%- assign showcase_img_src = asset_name | asset_url -%}
+{%- else -%}
+  {%- assign showcase_img_src = 'brand-showcase-default.webp' | asset_url -%}
+{%- endif -%}
+
+{%- assign show_float_card = true -%}
+{%- if section.settings.show_float_card == false -%}
+  {%- assign show_float_card = false -%}
+{%- endif -%}
+{%- assign float_label = section.settings.float_label | default: 'DISPLAY DIRECTION' -%}
+{%- assign float_text = section.settings.float_text | default: '延伸卡圖的色彩與故事，以卡磚、鑑定卡殼及展示配件，呈現收藏的完整風景。' -%}
+
+<style>
+  .tcg-kami-hero {
+    padding: 48px 0 40px;
+    position: relative;
+    box-sizing: border-box;
+  }
+  body.template-index .tcg-kami-hero {
+    padding-top: 96px;
+  }
+  .tcg-kami-hero__inner {
+    width: min(1180px, calc(100% - 64px));
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1.02fr) minmax(280px, 0.98fr);
+    gap: clamp(28px, 3.6vw, 48px);
+    align-items: center;
+    box-sizing: border-box;
+  }
+  @media (max-width: 760px) {
+    .tcg-kami-hero__inner {
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+  }
+  .tcg-kami-hero__copy {
+    position: relative;
+    padding: 18px 0;
+    z-index: 1;
+  }
+  .tcg-kami-hero__copy::before {
+    content: "";
+    position: absolute;
+    inset: -30px auto auto -30px;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--tcg-accent, #10b981) 20%, transparent), transparent 70%);
+    filter: blur(12px);
+    pointer-events: none;
+    z-index: -1;
+  }
+  .tcg-kami-hero__kicker {
+    display: inline-block;
+    margin-bottom: 18px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--tcg-border-strong, rgba(249, 250, 251, 0.14));
+    color: var(--tcg-text-secondary, #d4d4d8);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    background: var(--tcg-surface-soft, rgba(249, 250, 251, 0.04));
+  }
+  .tcg-kami-hero__title {
+    margin: 0 0 18px 0;
+    font-family: "Cormorant Garamond", "Playfair Display", Georgia, Rubik, serif;
+    font-size: clamp(52px, 6.2vw, 84px);
+    font-weight: 700;
+    line-height: 0.94;
+    letter-spacing: 0.02em;
+    color: var(--tcg-text, #f9fafb);
+  }
+  .tcg-kami-hero__zh {
+    margin: 0 0 16px 0;
+    color: var(--tcg-accent-hover, #34d399);
+    font-size: clamp(20px, 2.05vw, 25px);
+    font-weight: 700;
+    line-height: 1.75;
+    letter-spacing: 0.01em;
+  }
+  .tcg-kami-hero__en {
+    margin: 0;
+    max-width: 560px;
+    color: var(--tcg-text-muted, #9ca3af);
+    font-size: 15.5px;
+    line-height: 1.88;
+  }
+  .tcg-kami-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 28px;
+  }
+  .tcg-kami-hero__btn {
+    min-height: 46px;
+    padding: 0 22px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, background-color 0.22s ease, border-color 0.22s ease;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+  .tcg-kami-hero__btn:hover {
+    transform: translateY(-2px);
+  }
+  .tcg-kami-hero__btn--primary {
+    color: var(--tcg-accent-fg, #03231a);
+    background: linear-gradient(135deg, var(--tcg-accent-hover, #34d399) 0%, var(--tcg-accent, #10b981) 100%);
+    box-shadow: 0 14px 32px rgba(16, 185, 129, 0.28);
+  }
+  .tcg-kami-hero__btn--ghost {
+    border: 1px solid var(--tcg-border-strong, rgba(249, 250, 251, 0.16));
+    color: var(--tcg-text, #f9fafb);
+    background: var(--tcg-surface-soft, rgba(249, 250, 251, 0.03));
+  }
+  .tcg-kami-hero__btn--ghost:hover {
+    background: var(--tcg-surface-hover, rgba(249, 250, 251, 0.09));
+  }
+  .tcg-kami-hero__btn--accent-outline {
+    color: var(--tcg-accent-hover, #34d399);
+    border: 1px solid color-mix(in srgb, var(--tcg-accent, #10b981) 75%, transparent);
+    background: var(--tcg-accent-soft, rgba(16, 185, 129, 0.10));
+    box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.08);
+  }
+  .tcg-kami-hero__btn--accent-outline:hover {
+    background: rgba(16, 185, 129, 0.18);
+  }
+  .tcg-kami-hero__visual {
+    position: relative;
+    width: 100%;
+    max-width: 540px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tcg-kami-hero__card {
+    width: 100%;
+    max-width: 520px;
+    aspect-ratio: 1.02 / 1;
+    border-radius: 30px;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(249, 250, 251, 0.08), rgba(249, 250, 251, 0.02));
+    border: 1px solid var(--tcg-border-strong, rgba(249, 250, 251, 0.14));
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.52);
+  }
+  .tcg-kami-hero__card img {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 510px !important;
+    object-fit: cover !important;
+    display: block !important;
+  }
+  .tcg-kami-hero__float {
+    position: absolute;
+    right: -8px;
+    bottom: 24px;
+    width: 246px;
+    padding: 18px 20px;
+    border-radius: 22px;
+    background: var(--tcg-glass, rgba(17, 19, 24, 0.86));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid color-mix(in srgb, var(--tcg-accent, #10b981) 32%, rgba(255, 255, 255, 0.12));
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.62);
+    z-index: 2;
+  }
+  @media (max-width: 640px) {
+    .tcg-kami-hero__float {
+      position: static;
+      width: 100%;
+      margin-top: 14px;
+    }
+  }
+  .tcg-kami-hero__float-label {
+    margin-bottom: 8px;
+    color: var(--tcg-accent-hover, #34d399);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .tcg-kami-hero__float-text {
+    color: var(--tcg-text-secondary, #d4d4d8);
+    font-size: 13px;
+    line-height: 1.78;
+  }
+</style>
+
+<section class="tcg-kami-hero" data-tcg-brand-showcase>
+  <div class="tcg-kami-hero__inner">
+    <div class="tcg-kami-hero__copy">
+      {%- if kicker != blank -%}
+        <div class="tcg-kami-hero__kicker">{{ kicker }}</div>
+      {%- endif -%}
+      {%- if title != blank -%}
+        <h2 class="tcg-kami-hero__title">{{ title }}</h2>
+      {%- endif -%}
+      {%- if lead_text != blank -%}
+        <p class="tcg-kami-hero__zh">{{ lead_text }}</p>
+      {%- endif -%}
+      {%- if sub_text != blank -%}
+        <p class="tcg-kami-hero__en">{{ sub_text }}</p>
+      {%- endif -%}
+
+      <div class="tcg-kami-hero__actions">
+        {%- if btn1_label != blank -%}
+          <a class="tcg-kami-hero__btn tcg-kami-hero__btn--primary" href="{{ btn1_url }}">{{ btn1_label }}</a>
+        {%- endif -%}
+        {%- if btn2_label != blank -%}
+          <a class="tcg-kami-hero__btn tcg-kami-hero__btn--ghost" href="{{ btn2_url }}" {% if btn2_url contains 'http' %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ btn2_label }}</a>
+        {%- endif -%}
+        {%- if btn3_label != blank -%}
+          <a class="tcg-kami-hero__btn tcg-kami-hero__btn--accent-outline" href="{{ btn3_url }}">{{ btn3_label }}</a>
+        {%- endif -%}
+      </div>
+    </div>
+
+    <div class="tcg-kami-hero__visual">
+      <div class="tcg-kami-hero__card">
+        <img src="{{ showcase_img_src }}" alt="{{ title | escape }}" loading="lazy">
+      </div>
+      {%- if show_float_card -%}
+        <div class="tcg-kami-hero__float">
+          {%- if float_label != blank -%}
+            <div class="tcg-kami-hero__float-label">{{ float_label }}</div>
+          {%- endif -%}
+          {%- if float_text != blank -%}
+            <div class="tcg-kami-hero__float-text">{{ float_text }}</div>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "TCG 品牌展示主视觉 (KAMI 风格)",
+  "tag": "section",
+  "class": "tcg-brand-showcase-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "kicker",
+      "label": "顶部胶囊小标题 (Kicker)",
+      "default": "FROM OUR IMAGINATION TO YOURS"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "品牌主标题 (Title)",
+      "default": "NIOZONE"
+    },
+    {
+      "type": "textarea",
+      "id": "lead_text",
+      "label": "核心导语（主题高亮色段落）",
+      "default": "NIOZone 以擴散式卡磚、鑑定卡殼與卡牌周邊，讓收藏成為珍藏。從卡圖延伸到展示細節，為台灣與海外的收藏者呈現完整的作品風景。"
+    },
+    {
+      "type": "textarea",
+      "id": "sub_text",
+      "label": "副标题说明段落（英文/次要文案）",
+      "default": "We shape collectible display into a finished presentation language. From artwork extension to the acrylic frame itself, every detail brings your collection into focus. Explore our store to find your display style."
+    },
+    {
+      "type": "header",
+      "content": "按钮配置（留空按钮文字即隐藏该按钮）"
+    },
+    {
+      "type": "text",
+      "id": "btn1_label",
+      "label": "主按钮文字 (Button 1)",
+      "default": "SHOP NOW"
+    },
+    {
+      "type": "url",
+      "id": "btn1_url",
+      "label": "主按钮跳转链接 (Button 1 URL)"
+    },
+    {
+      "type": "text",
+      "id": "btn2_label",
+      "label": "次按钮文字 (Button 2)",
+      "default": "View on Instagram"
+    },
+    {
+      "type": "url",
+      "id": "btn2_url",
+      "label": "次按钮跳转链接 (Button 2 URL)"
+    },
+    {
+      "type": "text",
+      "id": "btn3_label",
+      "label": "第三按钮文字 (Button 3)",
+      "default": "探索系列"
+    },
+    {
+      "type": "url",
+      "id": "btn3_url",
+      "label": "第三按钮跳转链接 (Button 3 URL)"
+    },
+    {
+      "type": "header",
+      "content": "右侧展示大图与右下角浮动卡片"
+    },
+    {
+      "type": "text",
+      "id": "showcase_image",
+      "label": "右侧展示主图 (图片链接或上传本地图片)",
+      "default": "brand-showcase-default.webp"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_float_card",
+      "label": "显示右下角浮动说明卡片",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "float_label",
+      "label": "浮动卡片小标题 (Display Direction)",
+      "default": "DISPLAY DIRECTION"
+    },
+    {
+      "type": "textarea",
+      "id": "float_text",
+      "label": "浮动卡片正文描述",
+      "default": "延伸卡圖的色彩與故事，以卡磚、鑑定卡殼及展示配件，呈現收藏的完整風景。"
+    }
+  ],
+  "presets": [
+    {
+      "name": "TCG 品牌展示主视觉 (KAMI 风格)"
+    }
+  ]
+}
+{% endschema %}

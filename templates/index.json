@@ -9,6 +9,23 @@
  */
 {
   "sections": {
+    "brand-showcase_5417": {
+      "type": "tcg-brand-showcase",
+      "settings": {
+        "kicker": "FROM OUR IMAGINATION TO YOURS",
+        "title": "NIOZONE",
+        "lead_text": "NIOZone 以擴散式卡磚、鑑定卡殼與卡牌周邊，讓收藏成為珍藏。從卡圖延伸到展示細節，為台灣與海外的收藏者呈現完整的作品風景。",
+        "sub_text": "We shape collectible display into a finished presentation language. From artwork extension to the acrylic frame itself, every detail brings your collection into focus. Explore our store to find your display style.",
+        "btn1_label": "SHOP NOW",
+        "btn2_label": "View on Instagram",
+        "btn3_label": "探索系列",
+        "showcase_image": "brand-showcase-default.webp",
+        "show_float_card": true,
+        "float_label": "DISPLAY DIRECTION",
+        "float_text": "延伸卡圖的色彩與故事，以卡磚、鑑定卡殼及展示配件，呈現收藏的完整風景。",
+        "btn1_url": "/"
+      }
+    },
     "hero": {
       "type": "tcg-hero",
       "settings": {
@@ -110,7 +127,8 @@
         "hot_3",
         "hot_4",
         "hot_5"
-      ]
+      ],
+      "disabled": true
     },
     "games": {
       "type": "tcg-games",
@@ -266,6 +284,7 @@
     }
   },
   "order": [
+    "brand-showcase_5417",
     "hero",
     "games",
     "sets",
