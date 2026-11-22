@@ -46,14 +46,19 @@
         {%- assign brand_img_src = 'brand-wordmark.png' | asset_url -%}
       {%- endif -%}
 
+      {%- assign is_hide_logo_icon = false -%}
+      {%- if section.settings.hide_logo_icon == true or section.settings.hide_logo_icon == 'true' -%}
+        {%- assign is_hide_logo_icon = true -%}
+      {%- endif -%}
+
       <div class="_brandCol_23f90_35">
         <a href="{{ routes.root_url }}" class="_logo_23f90_48" aria-label="{{ brand_prefix }}{{ brand_accent }}">
-          {%- unless section.settings.hide_logo_icon == true -%}
+          {%- unless is_hide_logo_icon -%}
             <span class="_logoMark_23f90_60">
               <img src="{{ logo_img_src }}" alt="" width="34" height="34" style="object-fit:contain;border-radius:6px;">
             </span>
           {%- endunless -%}
-          <span class="_logoText_23f90_75">
+          <span class="_logoText_23f90_75" style="display:inline-flex;align-items:center;">
             {%- if section.settings.brand_display_mode == 'image' -%}
               <img src="{{ brand_img_src }}" alt="{{ brand_prefix }}{{ brand_accent }}" style="height:28px;max-width:180px;width:auto;object-fit:contain;display:block;">
             {%- else -%}
