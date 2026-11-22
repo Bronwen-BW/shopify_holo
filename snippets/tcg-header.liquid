@@ -15,7 +15,15 @@
     {%- comment %} 品牌 Logo {% endcomment -%}
     <a href="{{ routes.root_url }}" class="_logo_1hxzp_32" aria-label="{{ brand_prefix }}{{ brand_accent }}">
       <span class="_logoMark_1hxzp_80">
-        <img src="{{ 'logo-mark.png' | asset_url }}" alt="" width="34" height="34">
+        {%- if section.settings.logo_image != blank -%}
+          <img src="{{ section.settings.logo_image | image_url: width: 68, height: 68 }}" alt="" width="34" height="34">
+        {%- elsif settings.logo != blank -%}
+          <img src="{{ settings.logo | image_url: width: 68, height: 68 }}" alt="" width="34" height="34">
+        {%- elsif settings.favicon != blank -%}
+          <img src="{{ settings.favicon | image_url: width: 68, height: 68 }}" alt="" width="34" height="34">
+        {%- else -%}
+          <img src="{{ 'logo-mark.png' | asset_url }}" alt="" width="34" height="34">
+        {%- endif -%}
       </span>
       <span class="_logoText_1hxzp_32">{{ brand_prefix }}<span class="_logoAccent_1hxzp_103">{{ brand_accent }}</span></span>
     </a>

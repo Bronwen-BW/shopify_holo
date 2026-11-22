@@ -24,7 +24,17 @@
       {%- comment %} 品牌列 {% endcomment -%}
       <div class="_brandCol_23f90_35">
         <a href="{{ routes.root_url }}" class="_logo_23f90_48" aria-label="{{ brand_prefix }}{{ brand_accent }}">
-          <span class="_logoMark_23f90_60"><img src="{{ 'logo-mark.png' | asset_url }}" alt="" width="34" height="34"></span>
+          <span class="_logoMark_23f90_60">
+            {%- if section.settings.logo_image != blank -%}
+              <img src="{{ section.settings.logo_image | image_url: width: 68, height: 68 }}" alt="" width="34" height="34">
+            {%- elsif settings.logo != blank -%}
+              <img src="{{ settings.logo | image_url: width: 68, height: 68 }}" alt="" width="34" height="34">
+            {%- elsif settings.favicon != blank -%}
+              <img src="{{ settings.favicon | image_url: width: 68, height: 68 }}" alt="" width="34" height="34">
+            {%- else -%}
+              <img src="{{ 'logo-mark.png' | asset_url }}" alt="" width="34" height="34">
+            {%- endif -%}
+          </span>
           <span class="_logoText_23f90_75">{{ brand_prefix }}<span class="_logoAccent_23f90_83">{{ brand_accent }}</span></span>
         </a>
         <p class="_blurb_23f90_88">{{ blurb }}</p>

@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "type": "header",
   "name": "Header",
@@ -14,12 +23,22 @@
             "active": false
           }
         },
+        "nav_expansions": {
+          "type": "nav_item",
+          "settings": {
+            "label": "Expansion",
+            "url": "/pages/expansions",
+            "sort_order": 2,
+            "active": false,
+            "open_in_new_tab": false
+          }
+        },
         "nav_shop": {
           "type": "nav_item",
           "settings": {
             "label": "Shop",
             "url": "/collections/all",
-            "sort_order": 2,
+            "sort_order": 3,
             "active": false
           }
         },
@@ -28,8 +47,18 @@
           "settings": {
             "label": "Collections",
             "url": "/collections",
-            "sort_order": 3,
+            "sort_order": 4,
             "active": false
+          }
+        },
+        "nav_custom_page": {
+          "type": "nav_item",
+          "settings": {
+            "label": "Custom",
+            "url": "/pages/custom",
+            "sort_order": 5,
+            "active": false,
+            "open_in_new_tab": false
           }
         },
         "nav_about": {
@@ -37,7 +66,7 @@
           "settings": {
             "label": "About us",
             "url": "/pages/about",
-            "sort_order": 4,
+            "sort_order": 6,
             "active": false
           }
         },
@@ -46,7 +75,7 @@
           "settings": {
             "label": "Contact",
             "url": "/pages/contact",
-            "sort_order": 5,
+            "sort_order": 7,
             "active": false
           }
         },
@@ -55,7 +84,7 @@
           "settings": {
             "label": "Articles",
             "url": "/blogs/news",
-            "sort_order": 6,
+            "sort_order": 8,
             "active": false,
             "open_in_new_tab": false
           }
@@ -65,7 +94,7 @@
           "settings": {
             "label": "宝可梦",
             "url": "/collections/all1",
-            "sort_order": 7,
+            "sort_order": 9,
             "active": false,
             "open_in_new_tab": false
           }
@@ -73,16 +102,18 @@
       },
       "block_order": [
         "nav_home",
+        "nav_expansions",
         "nav_shop",
         "nav_games",
+        "nav_custom_page",
         "nav_about",
         "nav_contact",
         "nav_blog",
         "nav_custom_6"
       ],
       "settings": {
-        "brand_prefix": "TCG",
-        "brand_accent": "Haven",
+        "brand_prefix": "Deck",
+        "brand_accent": "Lingo",
         "search_placeholder": "Search cards, sets, sealed…",
         "enable_theme_toggle": true,
         "default_theme_mode": "dark"
