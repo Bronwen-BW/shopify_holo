@@ -16,6 +16,21 @@
       "label": "网站图标 / 页脚品牌 Logo 图片"
     },
     {
+      "type": "select",
+      "id": "brand_display_mode",
+      "label": "品牌名称展示方式",
+      "default": "text",
+      "options": [
+        { "value": "text", "label": "文字填写（品牌主名称 + 高亮后缀）" },
+        { "value": "image", "label": "直传图片（品牌名称图片）" }
+      ]
+    },
+    {
+      "type": "image_picker",
+      "id": "brand_text_image",
+      "label": "品牌名称图片（直传图片模式下展示）"
+    },
+    {
       "type": "text",
       "id": "brand_prefix",
       "label": "品牌主名称",

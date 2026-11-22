@@ -25,7 +25,13 @@
           <img src="{{ 'logo-mark.png' | asset_url }}" alt="" width="34" height="34">
         {%- endif -%}
       </span>
-      <span class="_logoText_1hxzp_32">{{ brand_prefix }}<span class="_logoAccent_1hxzp_103">{{ brand_accent }}</span></span>
+      <span class="_logoText_1hxzp_32">
+        {%- if section.settings.brand_display_mode == 'image' and section.settings.brand_text_image != blank -%}
+          <img src="{{ section.settings.brand_text_image | image_url: height: 68 }}" alt="{{ brand_prefix }}{{ brand_accent }}" style="height:28px;max-width:180px;width:auto;object-fit:contain;display:block;">
+        {%- else -%}
+          {{ brand_prefix }}<span class="_logoAccent_1hxzp_103">{{ brand_accent }}</span>
+        {%- endif -%}
+      </span>
     </a>
 
     {%- comment %} 桌面主导航：由 section.blocks 驱动，支持编辑器增删改与排序 {% endcomment -%}
