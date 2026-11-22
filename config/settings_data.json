@@ -3,7 +3,9 @@
     "default_theme_mode": "dark",
     "enable_theme_toggle": true,
     "tcg_accent_color": "#10b981",
-    "content_for_index": []
+    "content_for_index": [],
+    "favicon": "shopify://shop_images/image.png",
+    "logo": "shopify://shop_images/image.png"
   },
   "platform_customizations": {
     "custom_css": []
